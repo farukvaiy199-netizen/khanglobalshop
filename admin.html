@@ -376,6 +376,10 @@ firebase.initializeApp(firebaseConfig);
 const fireDb = firebase.firestore();
 const fireAuth = firebase.auth();
 
+// SmartBiz ব্যাকএন্ডের সাথে সংযুক্ত ডিফল্ট Webhook লিংক — settings-এ এখনো কিছু সেভ করা না থাকলে এগুলো ব্যবহার হবে
+const DEFAULT_ORDER_WEBHOOK_URL = 'https://faruk-smartbiz-backend-1.onrender.com/api/webhook/order';
+const DEFAULT_AI_WEBHOOK_URL = 'https://faruk-smartbiz-backend-1.onrender.com/api/webhook/ai-reply';
+
 const FIRESTORE_ROOT = 'bazaar_store/khanglobalshop_main';
 const SETTINGS_DOC = FIRESTORE_ROOT + '/parts/settings';
 const SETTINGS_SECURE_DOC = FIRESTORE_ROOT + '/parts/settings_secure';
@@ -406,11 +410,14 @@ function closeModal(id){ document.getElementById(id).classList.remove('active');
 let DB = { settings:{}, settingsSecure:{}, categories:[], products:[] };
 
 function defaultSettings(){
-  return {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'', phone:'', address:'', currency:'৳', tax:0, freeShip:500, announce:'', coupons:{}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:false, bkashNumber:'', nagadNumber:'', twitter:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:'', orderWebhookUrl:'', domain:'', orderCancelWindowMinutes:60};
+  return {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'', phone:'', address:'', currency:'৳', tax:0, freeShip:500, announce:'', coupons:{}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:true, bkashNumber:'', nagadNumber:'', twitter:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:DEFAULT_AI_WEBHOOK_URL, orderWebhookUrl:DEFAULT_ORDER_WEBHOOK_URL, domain:'', orderCancelWindowMinutes:60};
 }
 function applySettingsDefaults(s){
   const d = defaultSettings();
   Object.keys(d).forEach(k=>{ if(s[k]===undefined) s[k]=d[k]; });
+  // এখনো কোনো Webhook URL সেভ করা না থাকলে SmartBiz-এর ডিফল্ট লিংক বসিয়ে দাও ও AI অটো-রিপ্লাই চালু রাখো
+  if(!s.orderWebhookUrl) s.orderWebhookUrl = DEFAULT_ORDER_WEBHOOK_URL;
+  if(!s.aiWebhookUrl){ s.aiWebhookUrl = DEFAULT_AI_WEBHOOK_URL; s.aiAutoReply = true; }
   return s;
 }
 
@@ -515,7 +522,14 @@ async function doLogin(){
 }
 function doLogout(){ fireAuth.signOut(); }
 fireAuth.onAuthStateChanged(async (user)=>{
-  if(user){
+  const isPasswordAdmin = !!(user && user.providerData && user.providerData.some(p=>p.providerId==='password'));
+  if(user && !isPasswordAdmin){
+    // এটা কোনো Google-signed-in কাস্টমার সেশন (একই ডোমেইনে ইউজার প্যানেলে লগইন করা ছিল) —
+    // এডমিন হিসেবে গণ্য না করে সাথে সাথে সাইন-আউট করে লগইন স্ক্রিন দেখাও।
+    await fireAuth.signOut();
+    return;
+  }
+  if(user && isPasswordAdmin){
     await loadCoreData();
     document.getElementById('loginScreen').style.display='none';
     document.getElementById('adminShell').classList.add('active');
