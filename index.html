@@ -986,10 +986,15 @@ function renderMyOrdersFromCache(){
   if(myOrdersCache.length===0){ list.innerHTML=`<div class="empty-state"><div class="emoji">📦</div>এখনো কোনো অর্ডার নেই</div>`; return; }
   list.innerHTML = myOrdersCache.map(o=>{
     const cancellable = canCancelOrder(o);
+    const hasCourier = o.courier && o.courier!=='নির্ধারণ করা হয়নি';
+    const trackHtml = o.steadfastTrackingId
+      ? `<div style="font-size:12px; margin-bottom:6px;">🚚 ${escapeHtml(o.courier||'কুরিয়ার')} — ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.steadfastTrackingId)}</b> <a href="https://steadfast.com.bd/t/${encodeURIComponent(o.steadfastTrackingId)}" target="_blank" rel="noopener" style="color:var(--primary); font-weight:700; text-decoration:underline;">ট্র্যাক করুন ↗</a></div>`
+      : (hasCourier ? `<div style="font-size:12px; margin-bottom:6px;">🚚 কুরিয়ার: <b>${escapeHtml(o.courier)}</b></div>` : '');
     return `<div class="cart-item" style="align-items:flex-start;">
       <div class="thumb">📦</div>
       <div class="info"><div class="name">${o.id} <span class="status-pill ${o.status}">${statusLabel(o.status)}</span></div>
       <div class="variant" style="font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">${o.date} • ${(o.items||[]).length} আইটেম</div>
+      ${trackHtml}
       <div class="row-bottom"><span class="price">৳${o.total}</span>${cancellable?`<a class="remove-link" onclick="cancelOrder('${o.id}')">অর্ডার বাতিল করুন (${cancelRemainingMinutes(o)} মিনিট বাকি)</a>`:''}</div></div></div>`;
   }).join('');
 }
@@ -1025,32 +1030,40 @@ function applyContactLinks(){
   else{ waBtn.style.display='none'; }
 }
 
-let heroSlideIndex = 0, heroSlideCount = 0, heroAutoTimer = null;
+let heroSlideIndex = 0, heroSlideCount = 0, heroAutoTimer = null, heroSignature = '';
+const HERO_INTERVAL_MS = 30000; // ৩০ সেকেন্ড
+function startHeroTimer(){
+  clearInterval(heroAutoTimer);
+  if(heroSlideCount>1){
+    heroAutoTimer = setInterval(()=>{ heroSlideIndex=(heroSlideIndex+1)%heroSlideCount; updateHeroTrackPosition(); }, HERO_INTERVAL_MS);
+  }
+}
 function renderHeroSlider(){
   const custom = (DB.settings.banners||[]).filter(b=>b.image||b.title||b.subtitle);
   const banners = custom.length ? custom : [{
     image: DB.settings.banner||'', title:'ঈদ স্পেশাল অফার', subtitle:'নির্বাচিত পণ্যে ৩০% পর্যন্ত ছাড় — আজই কিনুন', buttonText:'এখনই কিনুন', productId:''
   }];
-  heroSlideCount = banners.length;
   const track = document.getElementById('heroTrack');
+  const sig = JSON.stringify(banners);
+  if(sig===heroSignature && track.children.length) return; // ব্যানার বদলায়নি, রিসেট করো না
+  heroSignature = sig;
+  heroSlideCount = banners.length;
   track.innerHTML = banners.map(b=>`
     <div class="hero-banner" ${b.image?`style="background-image:linear-gradient(135deg, rgba(15,110,93,.55), rgba(10,78,66,.65)), url('${b.image}');"`:''}>
       <h2>${escapeHtml(b.title||'')}</h2>
       <p>${escapeHtml(b.subtitle||'')}</p>
       <span class="cta" onclick="handleBannerCta('${b.productId||''}')">${escapeHtml(b.buttonText||'এখনই কিনুন')} →</span>
     </div>`).join('');
-  const dots = document.getElementById('heroDots');
-  dots.innerHTML = heroSlideCount>1 ? banners.map((b,i)=>`<span class="hero-dot ${i===0?'active':''}" onclick="gotoHeroSlide(${i})"></span>`).join('') : '';
+  document.getElementById('heroDots').innerHTML = heroSlideCount>1 ? banners.map((b,i)=>`<span class="hero-dot ${i===0?'active':''}" onclick="gotoHeroSlide(${i})"></span>`).join('') : '';
   heroSlideIndex = 0;
   updateHeroTrackPosition();
-  clearInterval(heroAutoTimer);
-  if(heroSlideCount>1){ heroAutoTimer = setInterval(()=>{ heroSlideIndex=(heroSlideIndex+1)%heroSlideCount; updateHeroTrackPosition(); }, 4500); }
+  startHeroTimer();
 }
 function updateHeroTrackPosition(){
   document.getElementById('heroTrack').style.transform = `translateX(-${heroSlideIndex*100}%)`;
   document.querySelectorAll('.hero-dot').forEach((d,i)=>d.classList.toggle('active', i===heroSlideIndex));
 }
-function gotoHeroSlide(i){ heroSlideIndex=i; updateHeroTrackPosition(); }
+function gotoHeroSlide(i){ heroSlideIndex=i; updateHeroTrackPosition(); startHeroTimer(); }
 function handleBannerCta(productId){ if(productId){ openProduct(productId); } else { goto('shopView'); } }
 
 function getProductUrl(id){
