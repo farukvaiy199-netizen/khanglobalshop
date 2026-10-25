@@ -286,6 +286,13 @@ img{max-width:100%; display:block;}
       ℹ️ গ্রাহক প্যানেলের "আমার অ্যাকাউন্ট" থেকে গ্রাহক নিজে তার অর্ডার বাতিল করতে পারবেন — তবে শুধু তখনই যখন অর্ডারটি এখনো <b>Pending</b> অবস্থায় আছে এবং অর্ডার করার পর থেকে নিচের সময়সীমা পার হয়নি।
     </div>
     <div class="form-group"><label>অর্ডার বাতিলের সময়সীমা (মিনিট)</label><input id="setCancelWindowMinutes" type="number" min="1" placeholder="যেমন 60"></div>
+    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🏷️ কুপন কোড</h3></div>
+    <div id="couponManagerList"></div>
+    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;">
+      <input id="newCouponCode" placeholder="কোড, যেমন EID50" style="flex:2; min-width:120px; border:1px solid var(--line); border-radius:8px; padding:10px; text-transform:uppercase;">
+      <input id="newCouponAmount" type="number" min="1" placeholder="ছাড় (৳)" style="flex:1; min-width:90px; border:1px solid var(--line); border-radius:8px; padding:10px;">
+      <button class="mini-btn primary" onclick="addCoupon()">+ যোগ করুন</button>
+    </div>
     <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">📞 যোগাযোগ লিংক</h3></div>
     <div class="form-group"><label>ফেসবুক পেজ লিংক</label><input id="setFacebook" placeholder="https://facebook.com/yourpage"></div>
     <div class="form-group"><label>হোয়াটসঅ্যাপ নাম্বার (কান্ট্রি কোড সহ, যেমন 8801XXXXXXXXX)</label><input id="setWhatsapp" placeholder="8801XXXXXXXXX"></div>
@@ -559,11 +566,63 @@ function gotoAdmin(tabId){
 
 /* ---------------- 📦 অর্ডার (collection: orders/{orderId}) ---------------- */
 let ordersCache = [];
+const restoringNow = new Set();
+async function refreshProducts(){
+  try{
+    const s = await fireDb.collection(PRODUCTS_COL).get();
+    DB.products = s.docs.map(d=>Object.assign({}, d.data(), {id:d.id}));
+  }catch(e){}
+}
+async function restoreStockForOrder(orderId){
+  try{
+    await fireDb.runTransaction(async tx=>{
+      const oRef = fireDb.doc(`${ORDERS_COL}/${orderId}`);
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists) return;
+      const o = oSnap.data();
+      if(o.status!=='cancelled' || o.stockRestored) return;
+      const items = o.items||[];
+      const refs = items.map(it=>fireDb.doc(`${PRODUCTS_COL}/${it.pid}`));
+      const snaps = await Promise.all(refs.map(r=>tx.get(r)));
+      snaps.forEach((s,i)=>{ if(s.exists) tx.update(refs[i], { stock: (s.data().stock||0) + items[i].qty }); });
+      tx.update(oRef, { stockRestored: true });
+    });
+    return true;
+  }catch(e){ return false; }
+}
+async function redeductStockForOrder(orderId){
+  try{
+    await fireDb.runTransaction(async tx=>{
+      const oRef = fireDb.doc(`${ORDERS_COL}/${orderId}`);
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists) return;
+      const o = oSnap.data();
+      if(o.status==='cancelled' || !o.stockRestored) return;
+      const items = o.items||[];
+      const refs = items.map(it=>fireDb.doc(`${PRODUCTS_COL}/${it.pid}`));
+      const snaps = await Promise.all(refs.map(r=>tx.get(r)));
+      snaps.forEach((s,i)=>{ if(s.exists) tx.update(refs[i], { stock: Math.max((s.data().stock||0) - items[i].qty, 0) }); });
+      tx.update(oRef, { stockRestored: false });
+    });
+  }catch(e){}
+}
+async function autoRestoreCancelledStock(){
+  const list = ordersCache.filter(o=>o.status==='cancelled' && !o.stockRestored && !restoringNow.has(o.id));
+  if(!list.length) return;
+  let changed = false;
+  for(const o of list){
+    restoringNow.add(o.id);
+    if(await restoreStockForOrder(o.id)){ o.stockRestored = true; changed = true; }
+    restoringNow.delete(o.id);
+  }
+  if(changed) await refreshProducts();
+}
 async function fetchAllOrders(){
   try{
     const snap = await fireDb.collection(ORDERS_COL).orderBy('createdAt','desc').limit(500).get();
     ordersCache = snap.docs.map(d=>d.data());
   }catch(e){ ordersCache = []; }
+  autoRestoreCancelledStock();
   return ordersCache;
 }
 function getPeriodStartDate(period){
@@ -672,6 +731,9 @@ async function updateOrder(id){
   const newPaymentStatus = document.getElementById('orderPaymentChange').value;
   try{
     await fireDb.doc(`${ORDERS_COL}/${id}`).update({ status:newStatus, courier:newCourier, paymentStatus:newPaymentStatus });
+    if(newStatus==='cancelled') await restoreStockForOrder(id);
+    else await redeductStockForOrder(id);
+    await refreshProducts();
   }catch(e){
     toast('⚠️ আপডেট করা যায়নি — সংযোগ যাচাই করুন');
     return;
@@ -1085,6 +1147,7 @@ async function loadSettingsForm(){
   document.getElementById('setOrderWebhookUrl').value = s.orderWebhookUrl || '';
   document.getElementById('setNewPassword').value = '';
   renderPaymentPlanManager();
+  renderCouponManager();
   renderSteadfastConfig();
   if(s.logo){ document.getElementById('logoPreview').src=s.logo; document.getElementById('logoPreview').style.display='block'; document.getElementById('logoPlaceholder').style.display='none'; }
   else{ document.getElementById('logoPreview').style.display='none'; document.getElementById('logoPlaceholder').style.display='block'; }
@@ -1181,6 +1244,36 @@ async function removePaymentPlan(percent){
   await persistSettings();
   renderPaymentPlanManager();
   toast('প্ল্যান মুছে ফেলা হয়েছে');
+}
+function renderCouponManager(){
+  if(!DB.settings.coupons) DB.settings.coupons = {};
+  const entries = Object.entries(DB.settings.coupons);
+  document.getElementById('couponManagerList').innerHTML = entries.length===0
+    ? `<div style="color:var(--ink-soft); font-size:12.5px; margin-bottom:10px;">কোনো কুপন নেই। নিচ থেকে যোগ করুন।</div>`
+    : entries.map(([code,amt])=>`<div style="display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px;">
+        <span style="font-weight:700; font-size:13px;">${escapeHtml(code)} — ৳${escapeHtml(amt)} ছাড়</span>
+        <button class="mini-btn danger" onclick="removeCoupon('${escapeHtml(code)}')">মুছুন</button>
+      </div>`).join('');
+}
+async function addCoupon(){
+  const code = document.getElementById('newCouponCode').value.trim().toUpperCase();
+  const amt = parseInt(document.getElementById('newCouponAmount').value);
+  if(!/^[A-Z0-9_-]{3,20}$/.test(code)){ toast('কোড ৩-২০ অক্ষরের হতে হবে (ইংরেজি অক্ষর/সংখ্যা)'); return; }
+  if(!amt || amt<1){ toast('সঠিক ছাড়ের পরিমাণ দিন'); return; }
+  if(!DB.settings.coupons) DB.settings.coupons = {};
+  DB.settings.coupons[code] = amt;
+  if(!await persistSettings()) return;
+  document.getElementById('newCouponCode').value = '';
+  document.getElementById('newCouponAmount').value = '';
+  renderCouponManager();
+  toast('কুপন যোগ করা হয়েছে ✓');
+}
+async function removeCoupon(code){
+  if(!confirm(code + ' কুপনটি মুছবেন?')) return;
+  delete DB.settings.coupons[code];
+  if(!await persistSettings()) return;
+  renderCouponManager();
+  toast('কুপন মুছে ফেলা হয়েছে');
 }
 function renderSteadfastConfig(){
   const s = DB.settingsSecure;
