@@ -140,6 +140,114 @@ img{max-width:100%; display:block;}
 .cloud-status-box .txt-wrap{flex:1; line-height:1.6;}
 .cloud-status-box .txt-wrap .main{font-weight:700;}
 .cloud-status-box .txt-wrap .sub{color:var(--ink-soft); font-size:11.5px; margin-top:2px;}
+
+/* ===================== নতুন প্রফেশনাল ডিজাইন (শুধু চেহারা) ===================== */
+:root{--bg:#EAF6F2; --line:#E1ECE8; --shadow:0 4px 16px rgba(15,110,93,.08); --shadow-lift:0 10px 28px rgba(15,110,93,.16); --sky:#3AA0D8; --sky-tint:#E3F3FB;}
+body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixed; min-height:100vh;}
+.login-screen{background:linear-gradient(145deg,#0F6E5D 0%,#1B8F86 55%,#3AA0D8 100%);}
+.admin-topbar{background:rgba(255,255,255,.9); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); color:var(--ink); border-bottom:1px solid var(--line); padding:10px 16px;}
+.admin-topbar .abrand{gap:10px;}
+.abrand img{width:40px; height:40px; border-radius:50%; box-shadow:var(--shadow); flex-shrink:0;}
+.abrand .bt b{display:block; font-size:15px; line-height:1.25; font-weight:800;}
+.abrand .bt small{display:block; font-size:11px; color:var(--ink-soft); font-weight:500;}
+.admin-topbar .live-btn{background:linear-gradient(135deg,var(--sky),#2B86C0); color:#fff; border-radius:10px; padding:8px 12px;}
+.admin-topbar .exit-btn{background:var(--danger-tint); color:var(--danger); border-radius:10px; padding:8px 12px;}
+.admin-tabs{display:none !important;}
+.admin-view{padding:14px 16px 110px;}
+.pg-title{font-family:'Baloo Da 2','Hind Siliguri',sans-serif; font-size:23px; font-weight:800; margin:2px 2px 4px;}
+.pg-sub{font-size:12px; color:var(--ink-soft); margin:0 2px 12px;}
+
+.admin-toolbar select, .admin-toolbar input{border:none; border-radius:12px; padding:10px 14px; box-shadow:var(--shadow); background:#fff;}
+.mini-btn{border-radius:10px; padding:7px 12px; box-shadow:var(--shadow); border-color:transparent;}
+.checkout-btn{border-radius:14px; background:linear-gradient(135deg,#0F6E5D,#13897A); box-shadow:var(--shadow);}
+
+/* KPI */
+.kpi-grid{gap:12px;}
+.kpi-card{border:none; border-radius:18px; box-shadow:var(--shadow); display:grid; grid-template-columns:auto 1fr; column-gap:12px; align-items:center; padding:13px;}
+.kpi-card .kic{grid-row:1 / 3; width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center;}
+.kpi-card .value{grid-column:2; grid-row:1; font-size:19px; line-height:1.25;}
+.kpi-card .label{grid-column:2; grid-row:2; margin:0; font-size:11.5px;}
+.kic.c-pend{background:#FCEED8; color:#B87400;} .kic.c-rev{background:#E4F1EC; color:#0F6E5D;}
+.kic.c-ord{background:#E3ECFB; color:#2952A3;} .kic.c-prod{background:#E4F1EC; color:#0F6E5D;}
+.kic.c-cus{background:#E3F3FB; color:#2B86C0;} .kic.c-low{background:#FBE7DC; color:#C1440E;}
+.kic.c-ven{background:#F0E6F8; color:#7B3FB0;}
+.kpi-card.accent{order:-1; grid-column:1 / -1; display:block; padding:18px; color:#fff;
+  background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='70' viewBox='0 0 200 70'><path d='M0 55 C25 50 35 30 60 38 S100 58 125 30 S170 10 200 14' fill='none' stroke='white' stroke-opacity='.75' stroke-width='2.5'/></svg>") no-repeat right bottom / 190px 66px, linear-gradient(135deg,#0F6E5D 0%,#0A4E42 55%,#1B7FA8 100%);}
+.kpi-card.accent .kic{display:none;}
+.kpi-card.accent .label{color:rgba(255,255,255,.82); font-size:12.5px; margin-bottom:4px;}
+.kpi-card.accent .value{color:#fff; font-size:32px;}
+.kpi-card.warn .value{color:var(--danger);}
+
+/* টেবিল সাধারণ */
+.data-table{border:none; border-radius:14px; box-shadow:var(--shadow);}
+.data-table th{background:var(--primary-tint);}
+
+/* মোবাইলে অর্ডার/পণ্য তালিকা কার্ডের মতো */
+@media(max-width:700px){
+  #allOrdersTable, #allOrdersTable tbody, #recentOrdersTable, #recentOrdersTable tbody, #adminProductsTable, #adminProductsTable tbody{display:block; background:transparent; border:none; box-shadow:none;}
+  #allOrdersTable tr:has(th), #recentOrdersTable tr:has(th), #adminProductsTable tr:has(th){display:none;}
+  #allOrdersTable td, #recentOrdersTable td, #adminProductsTable td{border:none; padding:0; min-width:0;}
+  #allOrdersTable tr:has(td:nth-child(10)){display:grid; grid-template-columns:1fr auto; grid-template-areas:"cust amt" "id stat" "pay pst" "cour act" "addr addr" "date date"; gap:7px 10px; align-items:center; background:#fff; border-radius:18px; padding:13px 14px; margin-bottom:11px; box-shadow:var(--shadow);}
+  #allOrdersTable td:nth-child(1){grid-area:id; font-size:12px; color:var(--ink-soft);}
+  #allOrdersTable td:nth-child(2){grid-area:cust; font-weight:700; font-size:13.5px;}
+  #allOrdersTable td:nth-child(3){grid-area:addr; max-width:none !important;}
+  #allOrdersTable td:nth-child(4){grid-area:amt; font-weight:800; font-size:15px; justify-self:end;}
+  #allOrdersTable td:nth-child(5){grid-area:pay;}
+  #allOrdersTable td:nth-child(6){grid-area:stat; justify-self:end; text-align:right;}
+  #allOrdersTable td:nth-child(7){grid-area:pst; justify-self:end;}
+  #allOrdersTable td:nth-child(8){grid-area:cour;}
+  #allOrdersTable td:nth-child(9){grid-area:date; font-size:11px; color:var(--ink-soft);}
+  #allOrdersTable td:nth-child(10){grid-area:act; justify-self:end;}
+
+  #recentOrdersTable tr:has(td:nth-child(5)){display:grid; grid-template-columns:1fr auto; grid-template-areas:"cust tot" "id stat" "date date"; gap:6px 10px; align-items:center; background:#fff; border-radius:16px; padding:12px 14px; margin-bottom:10px; box-shadow:var(--shadow);}
+  #recentOrdersTable td:nth-child(1){grid-area:id; font-size:12px;}
+  #recentOrdersTable td:nth-child(2){grid-area:cust; font-weight:700;}
+  #recentOrdersTable td:nth-child(3){grid-area:tot; font-weight:800; justify-self:end;}
+  #recentOrdersTable td:nth-child(4){grid-area:stat; justify-self:end;}
+  #recentOrdersTable td:nth-child(5){grid-area:date; font-size:11px; color:var(--ink-soft);}
+
+  #adminProductsTable tr:has(td:nth-child(6)){display:grid; grid-template-columns:1fr auto; grid-template-areas:"prod price" "cat stat" "stock act"; gap:7px 10px; align-items:center; background:#fff; border-radius:18px; padding:13px 14px; margin-bottom:11px; box-shadow:var(--shadow);}
+  #adminProductsTable td:nth-child(1){grid-area:prod; font-weight:700; font-size:13.5px;}
+  #adminProductsTable td:nth-child(2){grid-area:cat; font-size:11.5px; color:var(--ink-soft);}
+  #adminProductsTable td:nth-child(3){grid-area:price; font-weight:800; justify-self:end;}
+  #adminProductsTable td:nth-child(4){grid-area:stock; font-size:12px; color:var(--ink-soft);}
+  #adminProductsTable td:nth-child(4)::before{content:"স্টক: ";}
+  #adminProductsTable td:nth-child(5){grid-area:stat; justify-self:end;}
+  #adminProductsTable td:nth-child(6){grid-area:act; justify-self:end;}
+}
+@media(min-width:701px){ .chat-shell{height:calc(100vh - 260px);} }
+
+/* চ্যাট */
+.chat-shell{border:none; box-shadow:var(--shadow); border-radius:18px;}
+
+/* নিচের নেভিগেশন */
+.bnav{position:fixed; left:0; right:0; bottom:0; z-index:60; background:rgba(255,255,255,.95); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-top:1px solid var(--line); display:flex; justify-content:space-around; padding:8px 0 10px;}
+.bnav > div{position:relative; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10.5px; color:var(--ink-soft); font-weight:600; width:20%; cursor:pointer;}
+.bnav .bi{padding:4px 16px; border-radius:14px; display:flex;}
+.bnav > div.on{color:var(--primary); font-weight:700;}
+.bnav > div.on .bi{background:var(--primary-tint);}
+.bdot{position:absolute; top:2px; right:20%; width:9px; height:9px; border-radius:50%; background:var(--danger); border:2px solid #fff; display:none;}
+.fab{display:none; bottom:92px;}
+.admin-shell:has(#productsTab.active) .fab{display:block;}
+.toast{bottom:96px;} .toast.show{bottom:104px;}
+
+/* সেটিংস মেনু ও পাতা */
+.set-grp{font-size:11px; color:var(--ink-soft); font-weight:700; margin:14px 4px 7px; letter-spacing:.3px;}
+.set-list{background:#fff; border-radius:18px; box-shadow:var(--shadow); overflow:hidden;}
+.set-row{display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--line); cursor:pointer; position:relative;}
+.set-row:last-child{border-bottom:none;}
+.set-row:active{background:var(--primary-tint);}
+.set-ib{width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+.set-tx{flex:1; min-width:0;}
+.set-tx b{display:block; font-size:14px;}
+.set-tx span{display:block; font-size:11.5px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.set-chev{color:var(--ink-soft); display:flex;}
+.set-tag{background:#E1F5EC; color:#0F6E5D; font-size:10px; font-weight:700; padding:3px 9px; border-radius:999px;}
+.set-back{display:flex; align-items:center; gap:10px; margin-bottom:14px; cursor:pointer;}
+.set-back .bk{width:38px; height:38px; border-radius:12px; background:#fff; box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center;}
+.set-back b{font-family:'Baloo Da 2','Hind Siliguri',sans-serif; font-size:18px;}
+.set-page{background:#fff; border-radius:18px; box-shadow:var(--shadow); padding:16px; margin-bottom:14px;}
+#setSaveBar .checkout-btn{margin-top:0;}
 </style>
 <meta name="theme-color" content="#0F6E5D">
 <meta name="mobile-web-app-capable" content="yes">
@@ -169,7 +277,7 @@ img{max-width:100%; display:block;}
 <!-- ============ ADMIN SHELL ============ -->
 <div class="admin-shell" id="adminShell">
   <div class="admin-topbar">
-    <div class="abrand">🧑‍💼 Bazaar Admin</div>
+    <div class="abrand"><img src="admin-icon-192.png" alt="logo"><div class="bt"><b>Khan Global Shop</b><small>অ্যাডমিন প্যানেল</small></div></div>
     <div class="topbar-actions">
       <button class="live-btn" onclick="openLiveStore()">🌐 লাইভ দেখুন</button>
       <button class="exit-btn" onclick="doLogout()">লগআউট</button>
@@ -196,19 +304,20 @@ img{max-width:100%; display:block;}
       </select>
     </div>
     <div class="kpi-grid">
-      <div class="kpi-card warn"><div class="label">পেন্ডিং টাকা</div><div class="value" id="kpiPending">৳0</div></div>
-      <div class="kpi-card accent"><div class="label">মোট আয় (ডেলিভারড)</div><div class="value" id="kpiRevenue">৳0</div></div>
-      <div class="kpi-card"><div class="label">মোট অর্ডার</div><div class="value" id="kpiOrders">0</div></div>
-      <div class="kpi-card"><div class="label">মোট পণ্য</div><div class="value" id="kpiProducts">0</div></div>
-      <div class="kpi-card"><div class="label">গ্রাহক সংখ্যা</div><div class="value" id="kpiCustomers">0</div></div>
-      <div class="kpi-card warn"><div class="label">কম স্টক পণ্য</div><div class="value" id="kpiLowStock">0</div></div>
-      <div class="kpi-card"><div class="label">সক্রিয় বিক্রেতা</div><div class="value">1</div></div>
+      <div class="kpi-card warn"><div class="kic c-pend"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="label">পেন্ডিং টাকা</div><div class="value" id="kpiPending">৳0</div></div>
+      <div class="kpi-card accent"><div class="kic c-rev"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="label">মোট আয় (ডেলিভারড)</div><div class="value" id="kpiRevenue">৳0</div></div>
+      <div class="kpi-card"><div class="kic c-ord"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="label">মোট অর্ডার</div><div class="value" id="kpiOrders">0</div></div>
+      <div class="kpi-card"><div class="kic c-prod"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div><div class="label">মোট পণ্য</div><div class="value" id="kpiProducts">0</div></div>
+      <div class="kpi-card"><div class="kic c-cus"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="label">গ্রাহক সংখ্যা</div><div class="value" id="kpiCustomers">0</div></div>
+      <div class="kpi-card warn"><div class="kic c-low"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><div class="label">কম স্টক পণ্য</div><div class="value" id="kpiLowStock">0</div></div>
+      <div class="kpi-card"><div class="kic c-ven"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div><div class="label">সক্রিয় বিক্রেতা</div><div class="value">1</div></div>
     </div>
     <div class="sec-head"><h3 style="font-size:15px;">সাম্প্রতিক অর্ডার</h3></div>
     <div class="table-wrap"><table class="data-table" id="recentOrdersTable"></table></div>
   </div>
 
   <div class="admin-view" id="ordersTab">
+    <div class="pg-title">অর্ডার</div>
     <div class="admin-toolbar">
       <select id="orderStatusFilter" onchange="renderAdminOrders()">
         <option value="all">সব স্ট্যাটাস</option><option value="pending">Pending</option>
@@ -220,6 +329,7 @@ img{max-width:100%; display:block;}
   </div>
 
   <div class="admin-view" id="productsTab">
+    <div class="pg-title">পণ্য</div>
     <div class="admin-toolbar">
       <button class="mini-btn primary" onclick="openProductModal()">+ নতুন পণ্য যোগ করুন</button>
       <input placeholder="পণ্য খুঁজুন" id="adminProdSearch" oninput="renderAdminProducts()">
@@ -228,6 +338,7 @@ img{max-width:100%; display:block;}
   </div>
 
   <div class="admin-view" id="reviewsTab">
+    <div class="set-back" onclick="gotoAdmin('settingsTab')"><div class="bk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><b>সেটিংসে ফিরুন</b></div>
     <div class="sec-head"><h3 style="font-size:15px;">⭐ গ্রাহক রিভিউ (যাচাইকৃত ক্রেতা)</h3></div>
     <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
       ℹ️ গ্রাহক Google দিয়ে সাইন-ইন করে থাকলে ও তার অ্যাকাউন্টে সেই পণ্যের একটি (বাতিল-না-হওয়া) অর্ডার থাকলেই কেবল রিভিউ জমা দিতে পারেন। জমা দেওয়া রিভিউ প্রথমে "অনুমোদনের অপেক্ষায়" থাকে এবং আপনি অনুমোদন করার আগ পর্যন্ত গ্রাহক প্যানেলে দেখা যায় না।
@@ -256,11 +367,33 @@ img{max-width:100%; display:block;}
   </div>
 
   <div class="admin-view" id="stockTab">
+    <div class="set-back" onclick="gotoAdmin('settingsTab')"><div class="bk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><b>স্টক রিপোর্ট</b></div>
     <div class="table-wrap"><table class="data-table" id="stockTable"></table></div>
   </div>
 
   <div class="admin-view" id="settingsTab">
-    <div class="sec-head"><h3 style="font-size:15px;">🌐 আপনার ডোমেইন</h3></div>
+<div id="setMenu">
+<div class="pg-title">সেটিংস</div><div class="pg-sub">যে বিভাগে চাপবেন, সেটাই খুলবে</div>
+<div class="set-grp">রিপোর্ট ও রিভিউ</div><div class="set-list"><div class="set-row" onclick="gotoAdmin('reviewsTab')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="set-tx"><b>গ্রাহক রিভিউ</b><span>অনুমোদন ও ব্যবস্থাপনা</span></div><i class="bdot" id="smReviewDot" style="top:14px; right:46px;"></i><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('stockTab')"><div class="set-ib" style="background:#E3ECFB;color:#2952A3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="set-tx"><b>স্টক রিপোর্ট</b><span>সব পণ্যের স্টকের অবস্থা</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+<div class="set-grp">শপ</div><div class="set-list"><div class="set-row" onclick="openSetPage('shop')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div><div class="set-tx"><b>শপের তথ্য</b><span>নাম, ঠিকানা, ফোন, ট্যাক্স, শিপিং, ঘোষণা</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('domain')"><div class="set-ib" style="background:#E3F3FB;color:#2B86C0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div class="set-tx"><b>ডোমেইন ও ক্লাউড</b><span id="smDomainSub">ডোমেইন সেট নেই</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('brand')"><div class="set-ib" style="background:#F0E6F8;color:#7B3FB0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><div class="set-tx"><b>লোগো ও ব্যানার</b><span id="smBrandSub">০টি ব্যানার</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+<div class="set-grp">বিক্রি ও পেমেন্ট</div><div class="set-list"><div class="set-row" onclick="openSetPage('payment')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="set-tx"><b>বিকাশ / নগদ ও পেমেন্ট প্ল্যান</b><span>পেমেন্ট নাম্বার ও অগ্রিম শতাংশ</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('coupon')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div><div class="set-tx"><b>কুপন কোড</b><span id="smCouponSub">০টি কুপন</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('courier')"><div class="set-ib" style="background:#E3ECFB;color:#2952A3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="set-tx"><b>কুরিয়ার (Steadfast)</b><span id="smCourierSub">সংযুক্ত নয়</span></div><span class="set-tag" id="smCourierTag" style="display:none;">সংযুক্ত</span><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('cancel')"><div class="set-ib" style="background:#FBE7DC;color:#C1440E"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="set-tx"><b>অর্ডার বাতিলের সময়</b><span id="smCancelSub">৬০ মিনিট</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+<div class="set-grp">যোগাযোগ ও অটোমেশন</div><div class="set-list"><div class="set-row" onclick="openSetPage('auto')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="set-tx"><b>চ্যাট ও অটোমেশন</b><span id="smAutoSub">AI অটো-রিপ্লাই ও অর্ডার ওয়েবহুক</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('social')"><div class="set-ib" style="background:#F0E6F8;color:#7B3FB0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg></div><div class="set-tx"><b>ফেসবুক, হোয়াটসঅ্যাপ ও ফুটার</b><span>সোশ্যাল লিংক ও কপিরাইট</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+<div class="set-grp">নিরাপত্তা</div><div class="set-list"><div class="set-row" onclick="openSetPage('security')"><div class="set-ib" style="background:#FBE7DC;color:#C1440E"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div><div class="set-tx"><b>পাসওয়ার্ড পরিবর্তন</b><span>অ্যাডমিন অ্যাকাউন্ট</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+</div>
+<div id="setPageWrap" style="display:none;">
+<div class="set-back" onclick="closeSetPage()"><div class="bk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><b id="setPageTitle"></b></div>
+<div class="set-page" id="sp_shop" style="display:none;">
+    <div class="form-group"><label>ওয়েবসাইটের নাম</label><input id="setStoreName"></div>
+    <div class="form-group"><label>ট্যাগলাইন</label><input id="setTagline"></div>
+    <div class="form-group"><label>ইমেল</label><input id="setEmail"></div>
+    <div class="form-group"><label>ফোন</label><input id="setPhone"></div>
+    <div class="form-group"><label>ঠিকানা</label><input id="setAddress"></div>
+    <div class="form-group"><label>মুদ্রা প্রতীক</label><input id="setCurrency"></div>
+    <div class="form-group"><label>ট্যাক্স রেট (%)</label><input id="setTax" type="number"></div>
+    <div class="form-group"><label>ফ্রি শিপিং ন্যূনতম পরিমাণ (৳)</label><input id="setFreeShip" type="number"></div>
+    <div class="form-group"><label>ঘোষণা বার টেক্সট</label><input id="setAnnounce"></div>
+</div>
+<div class="set-page" id="sp_domain" style="display:none;">
     <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
       ℹ️ আপনার শপের (ইউজার প্যানেল index.html) ডোমেইন এখানে সেভ করে রাখুন। সেভ করার পর উপরের "🌐 লাইভ দেখুন" বাটনে বা নিচের প্রিভিউ বাটনে চাপলেই সরাসরি সেই ডোমেইনে আপনার লাইভ শপ খুলে যাবে।
     </div>
@@ -274,6 +407,8 @@ img{max-width:100%; display:block;}
     <div id="domainLiveBox"></div>
     <div class="sec-head"><h3 style="font-size:15px;">☁️ ক্লাউড সিঙ্ক (Firebase)</h3></div>
     <div id="cloudStatusBox" class="cloud-status-box"><span class="dot" id="cloudStatusDot"></span><span class="txt-wrap"><span class="main" id="cloudStatusText">যাচাই করা হচ্ছে...</span><span class="sub" id="cloudStatusSub"></span></span></div>
+</div>
+<div class="set-page" id="sp_brand" style="display:none;">
     <div class="sec-head"><h3 style="font-size:15px;">🖼️ লোগো</h3></div>
     <div class="upload-box">
       <img id="logoPreview" class="preview" style="display:none;">
@@ -284,34 +419,8 @@ img{max-width:100%; display:block;}
     <div id="bannerManagerList"></div>
     <button class="mini-btn primary" id="addBannerBtn" style="margin-bottom:18px;" onclick="addBannerSlot()">+ নতুন ব্যানার যোগ করুন</button>
 
-    <div class="form-group"><label>ওয়েবসাইটের নাম</label><input id="setStoreName"></div>
-    <div class="form-group"><label>ট্যাগলাইন</label><input id="setTagline"></div>
-    <div class="form-group"><label>ইমেল</label><input id="setEmail"></div>
-    <div class="form-group"><label>ফোন</label><input id="setPhone"></div>
-    <div class="form-group"><label>ঠিকানা</label><input id="setAddress"></div>
-    <div class="form-group"><label>মুদ্রা প্রতীক</label><input id="setCurrency"></div>
-    <div class="form-group"><label>ট্যাক্স রেট (%)</label><input id="setTax" type="number"></div>
-    <div class="form-group"><label>ফ্রি শিপিং ন্যূনতম পরিমাণ (৳)</label><input id="setFreeShip" type="number"></div>
-    <div class="form-group"><label>ঘোষণা বার টেক্সট</label><input id="setAnnounce"></div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">↩️ অর্ডার বাতিলের সময়সীমা</h3></div>
-    <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
-      ℹ️ গ্রাহক প্যানেলের "আমার অ্যাকাউন্ট" থেকে গ্রাহক নিজে তার অর্ডার বাতিল করতে পারবেন — তবে শুধু তখনই যখন অর্ডারটি এখনো <b>Pending</b> অবস্থায় আছে এবং অর্ডার করার পর থেকে নিচের সময়সীমা পার হয়নি।
-    </div>
-    <div class="form-group"><label>অর্ডার বাতিলের সময়সীমা (মিনিট)</label><input id="setCancelWindowMinutes" type="number" min="1" placeholder="যেমন 60"></div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🏷️ কুপন কোড</h3></div>
-    <div id="couponManagerList"></div>
-    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;">
-      <input id="newCouponCode" placeholder="কোড, যেমন EID50" style="flex:2; min-width:120px; border:1px solid var(--line); border-radius:8px; padding:10px; text-transform:uppercase;">
-      <input id="newCouponAmount" type="number" min="1" placeholder="ছাড় (৳)" style="flex:1; min-width:90px; border:1px solid var(--line); border-radius:8px; padding:10px;">
-      <button class="mini-btn primary" onclick="addCoupon()">+ যোগ করুন</button>
-    </div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">📞 যোগাযোগ লিংক</h3></div>
-    <div class="form-group"><label>ফেসবুক পেজ লিংক</label><input id="setFacebook" placeholder="https://facebook.com/yourpage"></div>
-    <div class="form-group"><label>হোয়াটসঅ্যাপ নাম্বার (কান্ট্রি কোড সহ, যেমন 8801XXXXXXXXX)</label><input id="setWhatsapp" placeholder="8801XXXXXXXXX"></div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🔻 গ্রাহক প্যানেলের ফুটার</h3></div>
-    <div class="form-group"><label>টুইটার লিংক</label><input id="setTwitter" placeholder="https://twitter.com/yourpage"></div>
-    <div class="form-group"><label>ইনস্টাগ্রাম লিংক</label><input id="setInstagram" placeholder="https://instagram.com/yourpage"></div>
-    <div class="form-group"><label>ফুটার কপিরাইট লাইন</label><input id="setFooterCopyright" placeholder="© সর্বস্বত্ব সংরক্ষিত।"></div>
+</div>
+<div class="set-page" id="sp_payment" style="display:none;">
     <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">💰 বিকাশ/নগদ পেমেন্ট নাম্বার</h3></div>
     <div class="form-group"><label>বিকাশ নাম্বার (Personal/Merchant)</label><input id="setBkashNumber" placeholder="01XXXXXXXXX"></div>
     <div class="form-group"><label>নগদ নাম্বার (Personal/Merchant)</label><input id="setNagadNumber" placeholder="01XXXXXXXXX"></div>
@@ -321,6 +430,28 @@ img{max-width:100%; display:block;}
       <input type="number" id="newPaymentPlanPercent" placeholder="শতাংশ, যেমন 50" min="1" max="100" style="flex:1;">
       <button class="mini-btn primary" onclick="addPaymentPlan()">+ যোগ করুন</button>
     </div>
+</div>
+<div class="set-page" id="sp_coupon" style="display:none;">
+    <div id="couponManagerList"></div>
+    <div style="display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;">
+      <input id="newCouponCode" placeholder="কোড, যেমন EID50" style="flex:2; min-width:120px; border:1px solid var(--line); border-radius:8px; padding:10px; text-transform:uppercase;">
+      <input id="newCouponAmount" type="number" min="1" placeholder="ছাড় (৳)" style="flex:1; min-width:90px; border:1px solid var(--line); border-radius:8px; padding:10px;">
+      <button class="mini-btn primary" onclick="addCoupon()">+ যোগ করুন</button>
+    </div>
+</div>
+<div class="set-page" id="sp_courier" style="display:none;">
+    <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
+      ℹ️ Steadfast মার্চেন্ট প্যানেল → API Docs থেকে Api Key ও Secret Key নিয়ে নিচে বসান। এই Key দুটো গোপন settings_secure ডকুমেন্টে সেভ হয় — গ্রাহকের index.html কখনো এটা দেখতে পায় না।
+    </div>
+    <div id="steadfastConfigBox"></div>
+</div>
+<div class="set-page" id="sp_cancel" style="display:none;">
+    <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
+      ℹ️ গ্রাহক প্যানেলের "আমার অ্যাকাউন্ট" থেকে গ্রাহক নিজে তার অর্ডার বাতিল করতে পারবেন — তবে শুধু তখনই যখন অর্ডারটি এখনো <b>Pending</b> অবস্থায় আছে এবং অর্ডার করার পর থেকে নিচের সময়সীমা পার হয়নি।
+    </div>
+    <div class="form-group"><label>অর্ডার বাতিলের সময়সীমা (মিনিট)</label><input id="setCancelWindowMinutes" type="number" min="1" placeholder="যেমন 60"></div>
+</div>
+<div class="set-page" id="sp_auto" style="display:none;">
     <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">📦 নতুন অর্ডার নোটিফিকেশন (Google Sheet-এ পাঠান)</h3></div>
     <div class="form-group"><label>অর্ডার Webhook URL</label><input id="setOrderWebhookUrl" placeholder="https://your-automation.com/webhook/xxxx"></div>
     <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🤖 চ্যাট ও AI অটোমেশন</h3></div>
@@ -329,18 +460,33 @@ img{max-width:100%; display:block;}
       <label style="margin:0; flex:1;" for="setAiAutoReply">AI অটো-রিপ্লাই চালু করুন</label>
     </div>
     <div class="form-group"><label>AI অটোমেশন Webhook URL</label><input id="setAiWebhookUrl" placeholder="https://your-automation.com/webhook/xxxx"></div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🚚 স্টেডফাস্ট কুরিয়ার ইন্টিগ্রেশন</h3></div>
-    <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft);">
-      ℹ️ Steadfast মার্চেন্ট প্যানেল → API Docs থেকে Api Key ও Secret Key নিয়ে নিচে বসান। এই Key দুটো গোপন settings_secure ডকুমেন্টে সেভ হয় — গ্রাহকের index.html কখনো এটা দেখতে পায় না।
-    </div>
-    <div id="steadfastConfigBox"></div>
-    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🔑 অ্যাডমিন পাসওয়ার্ড পরিবর্তন</h3></div>
+</div>
+<div class="set-page" id="sp_social" style="display:none;">
+    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">📞 যোগাযোগ লিংক</h3></div>
+    <div class="form-group"><label>ফেসবুক পেজ লিংক</label><input id="setFacebook" placeholder="https://facebook.com/yourpage"></div>
+    <div class="form-group"><label>হোয়াটসঅ্যাপ নাম্বার (কান্ট্রি কোড সহ, যেমন 8801XXXXXXXXX)</label><input id="setWhatsapp" placeholder="8801XXXXXXXXX"></div>
+    <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🔻 গ্রাহক প্যানেলের ফুটার</h3></div>
+    <div class="form-group"><label>টুইটার লিংক</label><input id="setTwitter" placeholder="https://twitter.com/yourpage"></div>
+    <div class="form-group"><label>ইনস্টাগ্রাম লিংক</label><input id="setInstagram" placeholder="https://instagram.com/yourpage"></div>
+    <div class="form-group"><label>ফুটার কপিরাইট লাইন</label><input id="setFooterCopyright" placeholder="© সর্বস্বত্ব সংরক্ষিত।"></div>
+</div>
+<div class="set-page" id="sp_security" style="display:none;">
     <div class="form-group"><label>নতুন পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)</label><input id="setNewPassword" type="password" placeholder="নতুন পাসওয়ার্ড লিখুন" autocomplete="new-password"></div>
     <button type="button" class="mini-btn primary" style="width:100%; padding:12px; margin-bottom:14px; font-size:13.5px;" onclick="changeAdminPassword()">পাসওয়ার্ড পরিবর্তন করুন</button>
     <div class="form-group" style="background:var(--accent-tint); padding:12px; border-radius:10px; font-size:12px; color:var(--ink-soft);">
       ⚠️ পাসওয়ার্ড পরিবর্তন ব্যর্থ হলে — একবার লগআউট করে আবার লগইন করে তারপর চেষ্টা করুন।
     </div>
-    <button class="checkout-btn" onclick="saveSettings()">সেটিংস সংরক্ষণ করুন</button>
+</div>
+<div id="setSaveBar" style="display:none;"><button class="checkout-btn" onclick="saveSettings()">সেটিংস সংরক্ষণ করুন</button></div>
+</div>
+  </div>
+
+  <div class="bnav" id="bnav">
+    <div id="bn_dashTab" class="on" onclick="gotoAdmin('dashTab')"><span class="bi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>ড্যাশবোর্ড</div>
+    <div id="bn_ordersTab" class="" onclick="gotoAdmin('ordersTab')"><span class="bi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></span>অর্ডার</div>
+    <div id="bn_productsTab" class="" onclick="gotoAdmin('productsTab')"><span class="bi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>পণ্য</div>
+    <div id="bn_chatTab" class="" onclick="gotoAdmin('chatTab')"><span class="bi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span>চ্যাট<i class="bdot" id="navChatDot"></i></div>
+    <div id="bn_settingsTab" class="" onclick="gotoAdmin('settingsTab')"><span class="bi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>সেটিংস<i class="bdot" id="navSetDot"></i></div>
   </div>
 
   <button class="fab" id="adminFab" onclick="openProductModal()">+</button>
@@ -1256,180 +1402,4 @@ function renderPaymentPlanManager(){
 }
 async function addPaymentPlan(){
   const input = document.getElementById('newPaymentPlanPercent');
-  const val = parseInt(input.value);
-  if(!DB.settings.paymentPlans) DB.settings.paymentPlans=[];
-  if(!val || val<1 || val>100){ toast('১-১০০ এর মধ্যে সঠিক শতাংশ দিন'); return; }
-  if(DB.settings.paymentPlans.includes(val)){ toast('এই শতাংশ ইতিমধ্যে আছে'); return; }
-  if(DB.settings.paymentPlans.length>=6){ toast('সর্বোচ্চ ৬টি প্ল্যান যোগ করা যাবে'); return; }
-  DB.settings.paymentPlans.push(val);
-  await persistSettings();
-  input.value='';
-  renderPaymentPlanManager();
-  toast('প্ল্যান যোগ করা হয়েছে ✓');
-}
-async function removePaymentPlan(percent){
-  DB.settings.paymentPlans = (DB.settings.paymentPlans||[]).filter(p=>p!==percent);
-  await persistSettings();
-  renderPaymentPlanManager();
-  toast('প্ল্যান মুছে ফেলা হয়েছে');
-}
-function renderCouponManager(){
-  if(!DB.settings.coupons) DB.settings.coupons = {};
-  const entries = Object.entries(DB.settings.coupons);
-  document.getElementById('couponManagerList').innerHTML = entries.length===0
-    ? `<div style="color:var(--ink-soft); font-size:12.5px; margin-bottom:10px;">কোনো কুপন নেই। নিচ থেকে যোগ করুন।</div>`
-    : entries.map(([code,amt])=>`<div style="display:flex; align-items:center; justify-content:space-between; background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px 12px; margin-bottom:8px;">
-        <span style="font-weight:700; font-size:13px;">${escapeHtml(code)} — ৳${escapeHtml(amt)} ছাড়</span>
-        <button class="mini-btn danger" onclick="removeCoupon('${escapeHtml(code)}')">মুছুন</button>
-      </div>`).join('');
-}
-async function addCoupon(){
-  const code = document.getElementById('newCouponCode').value.trim().toUpperCase();
-  const amt = parseInt(document.getElementById('newCouponAmount').value);
-  if(!/^[A-Z0-9_-]{3,20}$/.test(code)){ toast('কোড ৩-২০ অক্ষরের হতে হবে (ইংরেজি অক্ষর/সংখ্যা)'); return; }
-  if(!amt || amt<1){ toast('সঠিক ছাড়ের পরিমাণ দিন'); return; }
-  if(!DB.settings.coupons) DB.settings.coupons = {};
-  DB.settings.coupons[code] = amt;
-  if(!await persistSettings()) return;
-  document.getElementById('newCouponCode').value = '';
-  document.getElementById('newCouponAmount').value = '';
-  renderCouponManager();
-  toast('কুপন যোগ করা হয়েছে ✓');
-}
-async function removeCoupon(code){
-  if(!confirm(code + ' কুপনটি মুছবেন?')) return;
-  delete DB.settings.coupons[code];
-  if(!await persistSettings()) return;
-  renderCouponManager();
-  toast('কুপন মুছে ফেলা হয়েছে');
-}
-function renderSteadfastConfig(){
-  const s = DB.settingsSecure;
-  const box = document.getElementById('steadfastConfigBox');
-  if(s.steadfastConnected){
-    box.innerHTML = `
-      <div class="courier-connected-box">
-        <div class="cc-row"><span class="cc-label">স্ট্যাটাস</span><span class="status-pill delivered">সংযুক্ত ✓</span></div>
-        <div class="cc-row"><span class="cc-label">Api Key</span><span class="cc-val">${maskSecret(s.steadfastApiKey)}</span></div>
-        <div class="cc-row"><span class="cc-label">Secret Key</span><span class="cc-val">${maskSecret(s.steadfastSecretKey)}</span></div>
-      </div>
-      <button class="checkout-btn" style="background:var(--danger); margin-top:0; margin-bottom:18px;" onclick="deleteSteadfastConfig()">Delete Steadfast</button>
-    `;
-  }else{
-    box.innerHTML = `
-      <div class="form-group"><label>Merchant Api Key</label>
-        <div class="pw-field-wrap">
-          <input type="password" id="setSteadfastApiKey" placeholder="Merchant Api Key" value="${escapeHtml(s.steadfastApiKey||'')}">
-          <button type="button" class="pw-eye-btn" onclick="toggleSteadfastFieldVisibility('setSteadfastApiKey')">👁️</button>
-        </div>
-      </div>
-      <div class="form-group"><label>Merchant Secret Key</label>
-        <div class="pw-field-wrap">
-          <input type="password" id="setSteadfastSecretKey" placeholder="Merchant Secret Key" value="${escapeHtml(s.steadfastSecretKey||'')}">
-          <button type="button" class="pw-eye-btn" onclick="toggleSteadfastFieldVisibility('setSteadfastSecretKey')">👁️</button>
-        </div>
-      </div>
-      <button class="checkout-btn" style="margin-top:0; margin-bottom:18px;" onclick="saveSteadfastConfig()">Add Steadfast Service</button>
-    `;
-  }
-}
-function maskSecret(v){
-  if(!v) return '—';
-  if(v.length<=6) return '•'.repeat(v.length);
-  return v.slice(0,3) + '•'.repeat(Math.max(v.length-6,4)) + v.slice(-3);
-}
-function toggleSteadfastFieldVisibility(id){
-  const el = document.getElementById(id);
-  el.type = el.type==='password' ? 'text' : 'password';
-}
-async function saveSteadfastConfig(){
-  const apiKey = document.getElementById('setSteadfastApiKey').value.trim();
-  const secretKey = document.getElementById('setSteadfastSecretKey').value.trim();
-  if(!apiKey || !secretKey){ toast('Api Key ও Secret Key দুটোই দিন'); return; }
-  DB.settingsSecure.steadfastApiKey = apiKey;
-  DB.settingsSecure.steadfastSecretKey = secretKey;
-  DB.settingsSecure.steadfastConnected = true;
-  if(!await persistSettingsSecure()) return;
-  renderSteadfastConfig();
-  toast('স্টেডফাস্ট সংযুক্ত হয়েছে ✓');
-}
-async function deleteSteadfastConfig(){
-  if(!confirm('স্টেডফাস্ট সংযোগ মুছে ফেলতে চান?')) return;
-  DB.settingsSecure.steadfastApiKey = '';
-  DB.settingsSecure.steadfastSecretKey = '';
-  DB.settingsSecure.steadfastConnected = false;
-  await persistSettingsSecure();
-  renderSteadfastConfig();
-  toast('স্টেডফাস্ট সংযোগ মুছে ফেলা হয়েছে');
-}
-async function saveSettings(){
-  DB.settings.domain = document.getElementById('setDomainName').value.trim();
-  DB.settings.storeName = document.getElementById('setStoreName').value;
-  DB.settings.tagline = document.getElementById('setTagline').value;
-  DB.settings.email = document.getElementById('setEmail').value;
-  DB.settings.phone = document.getElementById('setPhone').value;
-  DB.settings.address = document.getElementById('setAddress').value;
-  DB.settings.currency = document.getElementById('setCurrency').value;
-  DB.settings.tax = parseFloat(document.getElementById('setTax').value)||0;
-  DB.settings.freeShip = parseFloat(document.getElementById('setFreeShip').value)||0;
-  DB.settings.announce = document.getElementById('setAnnounce').value;
-  DB.settings.orderCancelWindowMinutes = parseInt(document.getElementById('setCancelWindowMinutes').value)||60;
-  DB.settings.facebook = document.getElementById('setFacebook').value.trim();
-  DB.settings.whatsapp = document.getElementById('setWhatsapp').value.trim();
-  DB.settings.bkashNumber = document.getElementById('setBkashNumber').value.trim();
-  DB.settings.nagadNumber = document.getElementById('setNagadNumber').value.trim();
-  DB.settings.twitter = document.getElementById('setTwitter').value.trim();
-  DB.settings.instagram = document.getElementById('setInstagram').value.trim();
-  DB.settings.footerCopyright = document.getElementById('setFooterCopyright').value.trim() || '© সর্বস্বত্ব সংরক্ষিত।';
-  DB.settings.aiAutoReply = document.getElementById('setAiAutoReply').checked;
-  DB.settings.aiWebhookUrl = document.getElementById('setAiWebhookUrl').value.trim();
-  DB.settings.orderWebhookUrl = document.getElementById('setOrderWebhookUrl').value.trim();
-  if(!await persistSettings()) return;
-  renderDomainLiveBox();
-  toast('সেটিংস সংরক্ষণ করা হয়েছে ✓');
-}
-async function changeAdminPassword(){
-  const input = document.getElementById('setNewPassword');
-  const newPass = input.value.trim();
-  if(!newPass || newPass.length < 6){ toast('অন্তত ৬ অক্ষরের পাসওয়ার্ড দিন'); return; }
-  if(!fireAuth.currentUser){ toast('লগইন সেশন পাওয়া যায়নি — আবার লগইন করুন'); return; }
-  try{
-    await fireAuth.currentUser.updatePassword(newPass);
-    input.value = '';
-    toast('পাসওয়ার্ড পরিবর্তন করা হয়েছে ✓');
-  }catch(e){
-    if(e && e.code === 'auth/requires-recent-login'){
-      toast('⚠️ নিরাপত্তার জন্য আগে লগআউট করে আবার লগইন করুন, তারপর পাসওয়ার্ড পরিবর্তন করুন');
-    }else{
-      toast('পাসওয়ার্ড পরিবর্তন করা যায়নি — আবার চেষ্টা করুন');
-    }
-  }
-}
-
-/* ---------------- 📱 অ্যাডমিন অ্যাপ (PWA) — শুধু এই অ্যাডমিন প্যানেলের জন্য ---------------- */
-(function(){
-  try{
-    const base = location.href.split('#')[0].split('?')[0];
-    const manifest = {
-      name: 'Khan Global Shop Admin',
-      short_name: 'KG Admin',
-      start_url: base,
-      scope: base.substring(0, base.lastIndexOf('/')+1),
-      display: 'standalone',
-      background_color: '#FBF9F4',
-      theme_color: '#0F6E5D',
-      icons: [
-        {src: new URL('admin-icon-192.png', base).href, sizes:'192x192', type:'image/png', purpose:'any'},
-        {src: new URL('admin-icon-512.png', base).href, sizes:'512x512', type:'image/png', purpose:'any'}
-      ]
-    };
-    const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
-    const link = document.createElement('link');
-    link.rel = 'manifest';
-    link.href = URL.createObjectURL(blob);
-    document.head.appendChild(link);
-  }catch(e){}
-})();
-</script>
-</body>
-</html>
+  const val = pars
