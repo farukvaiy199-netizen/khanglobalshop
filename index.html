@@ -34,6 +34,12 @@ img{max-width:100%; display:block;}
 .topbar .icon-btn{background:rgba(255,255,255,.16); border:none; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:#fff; position:relative; flex-shrink:0;}
 .badge{position:absolute; top:-4px; right:-4px; background:var(--accent); color:var(--ink); font-size:10px; font-weight:700; min-width:16px; height:16px; border-radius:999px; display:flex; align-items:center; justify-content:center; padding:0 3px;}
 .announce{background:var(--accent); color:var(--ink); text-align:center; font-size:12.5px; font-weight:600; padding:6px 10px;}
+.announce{overflow:hidden; white-space:nowrap;}
+.announce .ann-text{display:inline-block;}
+.announce.marquee{text-align:left;}
+.announce.marquee .ann-text{padding-left:100%; animation:annScroll var(--ann-dur,20s) linear infinite;}
+.announce.marquee:hover .ann-text{animation-play-state:paused;}
+@keyframes annScroll{from{transform:translateX(0);}to{transform:translateX(-100%);}}
 .view{display:none; padding:14px 16px 24px;}
 .view.active{display:block;}
 .hero-banner{color:#fff; padding:22px 20px; position:relative; overflow:hidden; background-size:cover; background-position:center;}
@@ -1031,7 +1037,7 @@ function applyContactLinks(){
 }
 
 let heroSlideIndex = 0, heroSlideCount = 0, heroAutoTimer = null, heroSignature = '';
-const HERO_INTERVAL_MS = 30000; // ৩০ সেকেন্ড
+const HERO_INTERVAL_MS = 10000; // ১০ সেকেন্ড
 function startHeroTimer(){
   clearInterval(heroAutoTimer);
   if(heroSlideCount>1){
@@ -1211,10 +1217,33 @@ async function checkChatUnreadBadge(){
   }catch(e){ badge.style.display='none'; }
 }
 
+let lastAnnounceText = null;
+function applyAnnounce(force){
+  const bar = document.getElementById('announceBar');
+  const text = (DB.settings && DB.settings.announce) || '';
+  if(!force && text === lastAnnounceText) return;
+  lastAnnounceText = text;
+  bar.classList.remove('marquee');
+  bar.style.removeProperty('--ann-dur');
+  bar.innerHTML = '';
+  const span = document.createElement('span');
+  span.className = 'ann-text';
+  span.textContent = text;
+  bar.appendChild(span);
+  const barW = bar.clientWidth, textW = span.offsetWidth;
+  if(textW > barW - 20){
+    const speed = 60; // px প্রতি সেকেন্ড (আস্তে চলবে)
+    const dur = Math.max(8, (textW + barW) / speed);
+    bar.style.setProperty('--ann-dur', dur + 's');
+    bar.classList.add('marquee');
+  }
+}
+window.addEventListener('resize', ()=>applyAnnounce(true));
+
 async function init(){
   await pullFromCloud();
   DB = loadData();
-  document.getElementById('announceBar').textContent = DB.settings.announce;
+  applyAnnounce(true);
   applyBranding();
   applyContactLinks();
   renderCategoryChips();
@@ -1228,6 +1257,7 @@ async function init(){
     await pullFromCloud();
     DB = loadData();
     checkChatUnreadBadge();
+    applyAnnounce();
     const activeView = document.querySelector('.view.active');
     const activeId = activeView ? activeView.id : '';
     if(activeId==='homeView'){ applyBranding(); renderCategoryChips(); renderHeroSlider(); renderProducts(); }
