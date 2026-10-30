@@ -240,21 +240,22 @@ img{max-width:100%; display:block;}
   <div id="checkoutAuthBanner"></div>
   <div class="form-group"><label>পুরো নাম</label><input id="ckName" placeholder="আপনার নাম"></div>
   <div class="form-group"><label>মোবাইল নম্বর</label><input id="ckPhone" placeholder="01XXXXXXXXX"></div>
-  <div class="form-group"><label>সম্পূর্ণ ঠিকানা</label><textarea id="ckAddress" rows="2" placeholder="বাসা/রোড/এলাকা/জেলা"></textarea></div>
+  <div class="form-group"><label>জেলা</label><select id="ckDistrict" onchange="onDistrictChange()"><option value="">— জেলা বেছে নিন —</option></select></div>
+  <div class="form-group"><label>উপজেলা / থানা</label><select id="ckUpazila" onchange="onUpazilaChange()" disabled><option value="">— আগে জেলা বেছে নিন —</option></select></div>
+  <div class="form-group"><label>বিস্তারিত ঠিকানা</label><textarea id="ckAddress" rows="2" placeholder="বাসা/রোড/গ্রাম/এলাকা/ল্যান্ডমার্ক"></textarea></div>
   <label style="font-size:12.5px; font-weight:600; color:var(--ink-soft); display:block; margin-bottom:8px;">পেমেন্ট পদ্ধতি</label>
-  <div class="pay-option active" data-pay="cod" onclick="selectPay(this,'cod')">
+  <div class="pay-option active" id="payCodOption" data-pay="cod" onclick="selectPay(this,'cod')">
     <div class="icon" style="background:#6b6b6b;">৳</div>
     <div><b>ক্যাশ অন ডেলিভারি</b><div style="font-size:11.5px; color:var(--ink-soft);">পণ্য হাতে পেয়ে টাকা দিন</div></div>
   </div>
+  <div id="codNote" style="display:none; font-size:12px; color:var(--danger); font-weight:600; margin:-2px 2px 10px;">আপনার জেলায় ক্যাশ অন ডেলিভারি নেই — অগ্রিম পেমেন্ট (বিকাশ/নগদ) করুন।</div>
   <div class="pay-option" data-pay="bkash" onclick="selectPay(this,'bkash')">
     <div class="icon" style="background:#e2136e;">bK</div><div><b>bKash</b></div>
   </div>
   <div class="pay-option" data-pay="nagad" onclick="selectPay(this,'nagad')">
     <div class="icon" style="background:#f6871f;">N</div><div><b>Nagad</b></div>
   </div>
-  <div class="pay-option" data-pay="sslcommerz" onclick="selectPay(this,'sslcommerz')">
-    <div class="icon" style="background:#1a3e8c; font-size:11px;">SSL</div><div><b>Card / SSLCommerz</b></div>
-  </div>
+  <!-- Card / SSLCommerz এখন বন্ধ (চালু করতে চাইলে এই লাইনের নিচের অংশ ফিরিয়ে আনুন) -->
   <div id="manualPayBox" style="display:none; background:var(--accent-tint); border-radius:10px; padding:14px; margin:4px 0 16px;">
     <div style="font-size:13px; margin-bottom:10px;">এই নাম্বারে <b id="manualPayMethodLabel">bKash</b> করে পাঠান: <b id="manualPayNumber" style="color:var(--primary); font-size:15px;">—</b></div>
     <div class="form-group" style="margin-bottom:0;"><label>ট্রানজেকশন আইডি দিন</label><input id="ckTransactionId" placeholder="যেমন 8N7A2K9X1B"></div>
@@ -267,7 +268,11 @@ img{max-width:100%; display:block;}
       <div class="summary-row"><span>ডেলিভারিতে বাকি থাকবে</span><span id="planDueLater" style="font-weight:700;">৳0</span></div>
     </div>
   </div>
-  <div class="summary-row total" style="margin-top:16px;"><span>মোট পরিশোধযোগ্য</span><span id="ckTotal">৳0</span></div>
+  <div id="ckShipBox" style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-top:16px;">
+    <div class="summary-row" style="padding:3px 0;"><span id="ckShipLabel">ডেলিভারি চার্জ</span><span id="ckShipVal">—</span></div>
+    <div class="summary-row" id="ckPrepayRow" style="display:none; padding:3px 0;"><span>অগ্রিম পেমেন্টে ডেলিভারি ছাড়</span><span id="ckPrepayVal" style="color:var(--primary); font-weight:700;">-৳0</span></div>
+  </div>
+  <div class="summary-row total" style="margin-top:10px;"><span>মোট পরিশোধযোগ্য</span><span id="ckTotal">৳0</span></div>
   <button class="checkout-btn" onclick="placeOrder()">অর্ডার নিশ্চিত করুন</button>
 </div>
 
@@ -416,7 +421,7 @@ function seedData(){
     {id:'c3', name:'হোম ও লিভিং', icon:'🛋️'},{id:'c4', name:'বিউটি', icon:'💄'},
     {id:'c5', name:'মুদি', icon:'🛒'},{id:'c6', name:'খেলনা', icon:'🧸'},
   ];
-  const settings = {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'support@bazaar.com', phone:'01700000000', address:'ঢাকা, বাংলাদেশ', currency:'৳', tax:0, freeShip:500, announce:'🎉 ফ্রি ডেলিভারি ৳৫০০+ অর্ডারে!', coupons:{'SAVE100':100,'EID50':50}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:false, bkashNumber:'', nagadNumber:'', twitter:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:'', orderWebhookUrl:'', orderCancelWindowMinutes:60};
+  const settings = {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'support@bazaar.com', phone:'01700000000', address:'ঢাকা, বাংলাদেশ', currency:'৳', tax:0, freeShip:500, announce:'🎉 ফ্রি ডেলিভারি ৳৫০০+ অর্ডারে!', coupons:{'SAVE100':100,'EID50':50}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:false, bkashNumber:'', nagadNumber:'', twitter:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:'', orderWebhookUrl:'', orderCancelWindowMinutes:60, shipInsideDhaka:60, shipOutsideDhaka:120, prepayDiscount:30, codDistricts:['ঢাকা']};
   return {categories, products:[], settings};
 }
 function loadData(){
@@ -721,7 +726,7 @@ function computeSummary(){
   const taxableAmount = Math.max(subtotal-discount,0);
   const taxRate = parseFloat(DB.settings.tax)||0;
   const tax = taxRate>0 ? Math.round(taxableAmount * taxRate/100) : 0;
-  const shipping = subtotal >= DB.settings.freeShip ? 0 : 60;
+  const shipping = calcShipping(subtotal, selectedDistrict, selectedPayment).final;
   const total = taxableAmount + tax + shipping;
   document.getElementById('sumSubtotal').textContent=`৳${subtotal}`;
   document.getElementById('sumDiscount').textContent=`-৳${discount}`;
@@ -745,9 +750,168 @@ function applyCoupon(){
   else{ appliedCoupon=null; msg.textContent='✗ অবৈধ কুপন কোড'; }
   computeSummary();
 }
+const BD_GEO = {
+'ঢাকা বিভাগ': {
+ 'ঢাকা':'আদাবর|উত্তরা|উত্তরখান|কদমতলী|কলাবাগান|কামরাঙ্গীরচর|কাফরুল|কোতোয়ালী|খিলক্ষেত|খিলগাঁও|গুলশান|গেণ্ডারিয়া|চকবাজার|ডেমরা|তেজগাঁও|তুরাগ|দক্ষিণখান|দারুস সালাম|ধানমন্ডি|নিউমার্কেট|পল্টন|পল্লবী|বনানী|বংশাল|বাড্ডা|ভাটারা|মতিঝিল|মিরপুর|মোহাম্মদপুর|মুগদা|যাত্রাবাড়ী|রমনা|রামপুরা|লালবাগ|শাহবাগ|শাহআলী|শ্যামপুর|সবুজবাগ|সূত্রাপুর|হাজারীবাগ|ক্যান্টনমেন্ট|বিমানবন্দর|শেরেবাংলা নগর|ধামরাই|দোহার|কেরানীগঞ্জ|নবাবগঞ্জ|সাভার',
+ 'গাজীপুর':'গাজীপুর সদর|কালিয়াকৈর|কালীগঞ্জ|কাপাসিয়া|শ্রীপুর|টঙ্গী',
+ 'নারায়ণগঞ্জ':'নারায়ণগঞ্জ সদর|আড়াইহাজার|বন্দর|রূপগঞ্জ|সোনারগাঁও|ফতুল্লা|সিদ্ধিরগঞ্জ',
+ 'নরসিংদী':'নরসিংদী সদর|বেলাব|মনোহরদী|পলাশ|রায়পুরা|শিবপুর',
+ 'মানিকগঞ্জ':'মানিকগঞ্জ সদর|সিংগাইর|সাটুরিয়া|হরিরামপুর|ঘিওর|শিবালয়|দৌলতপুর',
+ 'মুন্সিগঞ্জ':'মুন্সীগঞ্জ সদর|শ্রীনগর|সিরাজদিখান|লৌহজং|গজারিয়া|টংগীবাড়ী',
+ 'টাঙ্গাইল':'টাঙ্গাইল সদর|সখীপুর|বাসাইল|মধুপুর|ঘাটাইল|কালিহাতী|নাগরপুর|মির্জাপুর|গোপালপুর|ভুঞাপুর|দেলদুয়ার|ধনবাড়ী',
+ 'কিশোরগঞ্জ':'কিশোরগঞ্জ সদর|ইটনা|কটিয়াদী|করিমগঞ্জ|কুলিয়ারচর|তাড়াইল|পাকুন্দিয়া|ভৈরব|মিঠামইন|নিকলী|বাজিতপুর|অষ্টগ্রাম|হোসেনপুর',
+ 'ফরিদপুর':'ফরিদপুর সদর|আলফাডাঙ্গা|ভাঙ্গা|বোয়ালমারী|চরভদ্রাসন|মধুখালী|নগরকান্দা|সদরপুর|সালথা',
+ 'রাজবাড়ী':'রাজবাড়ী সদর|গোয়ালন্দ|পাংশা|বালিয়াকান্দি|কালুখালী',
+ 'মাদারীপুর':'মাদারীপুর সদর|কালকিনি|রাজৈর|শিবচর|ডাসার',
+ 'শরীয়তপুর':'শরীয়তপুর সদর|নড়িয়া|ভেদরগঞ্জ|জাজিরা|গোসাইরহাট|ডামুড্যা',
+ 'গোপালগঞ্জ':'গোপালগঞ্জ সদর|কাশিয়ানী|কোটালীপাড়া|মুকসুদপুর|টুঙ্গিপাড়া'
+},
+'চট্টগ্রাম বিভাগ': {
+ 'চট্টগ্রাম':'কোতোয়ালী|পাঁচলাইশ|পাহাড়তলী|ডবলমুরিং|বন্দর|হালিশহর|খুলশী|বায়েজিদ|চান্দগাঁও|আকবরশাহ|বাকলিয়া|পতেঙ্গা|আনোয়ারা|বাঁশখালী|বোয়ালখালী|চন্দনাইশ|ফটিকছড়ি|হাটহাজারী|লোহাগাড়া|মীরসরাই|পটিয়া|রাঙ্গুনিয়া|রাউজান|সন্দ্বীপ|সাতকানিয়া|সীতাকুণ্ড',
+ 'কক্সবাজার':'কক্সবাজার সদর|চকরিয়া|কুতুবদিয়া|উখিয়া|মহেশখালী|পেকুয়া|রামু|টেকনাফ',
+ 'কুমিল্লা':'কুমিল্লা আদর্শ সদর|কুমিল্লা সদর দক্ষিণ|বরুড়া|ব্রাহ্মণপাড়া|বুড়িচং|চান্দিনা|চৌদ্দগ্রাম|দাউদকান্দি|দেবিদ্বার|হোমনা|লাকসাম|লালমাই|মুরাদনগর|নাঙ্গলকোট|তিতাস|মনোহরগঞ্জ|মেঘনা',
+ 'ফেনী':'ফেনী সদর|ছাগলনাইয়া|দাগনভূঞা|পরশুরাম|ফুলগাজী|সোনাগাজী',
+ 'ব্রাহ্মণবাড়িয়া':'ব্রাহ্মণবাড়িয়া সদর|আখাউড়া|আশুগঞ্জ|বাঞ্ছারামপুর|বিজয়নগর|কসবা|নবীনগর|নাসিরনগর|সরাইল',
+ 'রাঙ্গামাটি':'রাঙ্গামাটি সদর|বাঘাইছড়ি|বরকল|কাউখালী|কাপ্তাই|জুরাছড়ি|লংগদু|নানিয়ারচর|রাজস্থলী|বিলাইছড়ি',
+ 'নোয়াখালী':'নোয়াখালী সদর|বেগমগঞ্জ|চাটখিল|কোম্পানীগঞ্জ|হাতিয়া|কবিরহাট|সেনবাগ|সোনাইমুড়ী|সুবর্ণচর',
+ 'চাঁদপুর':'চাঁদপুর সদর|ফরিদগঞ্জ|হাজীগঞ্জ|হাইমচর|কচুয়া|মতলব উত্তর|মতলব দক্ষিণ|শাহরাস্তি',
+ 'লক্ষ্মীপুর':'লক্ষ্মীপুর সদর|রায়পুর|রামগঞ্জ|রামগতি|কমলনগর',
+ 'বান্দরবান':'বান্দরবান সদর|আলীকদম|রোয়াংছড়ি|রুমা|থানচি|লামা|নাইক্ষ্যংছড়ি',
+ 'খাগড়াছড়ি':'খাগড়াছড়ি সদর|দীঘিনালা|লক্ষ্মীছড়ি|মহালছড়ি|মানিকছড়ি|মাটিরাঙ্গা|পানছড়ি|রামগড়|গুইমারা'
+},
+'রাজশাহী বিভাগ': {
+ 'রাজশাহী':'রাজশাহী সদর|বাঘা|বাগমারা|চারঘাট|দুর্গাপুর|গোদাগাড়ী|মোহনপুর|পবা|পুঠিয়া|তানোর',
+ 'চাঁপাইনবাবগঞ্জ':'চাঁপাইনবাবগঞ্জ সদর|ভোলাহাট|গোমস্তাপুর|নাচোল|নবাবগঞ্জ|শিবগঞ্জ',
+ 'নওগাঁ':'নওগাঁ সদর|আত্রাই|বদলগাছী|ধামইরহাট|মান্দা|মহাদেবপুর|নিয়ামতপুর|পত্নীতলা|পোরশা|রাণীনগর|সাপাহার',
+ 'নাটোর':'নাটোর সদর|বাগাতিপাড়া|বড়াইগ্রাম|গুরুদাসপুর|লালপুর|সিংড়া|নলডাঙ্গা',
+ 'পাবনা':'পাবনা সদর|আটঘরিয়া|বেড়া|ভাঙ্গুড়া|চাটমোহর|ফরিদপুর|ঈশ্বরদী|সাঁথিয়া|সুজানগর',
+ 'সিরাজগঞ্জ':'সিরাজগঞ্জ সদর|বেলকুচি|চৌহালী|কামারখন্দ|কাজীপুর|রায়গঞ্জ|শাহজাদপুর|তাড়াশ|উল্লাপাড়া',
+ 'বগুড়া':'বগুড়া সদর|আদমদীঘি|ধুনট|দুপচাঁচিয়া|গাবতলী|কাহালু|নন্দীগ্রাম|শাজাহানপুর|শেরপুর|শিবগঞ্জ|সোনাতলা',
+ 'জয়পুরহাট':'জয়পুরহাট সদর|আক্কেলপুর|কালাই|ক্ষেতলাল|পাঁচবিবি'
+},
+'খুলনা বিভাগ': {
+ 'খুলনা':'খুলনা সদর|সোনাডাঙ্গা|খালিশপুর|দৌলতপুর|খানজাহান আলী|বটিয়াঘাটা|ডাকোপ|দিঘলিয়া|ডুমুরিয়া|ফুলতলা|কয়রা|পাইকগাছা|রূপসা|তেরখাদা',
+ 'বাগেরহাট':'বাগেরহাট সদর|চিতলমারী|ফকিরহাট|কচুয়া|মোল্লাহাট|মোংলা|মোরেলগঞ্জ|রামপাল|শরণখোলা',
+ 'সাতক্ষীরা':'সাতক্ষীরা সদর|আশাশুনি|দেবহাটা|কলারোয়া|কালীগঞ্জ|শ্যামনগর|তালা',
+ 'যশোর':'যশোর সদর|অভয়নগর|বাঘারপাড়া|চৌগাছা|ঝিকরগাছা|কেশবপুর|মণিরামপুর|শার্শা',
+ 'ঝিনাইদহ':'ঝিনাইদহ সদর|কালীগঞ্জ|কোটচাঁদপুর|মহেশপুর|শৈলকুপা|হরিণাকুন্ডু',
+ 'মাগুরা':'মাগুরা সদর|মহম্মদপুর|শালিখা|শ্রীপুর',
+ 'নড়াইল':'নড়াইল সদর|কালিয়া|লোহাগড়া|নড়াগাতী',
+ 'কুষ্টিয়া':'কুষ্টিয়া সদর|ভেড়ামারা|দৌলতপুর|খোকসা|কুমারখালী|মিরপুর',
+ 'চুয়াডাঙ্গা':'চুয়াডাঙ্গা সদর|আলমডাঙ্গা|দামুড়হুদা|জীবননগর',
+ 'মেহেরপুর':'মেহেরপুর সদর|গাংনী|মুজিবনগর'
+},
+'বরিশাল বিভাগ': {
+ 'বরিশাল':'বরিশাল সদর|আগৈলঝাড়া|বাবুগঞ্জ|বাকেরগঞ্জ|বানারীপাড়া|গৌরনদী|হিজলা|মেহেন্দিগঞ্জ|মুলাদী|উজিরপুর',
+ 'ভোলা':'ভোলা সদর|বোরহানউদ্দিন|চরফ্যাশন|দৌলতখান|লালমোহন|মনপুরা|তজুমদ্দিন',
+ 'পটুয়াখালী':'পটুয়াখালী সদর|বাউফল|দশমিনা|দুমকি|গলাচিপা|কলাপাড়া|মির্জাগঞ্জ|রাঙ্গাবালী',
+ 'পিরোজপুর':'পিরোজপুর সদর|ভান্ডারিয়া|কাউখালী|মঠবাড়িয়া|নাজিরপুর|নেছারাবাদ|ইন্দুরকানী',
+ 'ঝালকাঠি':'ঝালকাঠি সদর|কাঁঠালিয়া|নলছিটি|রাজাপুর',
+ 'বরগুনা':'বরগুনা সদর|আমতলী|বামনা|বেতাগী|পাথরঘাটা|তালতলী'
+},
+'সিলেট বিভাগ': {
+ 'সিলেট':'সিলেট সদর|বালাগঞ্জ|বিয়ানীবাজার|বিশ্বনাথ|কোম্পানীগঞ্জ|দক্ষিণ সুরমা|ফেঞ্চুগঞ্জ|গোলাপগঞ্জ|গোয়াইনঘাট|জৈন্তাপুর|কানাইঘাট|ওসমানীনগর|জকিগঞ্জ',
+ 'মৌলভীবাজার':'মৌলভীবাজার সদর|বড়লেখা|জুড়ী|কমলগঞ্জ|কুলাউড়া|রাজনগর|শ্রীমঙ্গল',
+ 'হবিগঞ্জ':'হবিগঞ্জ সদর|আজমিরীগঞ্জ|বাহুবল|বানিয়াচং|চুনারুঘাট|লাখাই|মাধবপুর|নবীগঞ্জ|শায়েস্তাগঞ্জ',
+ 'সুনামগঞ্জ':'সুনামগঞ্জ সদর|দক্ষিণ সুনামগঞ্জ|বিশ্বম্ভরপুর|ছাতক|দিরাই|ধর্মপাশা|দোয়ারাবাজার|জগন্নাথপুর|জামালগঞ্জ|শাল্লা|তাহিরপুর|মধ্যনগর|শান্তিগঞ্জ'
+},
+'রংপুর বিভাগ': {
+ 'রংপুর':'রংপুর সদর|বদরগঞ্জ|গংগাচড়া|কাউনিয়া|মিঠাপুকুর|পীরগাছা|পীরগঞ্জ|তারাগঞ্জ',
+ 'গাইবান্ধা':'গাইবান্ধা সদর|ফুলছড়ি|গোবিন্দগঞ্জ|পলাশবাড়ী|সাদুল্যাপুর|সাঘাটা|সুন্দরগঞ্জ',
+ 'কুড়িগ্রাম':'কুড়িগ্রাম সদর|ভুরুঙ্গামারী|চিলমারী|ফুলবাড়ী|নাগেশ্বরী|রাজারহাট|রাজীবপুর|রৌমারী|উলিপুর',
+ 'লালমনিরহাট':'লালমনিরহাট সদর|আদিতমারী|হাতীবান্ধা|কালীগঞ্জ|পাটগ্রাম',
+ 'নীলফামারী':'নীলফামারী সদর|ডিমলা|ডোমার|জলঢাকা|কিশোরগঞ্জ|সৈয়দপুর',
+ 'ঠাকুরগাঁও':'ঠাকুরগাঁও সদর|বালিয়াডাঙ্গী|হরিপুর|পীরগঞ্জ|রাণীশংকৈল',
+ 'পঞ্চগড়':'পঞ্চগড় সদর|আটোয়ারী|বোদা|দেবীগঞ্জ|তেঁতুলিয়া',
+ 'দিনাজপুর':'দিনাজপুর সদর|বিরামপুর|বীরগঞ্জ|বিরল|বোচাগঞ্জ|চিরিরবন্দর|ফুলবাড়ী|ঘোড়াঘাট|হাকিমপুর|কাহারোল|খানসামা|নবাবগঞ্জ|পার্বতীপুর'
+},
+'ময়মনসিংহ বিভাগ': {
+ 'ময়মনসিংহ':'ময়মনসিংহ সদর|ত্রিশাল|ভালুকা|গৌরীপুর|ফুলপুর|গফরগাঁও|ঈশ্বরগঞ্জ|ধোবাউড়া|হালুয়াঘাট|মুক্তাগাছা|নান্দাইল|ফুলবাড়ীয়া|তারাকান্দা',
+ 'জামালপুর':'জামালপুর সদর|বকশীগঞ্জ|দেওয়ানগঞ্জ|ইসলামপুর|মাদারগঞ্জ|মেলান্দহ|সরিষাবাড়ী',
+ 'নেত্রকোণা':'নেত্রকোণা সদর|আটপাড়া|বারহাট্টা|দুর্গাপুর|কলমাকান্দা|কেন্দুয়া|খালিয়াজুরী|মদন|মোহনগঞ্জ|পূর্বধলা',
+ 'শেরপুর':'শেরপুর সদর|ঝিনাইগাতী|নকলা|নালিতাবাড়ী|শ্রীবরদী'
+}
+};
+
+/* ---------------- 📍 জেলা/উপজেলা ও ডেলিভারি চার্জ ---------------- */
+let selectedDistrict = '', selectedUpazila = '';
+function _num(v, d){ const n = parseFloat(v); return (v===undefined || v===null || v==='' || isNaN(n)) ? d : n; }
+function geoCfg(){
+  const st = DB.settings || {};
+  return {
+    inside: _num(st.shipInsideDhaka, 60),
+    outside: _num(st.shipOutsideDhaka, 120),
+    prepay: _num(st.prepayDiscount, 30),
+    cod: Array.isArray(st.codDistricts) ? st.codDistricts : ['ঢাকা']
+  };
+}
+function isCodAllowed(district){ return !!district && geoCfg().cod.includes(district); }
+function calcShipping(subtotal, district, payment){
+  const c = geoCfg();
+  let base = (!district || district === 'ঢাকা') ? c.inside : c.outside;
+  const freeMin = _num((DB.settings||{}).freeShip, 0);
+  let free = false;
+  if(freeMin > 0 && subtotal >= freeMin){ base = 0; free = true; }
+  const prepaid = (payment === 'bkash' || payment === 'nagad');
+  const off = prepaid ? Math.min(c.prepay, base) : 0;
+  return { base, off, final: base - off, free };
+}
+function initDistrictSelect(){
+  const sel = document.getElementById('ckDistrict');
+  if(!sel || sel.options.length > 1) return;
+  let html = '<option value="">— জেলা বেছে নিন —</option>';
+  Object.keys(BD_GEO).forEach(div=>{
+    html += `<optgroup label="${div}">` + Object.keys(BD_GEO[div]).map(d=>`<option value="${d}">${d}</option>`).join('') + '</optgroup>';
+  });
+  sel.innerHTML = html;
+  sel.value = selectedDistrict;
+  fillUpazilaOptions();
+}
+function upazilasOf(district){
+  for(const div of Object.keys(BD_GEO)){ if(BD_GEO[div][district]) return BD_GEO[div][district].split('|'); }
+  return [];
+}
+function fillUpazilaOptions(){
+  const sel = document.getElementById('ckUpazila'); if(!sel) return;
+  if(!selectedDistrict){ sel.innerHTML = '<option value="">— আগে জেলা বেছে নিন —</option>'; sel.disabled = true; return; }
+  sel.innerHTML = '<option value="">— উপজেলা / থানা বেছে নিন —</option>' + upazilasOf(selectedDistrict).map(u=>`<option value="${u}">${u}</option>`).join('');
+  sel.disabled = false;
+  sel.value = selectedUpazila;
+}
+function onDistrictChange(){
+  selectedDistrict = document.getElementById('ckDistrict').value;
+  selectedUpazila = '';
+  fillUpazilaOptions();
+  applyCodAvailability();
+  refreshCheckout();
+}
+function onUpazilaChange(){ selectedUpazila = document.getElementById('ckUpazila').value; }
+function applyCodAvailability(){
+  const el = document.getElementById('payCodOption'), note = document.getElementById('codNote');
+  if(!el) return;
+  const blocked = !!selectedDistrict && !isCodAllowed(selectedDistrict);
+  el.style.opacity = blocked ? '.45' : '';
+  el.style.pointerEvents = blocked ? 'none' : '';
+  if(note) note.style.display = blocked ? 'block' : 'none';
+  if(blocked && selectedPayment === 'cod'){
+    const bk = document.querySelector('.pay-option[data-pay="bkash"]');
+    if(bk){ selectPay(bk, 'bkash'); toast('আপনার জেলায় ক্যাশ অন ডেলিভারি নেই — বিকাশ বেছে নেওয়া হয়েছে'); }
+  }
+}
+function updateShipBox(s){
+  const info = calcShipping(s.subtotal, selectedDistrict, selectedPayment);
+  const label = document.getElementById('ckShipLabel'), val = document.getElementById('ckShipVal');
+  const prow = document.getElementById('ckPrepayRow'), pval = document.getElementById('ckPrepayVal');
+  if(!label) return;
+  label.textContent = !selectedDistrict ? 'ডেলিভারি চার্জ (জেলা বেছে নিলে নির্ধারিত হবে)'
+    : (selectedDistrict === 'ঢাকা' ? 'ডেলিভারি চার্জ (ঢাকার ভিতরে)' : 'ডেলিভারি চার্জ (ঢাকার বাইরে)');
+  val.textContent = info.base === 0 ? 'ফ্রি' : `৳${info.base}`;
+  if(info.off > 0){ prow.style.display = 'flex'; pval.textContent = `-৳${info.off}`; } else { prow.style.display = 'none'; }
+}
 let selectedPaymentPlanPercent = null;
-function renderCheckout(){ const s=computeSummary(); document.getElementById('ckTotal').textContent=`৳${s.total}`; updateManualPayBox(); renderPaymentPlanOptions(s.total); updateCheckoutAuthBanner(); }
-function selectPay(el, val){ selectedPayment=val; document.querySelectorAll('.pay-option').forEach(p=>p.classList.remove('active')); el.classList.add('active'); selectedPaymentPlanPercent=null; updateManualPayBox(); const s=computeSummary(); renderPaymentPlanOptions(s.total); }
+function renderCheckout(){ initDistrictSelect(); applyCodAvailability(); refreshCheckout(); updateManualPayBox(); updateCheckoutAuthBanner(); }
+function refreshCheckout(){ const s=computeSummary(); document.getElementById('ckTotal').textContent=`৳${s.total}`; updateShipBox(s); renderPaymentPlanOptions(s.total); }
+function selectPay(el, val){ selectedPayment=val; document.querySelectorAll('.pay-option').forEach(p=>p.classList.remove('active')); el.classList.add('active'); selectedPaymentPlanPercent=null; updateManualPayBox(); refreshCheckout(); }
 function renderPaymentPlanOptions(total){
   const box = document.getElementById('paymentPlanBox');
   const plans = (DB.settings.paymentPlans||[]).slice().sort((a,b)=>a-b);
@@ -831,7 +995,11 @@ async function placeOrder(){
   if(!name || !phone || !address){ toast('সব তথ্য পূরণ করুন'); return; }
   if(!isValidCheckoutName(name)){ toast('সঠিক পুরো নাম দিন (নূন্যতম নাম ও পদবি, শুধু অক্ষর ব্যবহার করুন)'); return; }
   if(!isValidBDPhone(phone)){ toast('সঠিক মোবাইল নম্বর দিন — যেমন: 01712345678'); return; }
-  if(!isValidCheckoutAddress(address)){ toast('সম্পূর্ণ ও সঠিক ঠিকানা দিন (বাসা/রোড/এলাকা/জেলা উল্লেখ করুন)'); return; }
+  if(!selectedDistrict){ toast('জেলা বেছে নিন'); return; }
+  if(!selectedUpazila){ toast('উপজেলা / থানা বেছে নিন'); return; }
+  if(!isValidCheckoutAddress(address)){ toast('সম্পূর্ণ ও সঠিক ঠিকানা দিন (বাসা/রোড/এলাকা উল্লেখ করুন)'); return; }
+  if(selectedPayment==='cod' && !isCodAllowed(selectedDistrict)){ toast('আপনার জেলায় ক্যাশ অন ডেলিভারি নেই — অগ্রিম পেমেন্ট করুন'); return; }
+  const fullAddress = `${address}, ${selectedUpazila}, ${selectedDistrict}`;
 
   let transactionId = '';
   if(selectedPayment==='bkash' || selectedPayment==='nagad'){
@@ -848,7 +1016,7 @@ async function placeOrder(){
   let result;
   try{
     result = await runOrderTransaction({
-      name, phone, address, payment: selectedPayment, transactionId,
+      name, phone, address: fullAddress, district: selectedDistrict, upazila: selectedUpazila, payment: selectedPayment, transactionId,
       paymentPlanPercent: selectedPaymentPlanPercent || null,
       couponCode: appliedCoupon || null,
       items: cart.map(c=>({pid:c.pid, qty:c.qty}))
@@ -896,7 +1064,9 @@ async function runOrderTransaction(input){
     const taxableAmount = Math.max(subtotal - discount, 0);
     const taxRate = parseFloat(DB.settings.tax) || 0;
     const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
-    const shipping = subtotal >= (DB.settings.freeShip||0) ? 0 : 60;
+    if(input.payment==='cod' && !isCodAllowed(input.district)) throw new Error('আপনার জেলায় ক্যাশ অন ডেলিভারি নেই — অগ্রিম পেমেন্ট করুন');
+    const shipInfo = calcShipping(subtotal, input.district, input.payment);
+    const shipping = shipInfo.final;
     const total = taxableAmount + tax + shipping;
 
     let advanceAmount = 0, dueAmount = 0, finalPlanPercent = null;
@@ -918,6 +1088,7 @@ async function runOrderTransaction(input){
       id: orderId, ownerUid: currentUser.uid, ownerEmail: currentUser.email||'',
       customer: input.name, phone: input.phone, address: input.address, items: itemsSnapshot,
       subtotal, discount, tax, shipping, total,
+      district: input.district||'', upazila: input.upazila||'', shippingBase: shipInfo.base, prepayDiscount: shipInfo.off,
       status: 'pending', payment: input.payment, paymentStatus: 'unpaid', transactionId: input.transactionId||'',
       paymentPlanPercent: finalPlanPercent, advanceAmount, dueAmount,
       courier: 'নির্ধারণ করা হয়নি',
