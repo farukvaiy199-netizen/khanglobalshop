@@ -181,6 +181,37 @@ img{max-width:100%; display:block;}
 .chat-reg button{width:100%; background:var(--primary); color:#fff; border:none; border-radius:10px; padding:13px; font-weight:700; font-size:14.5px;}
 .cloud-status-tag{position:fixed; left:10px; bottom:10px; z-index:5; font-size:10px; color:var(--ink-soft); background:rgba(255,255,255,.85); border:1px solid var(--line); border-radius:999px; padding:3px 9px; display:none; max-width:70vw;}
 .lookup-btn{background:var(--primary); color:#fff; border:none; border-radius:8px; padding:0 16px; font-weight:700; font-size:13px; flex-shrink:0;}
+
+/* ---------------- রিভিউ সেকশন, আইনি পাতা ---------------- */
+.rv-section{margin-top:26px; background:linear-gradient(160deg,#F1FAF6,#EAF4FB); border:1px solid var(--line); border-radius:20px; padding:18px 14px 16px;}
+.rv-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-bottom:14px;}
+.rv-head h3{font-size:17px; margin-bottom:4px;}
+.rv-sum{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-soft);}
+.rv-avg{font-family:'Baloo Da 2',sans-serif; font-size:22px; font-weight:800; color:var(--ink);}
+.rv-stars{color:var(--accent); letter-spacing:1px;}
+.rv-write{background:var(--primary); color:#fff; border:none; border-radius:999px; padding:9px 14px; font-size:12.5px; font-weight:700; box-shadow:var(--shadow); white-space:nowrap;}
+.rv-card{background:#fff; border:1px solid var(--line); border-radius:16px; padding:13px 14px; margin-bottom:10px; box-shadow:var(--shadow);}
+.rv-top{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+.rv-av{width:38px; height:38px; border-radius:50%; background:var(--primary-tint); color:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;}
+.rv-who{flex:1; min-width:0;}
+.rv-who b{display:block; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.rv-who span{display:block; font-size:11px; color:var(--ink-soft); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.rv-ver{font-size:10px; font-weight:700; color:var(--primary-dark); background:var(--primary-tint); border-radius:999px; padding:3px 8px; white-space:nowrap;}
+.rv-text{font-size:13.5px; line-height:1.7; color:var(--ink); margin:6px 0 8px;}
+.rv-foot{display:flex; justify-content:space-between; align-items:center; gap:8px; font-size:11px; color:var(--ink-soft);}
+.rv-prod{background:var(--bg); border-radius:999px; padding:4px 10px; font-weight:600; max-width:60%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:pointer;}
+.rv-more{width:100%; background:#fff; border:1px solid var(--line); border-radius:12px; padding:11px; font-weight:700; color:var(--primary); font-size:13px;}
+.rv-empty{text-align:center; padding:22px 10px; color:var(--ink-soft); font-size:13px; background:#fff; border-radius:14px; border:1px dashed var(--line);}
+.info-overlay{position:fixed; inset:0; background:rgba(20,20,20,.5); z-index:320; display:none; align-items:flex-end; justify-content:center;}
+.info-overlay.active{display:flex;}
+.info-sheet{background:#fff; width:100%; max-width:560px; max-height:88vh; overflow-y:auto; border-radius:20px 20px 0 0; padding:18px 18px 28px;}
+.info-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
+.info-head h3{font-size:18px;}
+.info-close{background:var(--bg); border:none; width:32px; height:32px; border-radius:50%; font-size:16px;}
+.info-body{font-size:13.5px; line-height:1.85; color:var(--ink-soft); white-space:pre-wrap;}
+.footer-links{display:flex; flex-wrap:wrap; gap:8px 16px; margin-bottom:18px;}
+.footer-links a{font-size:12.5px; color:var(--primary); font-weight:600; cursor:pointer;}
+.rv-pick{display:flex; gap:6px; font-size:28px; letter-spacing:2px; cursor:pointer; margin-bottom:12px;}
 </style>
 </head>
 <body>
@@ -203,6 +234,7 @@ img{max-width:100%; display:block;}
   <div class="grid" id="newArrivalsGrid"></div>
   <div class="sec-head"><h3>⭐ বৈশিষ্ট্যযুক্ত পণ্য</h3><span class="see-all" onclick="goto('shopView')">সব দেখুন</span></div>
   <div class="grid" id="featuredGrid"></div>
+  <div id="homeReviews"></div>
 </div>
 
 <div class="view" id="shopView">
@@ -215,6 +247,7 @@ img{max-width:100%; display:block;}
     <div class="filter-pill" data-sort="discount" onclick="setSort(this,'discount')">সর্বোচ্চ ছাড়</div>
   </div>
   <div class="grid" id="shopGrid"></div>
+  <div id="shopReviews"></div>
 </div>
 
 <div class="view" id="productView"></div>
@@ -303,6 +336,12 @@ img{max-width:100%; display:block;}
     <div class="frow"><span class="ficon">📞</span><span id="footerPhone"></span></div>
     <div class="frow"><span class="ficon">✉️</span><span id="footerEmail"></span></div>
   </div>
+  <div class="footer-links" id="footerLinks">
+    <a onclick="openInfoPage('about')">আমাদের সম্পর্কে</a>
+    <a onclick="openInfoPage('returns')">রিটার্ন ও রিফান্ড নীতি</a>
+    <a onclick="openInfoPage('privacy')">প্রাইভেসি পলিসি</a>
+    <a onclick="openInfoPage('terms')">শর্তাবলী</a>
+  </div>
   <div class="footer-socials" id="footerSocials"></div>
   <div class="footer-bottom" id="footerCopyright"></div>
 </div>
@@ -327,6 +366,12 @@ img{max-width:100%; display:block;}
   </button>
 </div>
 
+<div class="info-overlay" id="infoOverlay" onclick="if(event.target===this) closeInfoPage()">
+  <div class="info-sheet"><div class="info-head"><h3 id="infoTitle"></h3><button class="info-close" onclick="closeInfoPage()">✕</button></div><div class="info-body" id="infoBody"></div></div>
+</div>
+<div class="info-overlay" id="rvOverlay" onclick="if(event.target===this) closeReviewWriter()">
+  <div class="info-sheet"><div class="info-head"><h3>✍️ আপনার রিভিউ দিন</h3><button class="info-close" onclick="closeReviewWriter()">✕</button></div><div id="rvBody"></div></div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="cloud-status-tag" id="cloudStatusTag"></div>
 
@@ -1171,7 +1216,7 @@ function renderMyOrdersFromCache(){
       <div class="thumb">📦</div>
       <div class="info"><div class="name">${o.id} <span class="status-pill ${o.status}">${statusLabel(o.status)}</span></div>
       <div class="variant" style="font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">${o.date} • ${(o.items||[]).length} আইটেম</div>
-      ${trackHtml}
+      ${trackHtml}${o.pathaoConsignmentId?`<div style="font-size:12px; margin-bottom:6px;">📦 পাঠাও ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.pathaoConsignmentId)}</b></div>`:''}
       <div class="row-bottom"><span class="price">৳${o.total}</span>${cancellable?`<a class="remove-link" onclick="cancelOrder('${o.id}')">অর্ডার বাতিল করুন (${cancelRemainingMinutes(o)} মিনিট বাকি)</a>`:''}</div></div></div>`;
   }).join('');
 }
@@ -1437,6 +1482,240 @@ async function init(){
   }, 5000);
 }
 init();
+
+/* ---------------- 👁️ ভিজিটর ট্র্যাকিং ও অ্যাকাউন্ট রেকর্ড (অ্যাডমিনের ভিজিটর ডেশবোর্ডের জন্য) ---------------- */
+const VISITS_COL = FIRESTORE_ROOT + '/visits';
+const USERS_COL  = FIRESTORE_ROOT + '/users';
+function _bdDate(){ return new Date(Date.now() + 6*3600*1000).toISOString().slice(0,10); }
+function _visitorId(){
+  try{
+    let id = localStorage.getItem('bazaar_vid');
+    if(!id){ id = 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2,10); localStorage.setItem('bazaar_vid', id); }
+    return id;
+  }catch(e){ return 'v' + Math.random().toString(36).slice(2,12); }
+}
+let _pendingViews = 0, _flushTimer = null, _lastFlush = 0;
+async function _flushViews(){
+  _flushTimer = null;
+  if(_pendingViews <= 0) return;
+  const n = _pendingViews; _pendingViews = 0; _lastFlush = Date.now();
+  const vid = _visitorId(), date = _bdDate();
+  const data = { vid, date, views: firebase.firestore.FieldValue.increment(n), lastSeen: firebase.firestore.FieldValue.serverTimestamp() };
+  if(currentUser) data.uid = currentUser.uid;
+  try{ await fireDb.doc(`${VISITS_COL}/${vid}_${date}`).set(data, { merge:true }); }
+  catch(e){ /* Rules এখনো যোগ না থাকলে চুপচাপ বাদ — সাইটে কোনো প্রভাব নেই */ }
+}
+function queueView(){
+  _pendingViews++;
+  if(_flushTimer) return;
+  const wait = Math.max(800, 20000 - (Date.now() - _lastFlush));
+  _flushTimer = setTimeout(_flushViews, wait);
+}
+document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState === 'hidden') _flushViews(); });
+(function(){
+  const _goto0 = goto;
+  goto = function(viewId){ _goto0(viewId); queueView(); };
+  const _open0 = openProduct;
+  openProduct = function(id){ _open0(id); queueView(); };
+})();
+let _acctRecorded = false;
+fireAuth.onAuthStateChanged(async (user)=>{
+  if(!user){ _acctRecorded = false; return; }
+  if(_acctRecorded) return;
+  _acctRecorded = true;
+  try{
+    const ref = fireDb.doc(`${USERS_COL}/${user.uid}`);
+    const snap = await ref.get();
+    const ts = firebase.firestore.FieldValue.serverTimestamp();
+    const base = { name: user.displayName || '', email: user.email || '', photo: user.photoURL || '', lastLogin: ts };
+    if(!snap.exists) await ref.set(Object.assign({ uid: user.uid, createdAt: ts }, base));
+    else await ref.update(base);
+  }catch(e){}
+});
+queueView();
+
+/* =====================================================================
+   ⭐ সাইট-জুড়ে গ্রাহক রিভিউ সেকশন (সব পণ্যের নিচে)
+   ===================================================================== */
+const SHOW_FULL_REVIEW_EMAIL = false;   // true করলে রিভিউয়ে পুরো ইমেইল দেখাবে (প্রাইভেসির জন্য false রাখা ভালো)
+let siteReviews = [], siteReviewsLoaded = false, siteReviewsShown = 5;
+function _tsMs(v){ return v && v.toDate ? v.toDate().getTime() : (v ? new Date(v).getTime() : 0); }
+function maskEmail(e){
+  if(!e) return '';
+  if(SHOW_FULL_REVIEW_EMAIL) return e;
+  const parts = String(e).split('@'); if(parts.length < 2) return e;
+  return parts[0].slice(0,2) + '***@' + parts[1];
+}
+async function loadSiteReviews(force){
+  if(siteReviewsLoaded && !force) return;
+  try{
+    const snap = await fireDb.collection(REVIEWS_COL).where('status','==','approved').limit(100).get();
+    siteReviews = snap.docs.map(d=>d.data()).sort((a,b)=>_tsMs(b.submittedAt) - _tsMs(a.submittedAt));
+    siteReviewsLoaded = true;
+  }catch(e){ siteReviews = []; }
+}
+function starsText(n){ n = Math.max(0, Math.min(5, Math.round(n))); return '★'.repeat(n) + '☆'.repeat(5 - n); }
+function reviewCardHtml(r){
+  const p = (DB.products || []).find(x=>x.id === r.pid);
+  const dt = _tsMs(r.submittedAt);
+  const nm = (r.name || 'গ্রাহক').trim();
+  return `<div class="rv-card">
+    <div class="rv-top"><div class="rv-av">${escapeHtml(nm.charAt(0).toUpperCase())}</div>
+      <div class="rv-who"><b>${escapeHtml(nm)}</b><span>${r.email ? escapeHtml(maskEmail(r.email)) : 'যাচাইকৃত গ্রাহক'}</span></div>
+      <span class="rv-ver">✓ যাচাইকৃত ক্রেতা</span></div>
+    <div class="rv-stars">${starsText(r.stars)}</div>
+    <div class="rv-text">${escapeHtml(r.text)}</div>
+    <div class="rv-foot">${p ? `<span class="rv-prod" onclick="openProduct('${p.id}')">🛍️ ${escapeHtml(p.name)}</span>` : '<span></span>'}<span>${dt ? new Date(dt).toLocaleDateString('bn-BD') : ''}</span></div>
+  </div>`;
+}
+function reviewsSectionHtml(){
+  const n = siteReviews.length;
+  const avg = n ? (siteReviews.reduce((s,r)=>s + (r.stars||0), 0) / n) : 0;
+  const head = `<div class="rv-head"><div><h3>⭐ গ্রাহকদের রিভিউ</h3>${n ? `<div class="rv-sum"><span class="rv-avg">${avg.toFixed(1)}</span><span class="rv-stars">${starsText(avg)}</span><span>· ${n}টি রিভিউ</span></div>` : '<div class="rv-sum">সত্যিকারের ক্রেতাদের মতামত</div>'}</div><button class="rv-write" onclick="openReviewWriter()">✍️ রিভিউ দিন</button></div>`;
+  const body = n ? siteReviews.slice(0, siteReviewsShown).map(reviewCardHtml).join('') + (n > siteReviewsShown ? `<button class="rv-more" onclick="showMoreReviews()">আরও রিভিউ দেখুন (${n - siteReviewsShown}টি বাকি)</button>` : '')
+                 : '<div class="rv-empty">এখনো কোনো রিভিউ নেই — প্রথম রিভিউটি আপনিই দিন!</div>';
+  return `<div class="rv-section">${head}${body}</div>`;
+}
+async function renderSiteReviews(force){
+  await loadSiteReviews(force);
+  const html = reviewsSectionHtml();
+  ['homeReviews','shopReviews'].forEach(id=>{ const el = document.getElementById(id); if(el) el.innerHTML = html; });
+}
+function showMoreReviews(){ siteReviewsShown += 5; renderSiteReviews(); }
+
+let rvStars = 0;
+function closeReviewWriter(){ document.getElementById('rvOverlay').classList.remove('active'); }
+async function rvSignIn(){ await signInWithGoogle(); if(currentUser) openReviewWriter(); }
+function rvSetStars(n){
+  rvStars = n;
+  document.querySelectorAll('#rvStarPick span').forEach(sp=>{ sp.style.color = parseInt(sp.dataset.s) <= n ? 'var(--accent)' : 'var(--line)'; });
+}
+async function openReviewWriter(){
+  document.getElementById('rvOverlay').classList.add('active');
+  const box = document.getElementById('rvBody');
+  if(!currentUser){
+    box.innerHTML = `<div style="text-align:center; padding:10px 4px;"><div style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;">রিভিউ দিতে Google দিয়ে সাইন-ইন করুন। শুধু যারা আমাদের কাছ থেকে পণ্য কিনেছেন, তারাই রিভিউ দিতে পারবেন।</div><button class="checkout-btn" style="margin-top:0;" onclick="rvSignIn()">🔵 Google দিয়ে সাইন-ইন করুন</button></div>`;
+    return;
+  }
+  box.innerHTML = '<div style="text-align:center; padding:20px; color:var(--ink-soft); font-size:13px;">যাচাই করা হচ্ছে...</div>';
+  try{
+    const [os, rs] = await Promise.all([
+      fireDb.collection(ORDERS_COL).where('ownerUid','==',currentUser.uid).get(),
+      fireDb.collection(REVIEWS_COL).where('ownerUid','==',currentUser.uid).get()
+    ]);
+    const reviewed = new Set(rs.docs.map(d=>d.data().pid));
+    const prods = new Map();
+    os.docs.forEach(d=>{ const o = d.data(); if(o.status === 'cancelled') return; (o.items||[]).forEach(it=>{ if(!reviewed.has(it.pid)) prods.set(it.pid, it.name); }); });
+    if(!prods.size){
+      box.innerHTML = `<div style="text-align:center; padding:14px 6px; font-size:13px; color:var(--ink-soft); line-height:1.8;">${reviewed.size ? '✓ আপনি আপনার কেনা সব পণ্যেই রিভিউ দিয়েছেন। ধন্যবাদ!' : 'শুধুমাত্র যাচাইকৃত ক্রেতারা রিভিউ দিতে পারবেন — আপনার অ্যাকাউন্টে এখনো কোনো অর্ডার পাওয়া যায়নি।'}</div>`;
+      return;
+    }
+    rvStars = 0;
+    box.innerHTML = `
+      <div class="form-group"><label>কোন পণ্যের রিভিউ দিচ্ছেন</label><select id="rvProduct">${[...prods].map(([id,name])=>`<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`).join('')}</select></div>
+      <div class="form-group"><label>আপনার নাম</label><input id="rvName" value="${escapeHtml(currentUser.displayName||'')}"></div>
+      <label style="display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:6px;">রেটিং</label>
+      <div class="rv-pick" id="rvStarPick">${[1,2,3,4,5].map(i=>`<span data-s="${i}" onclick="rvSetStars(${i})" style="color:var(--line);">★</span>`).join('')}</div>
+      <div class="form-group"><label>আপনার মন্তব্য</label><textarea id="rvText" rows="4" placeholder="পণ্য ও সেবা নিয়ে আপনার অভিজ্ঞতা লিখুন..."></textarea></div>
+      <div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">ℹ️ আপনার রিভিউ অ্যাডমিন অনুমোদন করার পর সাইটে দেখা যাবে।</div>
+      <button class="checkout-btn" id="rvSubmitBtn" onclick="submitSiteReview()">রিভিউ জমা দিন</button>`;
+  }catch(e){
+    box.innerHTML = '<div style="text-align:center; padding:16px; color:var(--danger); font-size:13px;">যাচাই করা যায়নি — আবার চেষ্টা করুন</div>';
+  }
+}
+async function submitSiteReview(){
+  const pid = document.getElementById('rvProduct').value;
+  const name = document.getElementById('rvName').value.trim();
+  const text = document.getElementById('rvText').value.trim();
+  if(!currentUser){ toast('আগে সাইন-ইন করুন'); return; }
+  if(name.length < 2){ toast('আপনার নাম দিন'); return; }
+  if(!rvStars){ toast('রেটিং দিন (তারকা বেছে নিন)'); return; }
+  if(text.length < 5){ toast('আপনার মন্তব্য লিখুন'); return; }
+  const btn = document.getElementById('rvSubmitBtn'); if(btn){ btn.disabled = true; btn.textContent = 'জমা হচ্ছে...'; }
+  try{
+    await fireDb.collection(REVIEWS_COL).add({
+      pid, ownerUid: currentUser.uid, name, email: currentUser.email || '',
+      stars: rvStars, text, status: 'pending', submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    closeReviewWriter();
+    toast('রিভিউ জমা হয়েছে ✓ — অনুমোদনের পর দেখানো হবে');
+  }catch(e){
+    toast('রিভিউ জমা দেওয়া যায়নি — আবার চেষ্টা করুন');
+    if(btn){ btn.disabled = false; btn.textContent = 'রিভিউ জমা দিন'; }
+  }
+}
+
+/* =====================================================================
+   📄 আইনি পাতা (অ্যাডমিন থেকে সম্পাদনাযোগ্য)
+   ===================================================================== */
+function legalDefaults(){
+  const st = DB.settings || {};
+  const name = st.storeName || 'আমাদের শপ', phone = st.phone || '', email = st.email || '', addr = st.address || '';
+  const contact = `\n\nযোগাযোগ:\n${phone ? '📞 ' + phone + '\n' : ''}${email ? '✉️ ' + email + '\n' : ''}${addr ? '📍 ' + addr : ''}`;
+  return {
+    about: `${name} একটি অনলাইন শপ। আমাদের লক্ষ্য মানসম্মত পণ্য ন্যায্য দামে আপনার দরজায় পৌঁছে দেওয়া এবং আপনার আস্থা অর্জন করা।\n\n• আমরা পণ্যের সঠিক বিবরণ ও দাম দিই।\n• অর্ডারের পর ফোনে নিশ্চিত করে পণ্য পাঠাই।\n• কোনো সমস্যা হলে দ্রুত সহায়তা দিই।${contact}`,
+    returns: `রিটার্ন ও রিফান্ড নীতি\n\n১. পণ্য হাতে পাওয়ার ৭ দিনের মধ্যে ত্রুটিপূর্ণ, ভুল বা ক্ষতিগ্রস্ত পণ্য পেলে আমাদের জানান।\n২. পণ্যটি অব্যবহৃত ও মূল প্যাকেজিংসহ থাকতে হবে।\n৩. যাচাইয়ের পর পণ্য বদলে দেওয়া হবে অথবা টাকা ফেরত দেওয়া হবে।\n৪. রিফান্ড সাধারণত ৩–৭ কর্মদিবসের মধ্যে বিকাশ/নগদে পাঠানো হয়।\n৫. গ্রাহকের পছন্দ না হওয়ার কারণে ফেরতের ক্ষেত্রে ডেলিভারি চার্জ ফেরতযোগ্য নয়।\n৬. ডেলিভারিম্যানের সামনে পণ্য দেখে নেওয়ার অনুরোধ করা হচ্ছে।${contact}`,
+    privacy: `প্রাইভেসি পলিসি\n\nআমরা যে তথ্য নিই: নাম, মোবাইল নম্বর, ডেলিভারি ঠিকানা এবং Google অ্যাকাউন্টের নাম ও ইমেইল।\n\nকেন নিই: অর্ডার প্রসেস, ডেলিভারি, কাস্টমার সাপোর্ট ও অর্ডার সংক্রান্ত যোগাযোগের জন্য।\n\n• আপনার তথ্য আমরা তৃতীয় পক্ষের কাছে বিক্রি করি না।\n• ডেলিভারির জন্য প্রয়োজনীয় তথ্য কুরিয়ার সার্ভিসের সাথে শেয়ার করা হয়।\n• বিকাশ/নগদের পিন বা পাসওয়ার্ড আমরা কখনো চাই না ও সংরক্ষণ করি না।\n• আপনার তথ্য মুছে ফেলতে চাইলে আমাদের সাথে যোগাযোগ করুন।${contact}`,
+    terms: `শর্তাবলী\n\n১. অর্ডার করার পর আমরা ফোনে নিশ্চিত করব; নিশ্চিত হওয়ার পর অর্ডার প্রসেস হবে।\n২. পণ্যের দাম ও স্টক পরিবর্তনযোগ্য। অর্ডার নিশ্চিত হওয়ার সময়ের দামই প্রযোজ্য হবে।\n৩. ক্যাশ অন ডেলিভারি শুধু নির্ধারিত জেলায় প্রযোজ্য; অন্য এলাকায় অগ্রিম পেমেন্ট করতে হবে।\n৪. অগ্রিম পেমেন্টে ঘোষিত ডেলিভারি ছাড় প্রযোজ্য।\n৫. অর্ডার পেন্ডিং থাকা অবস্থায় নির্ধারিত সময়ের মধ্যে বাতিল করা যাবে।\n৬. ভুল ঠিকানা বা ফোন নম্বরের কারণে ডেলিভারি ব্যর্থ হলে দায় গ্রাহকের।\n৭. এই শর্তাবলী যেকোনো সময় পরিবর্তন করার অধিকার আমরা রাখি।${contact}`
+  };
+}
+function openInfoPage(key){
+  const titles = { about:'আমাদের সম্পর্কে', returns:'রিটার্ন ও রিফান্ড নীতি', privacy:'প্রাইভেসি পলিসি', terms:'শর্তাবলী' };
+  const custom = (DB.settings && DB.settings.legalPages && DB.settings.legalPages[key]) || '';
+  document.getElementById('infoTitle').textContent = titles[key] || '';
+  document.getElementById('infoBody').textContent = custom.trim() ? custom : legalDefaults()[key];
+  document.getElementById('infoOverlay').classList.add('active');
+}
+function closeInfoPage(){ document.getElementById('infoOverlay').classList.remove('active'); }
+
+/* =====================================================================
+   📈 ফেসবুক পিক্সেল ও Google Analytics (অ্যাডমিন সেটিংস থেকে আইডি দিলেই চালু)
+   ===================================================================== */
+let _trackingReady = false;
+function initTracking(){
+  if(_trackingReady) return;
+  const st = DB.settings || {};
+  const px = String(st.fbPixelId || '').replace(/\D/g, '');
+  const ga = /^(G|UA|AW)-[A-Za-z0-9-]+$/.test(String(st.gaId || '').trim()) ? String(st.gaId).trim() : '';
+  if(!px && !ga) return;
+  _trackingReady = true;
+  if(px && !window.fbq){
+    (function(f,b,e,v,n,t,s){ if(f.fbq) return; n = f.fbq = function(){ n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if(!f._fbq) f._fbq = n; n.push = n; n.loaded = true; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = true; t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', px); fbq('track', 'PageView');
+  }
+  if(ga && !window.gtag){
+    const sc = document.createElement('script'); sc.async = true; sc.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(ga); document.head.appendChild(sc);
+    window.dataLayer = window.dataLayer || []; window.gtag = function(){ window.dataLayer.push(arguments); };
+    gtag('js', new Date()); gtag('config', ga);
+  }
+}
+function trackEvent(fbName, gaName, params){
+  try{
+    if(window.fbq) fbq('track', fbName, params);
+    if(window.gtag) gtag('event', gaName, params);
+  }catch(e){}
+}
+(function(){
+  const _add0 = addToCart;
+  addToCart = function(id, qty){
+    const ok = _add0(id, qty);
+    if(ok){ const p = (DB.products||[]).find(x=>x.id === id); if(p) trackEvent('AddToCart', 'add_to_cart', { content_ids:[id], content_name:p.name, value:p.price * (qty||1), currency:'BDT' }); }
+    return ok;
+  };
+  const _hook0 = notifyOrderWebhook;
+  notifyOrderWebhook = function(order){
+    if(order) trackEvent('Purchase', 'purchase', { value:order.total, currency:'BDT', transaction_id:order.id });
+    return _hook0(order);
+  };
+  const _goto1 = goto;
+  goto = function(viewId){ _goto1(viewId); if(viewId === 'homeView' || viewId === 'shopView') renderSiteReviews(); };
+})();
+(function(){
+  let tries = 0;
+  const t = setInterval(()=>{ tries++; initTracking(); if(_trackingReady || tries > 20) clearInterval(t); }, 1500);
+  renderSiteReviews();
+  setInterval(()=>renderSiteReviews(true), 120000);
+})();
 </script>
 </body>
 </html>
