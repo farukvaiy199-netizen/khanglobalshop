@@ -3,7 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Bazaar — বাজার</title>
+<title>Khan Global Shop — খান গ্লোবাল শপ | অনলাইন শপ বাংলাদেশ</title>
+<meta name="description" content="Khan Global Shop (খান গ্লোবাল শপ) — Global Products, Local Trust। সারা বাংলাদেশে ক্যাশ অন ডেলিভারি ও অগ্রিম পেমেন্ট সুবিধাসহ মানসম্মত পণ্য অনলাইনে অর্ডার করুন।">
+<meta name="keywords" content="Khan Global Shop, খান গ্লোবাল শপ, KhanGlobalShop, khan global shop bangladesh, অনলাইন শপ, অনলাইন শপিং বাংলাদেশ">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://farukvaiy199-netizen.github.io/khanglobalshop/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Khan Global Shop">
+<meta property="og:title" content="Khan Global Shop — খান গ্লোবাল শপ">
+<meta property="og:description" content="Global Products, Local Trust। সারা বাংলাদেশে ডেলিভারি, ক্যাশ অন ডেলিভারি সুবিধা।">
+<meta property="og:url" content="https://farukvaiy199-netizen.github.io/khanglobalshop/">
+<meta property="og:locale" content="bn_BD">
+<!-- GSC_VERIFY: Google Search Console-এর মেটা ট্যাগ এই লাইনের নিচে বসান -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@graph":[
+{"@type":"WebSite","name":"Khan Global Shop","alternateName":["খান গ্লোবাল শপ","KhanGlobalShop","Khan Global Shop BD"],"url":"https://farukvaiy199-netizen.github.io/khanglobalshop/","inLanguage":"bn-BD"},
+{"@type":"Store","name":"Khan Global Shop","alternateName":"খান গ্লোবাল শপ","url":"https://farukvaiy199-netizen.github.io/khanglobalshop/","slogan":"Global Products, Local Trust","areaServed":"BD","founder":{"@type":"Person","name":"Md Faruk Khan"}}
+]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -1715,6 +1732,20 @@ function trackEvent(fbName, gaName, params){
   const t = setInterval(()=>{ tries++; initTracking(); if(_trackingReady || tries > 20) clearInterval(t); }, 1500);
   renderSiteReviews();
   setInterval(()=>renderSiteReviews(true), 120000);
+})();
+
+/* ---------------- 🔎 SEO: সাইটের নাম অ্যাডমিন সেটিংস অনুযায়ী ---------------- */
+(function(){
+  let tries = 0;
+  const t = setInterval(()=>{
+    tries++;
+    const st = DB && DB.settings;
+    if(st && st.storeName && st.storeName !== 'Bazaar'){
+      document.title = st.storeName + (st.tagline ? ' — ' + st.tagline : '') + ' | অনলাইন শপ';
+      clearInterval(t);
+    }
+    if(tries > 20) clearInterval(t);
+  }, 1000);
 })();
 </script>
 </body>
