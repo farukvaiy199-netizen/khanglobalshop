@@ -638,6 +638,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
   <div style="font-weight:700; font-size:14px; margin:6px 0 8px;">🔗 কোন ঘরের তথ্য কোথায় যাবে</div>
   <div id="supMapFields"></div>
   <div style="font-weight:700; font-size:14px; margin:16px 0 8px;">💰 আপনার বিক্রয়মূল্য</div>
+  <div class="form-group"><label>ডলারের হার: সাপ্লায়ারের দাম ডলারে হলে ১ ডলার = কত টাকা (টাকায় হলে ১ রাখুন)</label><input id="supRate" type="number" min="0" step="0.01" value="1" oninput="supRenderPreview()" placeholder="যেমন 122"></div>
   <div style="display:flex; gap:8px;"><div class="form-group" style="flex:1;"><label>লাভ (%)</label><input id="supMarkupPct" type="number" min="0" value="30" oninput="supRenderPreview()"></div><div class="form-group" style="flex:1;"><label>অতিরিক্ত (৳)</label><input id="supMarkupFixed" type="number" min="0" value="0" oninput="supRenderPreview()"></div></div>
   <div style="display:flex; gap:8px;"><div class="form-group" style="flex:1;"><label>দাম গোল করুন</label><select id="supRound" onchange="supRenderPreview()"><option value="0">না</option><option value="5">৫ টাকায়</option><option value="10" selected>১০ টাকায়</option></select></div><div class="form-group" style="flex:1;"><label>পুরনো দাম দেখাতে (%)</label><input id="supOldPct" type="number" min="0" value="0" oninput="supRenderPreview()" placeholder="যেমন 20"></div></div>
   <div style="display:flex; gap:8px;"><div class="form-group" style="flex:1;"><label>ডিফল্ট বিভাগ</label><select id="supDefCat"></select></div><div class="form-group" style="flex:1;"><label>স্টক না থাকলে ধরুন</label><input id="supDefStock" type="number" min="0" value="10"></div></div>
@@ -2474,13 +2475,13 @@ let supItems = [], supPaths = [], supBatchIds = [], supSavedMap = null;
 const supEl = id => document.getElementById(id);
 const SUP_FIELDS = [['name','পণ্যের নাম *'],['price','সাপ্লায়ারের দাম *'],['sku','SKU / আইডি *'],['image','ছবির লিংক'],['stock','স্টক'],['desc','বিবরণ'],['category','বিভাগ']];
 const SUP_GUESS = {
-  name:['name','title','productname','itemname','producttitle'],
+  name:['name','title','productname','itemname','producttitle','nameen','productnameen'],
   price:['price','sellingprice','saleprice','sellprice','unitprice','wholesaleprice','dealerprice','resellprice','cost','costprice'],
-  image:['image','imageurl','thumbnail','thumb','photo','picture','img','mainimage','featuredimage','images0','images0url','images0src','image0'],
-  stock:['stock','quantity','qty','stockquantity','inventory','available','stockqty'],
+  image:['image','imageurl','thumbnail','thumb','photo','picture','img','mainimage','featuredimage','bigimage','productimage','images0','images0url','images0src','image0'],
+  stock:['stock','quantity','qty','stockquantity','inventory','available','stockqty','warehouseinventorynum','inventorynum','totalinventory'],
   sku:['sku','productid','itemid','id','code','productcode','skuid'],
   desc:['description','desc','details','shortdescription','body','content'],
-  category:['category','categoryname','cat','type','categorytitle']
+  category:['category','categoryname','cat','type','categorytitle','threecategoryname','twocategoryname']
 };
 function supProfiles(){ return (DB.settingsSecure && DB.settingsSecure.suppliers) || []; }
 function supNorm(s){ return String(s).toLowerCase().replace(/[^a-z0-9]/g, ''); }
@@ -2498,9 +2499,19 @@ function supGuess(field){
   for(const cand of SUP_GUESS[field]){ const hit = norm.find(x=>x.n === cand || x.full === cand); if(hit) return hit.p; }
   return '';
 }
+function supUnwrapList(list){
+  if(!list || !list.length || typeof list[0] !== 'object') return list;
+  for(const k of ['productList','productlist','products','items','list']){
+    if(list.some(it=>it && Array.isArray(it[k]) && it[k].length && typeof it[k][0] === 'object')){
+      const out = []; list.forEach(it=>{ if(it && Array.isArray(it[k])) out.push(...it[k]); });
+      if(out.length) return out;
+    }
+  }
+  return list;
+}
 function supExtractList(json, path){
   if(path){ const v = supGet(json, path); return Array.isArray(v) ? v : []; }
-  if(Array.isArray(json)) return json;
+  if(Array.isArray(json)) return supUnwrapList(json);
   const pref = ['data','products','items','results','records','list','rows'];
   const find = (o, d)=>{
     if(!o || typeof o !== 'object' || d > 3) return null;
@@ -2509,7 +2520,7 @@ function supExtractList(json, path){
     for(const k of Object.keys(o)){ const r = find(o[k], d + 1); if(r) return r; }
     return null;
   };
-  return find(json, 0) || [];
+  return supUnwrapList(find(json, 0) || []);
 }
 function supParseCsv(text){
   const rows = []; let row = [], cur = '', q = false;
@@ -2548,7 +2559,7 @@ function supLoadProfile(){
   set('supAuthValue', p.authValue || ''); set('supListPath', p.listPath || ''); set('supPageParam', p.pageParam || ''); set('supMaxPages', p.maxPages || 1);
   const pr = p.pricing || {};
   set('supMarkupPct', pr.pct !== undefined ? pr.pct : 30); set('supMarkupFixed', pr.fixed || 0); set('supRound', pr.round !== undefined ? pr.round : 10);
-  set('supOldPct', pr.oldPct || 0); set('supDefStock', pr.defStock !== undefined ? pr.defStock : 10); set('supMax', pr.max || 100);
+  set('supOldPct', pr.oldPct || 0); set('supRate', pr.rate || 1); set('supDefStock', pr.defStock !== undefined ? pr.defStock : 10); set('supMax', pr.max || 100);
   if(pr.defCat) supEl('supDefCat').value = pr.defCat;
   supSavedMap = p.map || null;
 }
@@ -2559,7 +2570,7 @@ function supCollectProfile(){
     id: supEl('supProfile').value || ('s' + Date.now()), name: g('supName'), url: g('supUrl'), authType: g('supAuthType'), authName: g('supAuthName'),
     authValue: supEl('supAuthValue').value.trim(), listPath: g('supListPath'), pageParam: g('supPageParam'), maxPages: Math.max(1, Math.min(50, parseInt(g('supMaxPages')) || 1)),
     map: Object.keys(map).length ? map : supSavedMap,
-    pricing: { pct: parseFloat(g('supMarkupPct')) || 0, fixed: parseFloat(g('supMarkupFixed')) || 0, round: parseInt(g('supRound')) || 0, oldPct: parseFloat(g('supOldPct')) || 0, defStock: parseInt(g('supDefStock')) || 0, max: Math.max(1, parseInt(g('supMax')) || 100), defCat: g('supDefCat') }
+    pricing: { rate: parseFloat(g('supRate')) || 1, pct: parseFloat(g('supMarkupPct')) || 0, fixed: parseFloat(g('supMarkupFixed')) || 0, round: parseInt(g('supRound')) || 0, oldPct: parseFloat(g('supOldPct')) || 0, defStock: parseInt(g('supDefStock')) || 0, max: Math.max(1, parseInt(g('supMax')) || 100), defCat: g('supDefCat') }
   };
 }
 async function saveSupplierProfile(){
@@ -2636,24 +2647,25 @@ async function supFetchApi(){
 function supCfg(){
   const g = id => (supEl(id).value || '').trim();
   const map = {}; SUP_FIELDS.forEach(([k])=>{ map[k] = supEl('supMap_' + k) ? supEl('supMap_' + k).value : ''; });
-  return { map, pct: parseFloat(g('supMarkupPct')) || 0, fixed: parseFloat(g('supMarkupFixed')) || 0, round: parseInt(g('supRound')) || 0, oldPct: parseFloat(g('supOldPct')) || 0,
+  return { map, rate: parseFloat(g('supRate')) || 1, pct: parseFloat(g('supMarkupPct')) || 0, fixed: parseFloat(g('supMarkupFixed')) || 0, round: parseInt(g('supRound')) || 0, oldPct: parseFloat(g('supOldPct')) || 0,
     defStock: parseInt(g('supDefStock')) || 0, defCat: g('supDefCat'), status: supEl('supStatus2').value, mode: supEl('supMode').value, max: Math.max(1, parseInt(g('supMax')) || 100), cloud: !!(supEl('supCloud') && supEl('supCloud').checked && cloudReady()) };
 }
 function supPrice(cost, c){
-  let v = cost * (1 + c.pct / 100) + c.fixed;
+  let v = cost * (c.rate || 1) * (1 + c.pct / 100) + c.fixed;
   v = c.round > 0 ? Math.ceil(v / c.round) * c.round : Math.round(v);
   const old = c.oldPct > 0 ? (c.round > 0 ? Math.ceil(v * (1 + c.oldPct / 100) / c.round) * c.round : Math.round(v * (1 + c.oldPct / 100))) : 0;
   return { price: v, oldPrice: old };
 }
-function supNum(v){ return parseFloat(String(supStr(v)).replace(/[^0-9.]/g, '')); }
-function supImg(v){ let u = supStr(v).trim(); if(u.indexOf('//') === 0) u = 'https:' + u; return /^https?:\/\//i.test(u) ? u : ''; }
-function supClean(v, n){ return supStr(v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n); }
+function supNum(v){ const m = String(supStr(v)).replace(/,/g, '').match(/\d+(?:\.\d+)?/g); return m ? Math.max(...m.map(parseFloat)) : NaN; }
+function supOne(v){ let t = supStr(v).trim(); if(t[0] === '[' && t[t.length - 1] === ']'){ try{ const a = JSON.parse(t); if(Array.isArray(a)){ const f = a.find(x=>x); if(f) return String(f); } }catch(e){} } return t; }
+function supImg(v){ let u = supOne(v); if(u.indexOf('//') === 0) u = 'https:' + u; return /^https?:\/\//i.test(u) ? u : ''; }
+function supClean(v, n){ return supOne(v).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n); }
 function supRenderPreview(){
   const c = supCfg(), box = supEl('supPreview'); if(!box) return;
   box.innerHTML = supItems.slice(0, 5).map(it=>{
     const name = supClean(supGet(it, c.map.name), 70), cost = supNum(supGet(it, c.map.price)), img = supImg(supGet(it, c.map.image));
     const pr = cost > 0 ? supPrice(cost, c) : null;
-    return '<div class="acct-row" style="cursor:default;"><div class="acct-av" style="border-radius:10px;">' + (img ? '<img src="' + escapeHtml(img) + '" alt="">' : '📦') + '</div><div class="acct-tx"><b>' + escapeHtml(name || '(নাম নেই)') + '</b><span>সাপ্লায়ার: ' + (cost > 0 ? '৳' + cost : '—') + ' → আপনার: <b style="color:var(--primary);">' + (pr ? '৳' + pr.price : '—') + '</b>' + (pr && pr.oldPrice ? ' (পুরনো ৳' + pr.oldPrice + ')' : '') + '</span></div></div>';
+    return '<div class="acct-row" style="cursor:default;"><div class="acct-av" style="border-radius:10px;">' + (img ? '<img src="' + escapeHtml(img) + '" alt="">' : '📦') + '</div><div class="acct-tx"><b>' + escapeHtml(name || '(নাম নেই)') + '</b><span>সাপ্লায়ার: ' + (cost > 0 ? cost + (c.rate !== 1 ? ' ×' + c.rate : '') : '—') + ' → আপনার: <b style="color:var(--primary);">' + (pr ? '৳' + pr.price : '—') + '</b>' + (pr && pr.oldPrice ? ' (পুরনো ৳' + pr.oldPrice + ')' : '') + '</span></div></div>';
   }).join('');
 }
 async function supRunImport(){
