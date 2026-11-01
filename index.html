@@ -1748,6 +1748,22 @@ function trackEvent(fbName, gaName, params){
     if(tries > 20) clearInterval(t);
   }, 1000);
 })();
+
+/* ---------------- ⚡ ডেটাবেস রিড কমানো (পণ্য বেশি হলে খরচ ও ধীরগতি ঠেকাতে) ----------------
+   আগে প্রতি ৫ সেকেন্ডে সব পণ্য নতুন করে পড়া হতো। এখন ৬০ সেকেন্ডের মধ্যে একবারের বেশি নয়,
+   আর ট্যাব লুকানো থাকলে পড়া হয় না। অর্ডার দেওয়ার পর সাথে সাথে স্টক নতুন করে আসে। */
+(function(){
+  let lastPullAt = Date.now();
+  const _pull = pullFromCloud;
+  pullFromCloud = async function(){
+    if(document.visibilityState === 'hidden') return true;
+    if(Date.now() - lastPullAt < 60000) return true;
+    lastPullAt = Date.now();
+    return _pull();
+  };
+  const _hook = notifyOrderWebhook;
+  notifyOrderWebhook = function(order){ lastPullAt = 0; return _hook(order); };
+})();
 </script>
 </body>
 </html>
