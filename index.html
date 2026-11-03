@@ -1234,7 +1234,7 @@ function renderMyOrdersFromCache(){
       <div class="thumb">📦</div>
       <div class="info"><div class="name">${o.id} <span class="status-pill ${o.status}">${statusLabel(o.status)}</span></div>
       <div class="variant" style="font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">${o.date} • ${(o.items||[]).length} আইটেম</div>
-      ${trackHtml}${o.pathaoConsignmentId?`<div style="font-size:12px; margin-bottom:6px;">📦 পাঠাও ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.pathaoConsignmentId)}</b></div>`:''}
+      ${trackHtml}${o.pathaoConsignmentId?`<div style="font-size:12px; margin-bottom:6px;">📦 পাঠাও ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.pathaoConsignmentId)}</b></div>`:''}${o.cjTrackingNo?`<div style="font-size:12px; margin-bottom:6px;">✈️ ট্র্যাকিং নম্বর: <b style="color:var(--primary);">${escapeHtml(o.cjTrackingNo)}</b></div>`:''}
       <div class="row-bottom"><span class="price">৳${o.total}</span>${cancellable?`<a class="remove-link" onclick="cancelOrder('${o.id}')">অর্ডার বাতিল করুন (${cancelRemainingMinutes(o)} মিনিট বাকি)</a>`:''}</div></div></div>`;
   }).join('');
 }
@@ -1539,7 +1539,7 @@ document.addEventListener('visibilitychange', ()=>{ if(document.visibilityState 
 let _acctRecorded = false;
 fireAuth.onAuthStateChanged(async (user)=>{
   if(!user){ _acctRecorded = false; return; }
-  if(_acctRecorded) return;
+  if(_acctRecorded || user.isAnonymous) return;
   _acctRecorded = true;
   try{
     const ref = fireDb.doc(`${USERS_COL}/${user.uid}`);
@@ -1763,6 +1763,102 @@ function trackEvent(fbName, gaName, params){
   };
   const _hook = notifyOrderWebhook;
   notifyOrderWebhook = function(order){ lastPullAt = 0; return _hook(order); };
+})();
+
+/* =====================================================================
+   📱 ফেসবুক/মেসেঞ্জারের ভেতরের ব্রাউজার + Google ছাড়া (গেস্ট) অর্ডার
+   ===================================================================== */
+function isInAppBrowser(){ return /FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\/|Snapchat|MicroMessenger|TikTok|musical_ly/i.test(navigator.userAgent || ''); }
+function openInChrome(){
+  if(/android/i.test(navigator.userAgent || '')){
+    location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end';
+  }else{
+    const t = location.href;
+    if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>toast('লিংক কপি হয়েছে — Safari/Chrome-এ পেস্ট করুন'));
+    else toast('উপরের ⋯ মেনু থেকে "Safari-তে খুলুন" চাপুন');
+  }
+}
+function showInAppBanner(){
+  if(!isInAppBrowser()) return;
+  try{ if(sessionStorage.getItem('bz_inapp_closed')) return; }catch(e){}
+  const d = document.createElement('div');
+  d.id = 'inAppBanner';
+  d.style.cssText = 'position:fixed; left:10px; right:10px; bottom:76px; z-index:250; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-lift); padding:11px 12px; display:flex; align-items:center; gap:10px; font-size:12px; line-height:1.6;';
+  d.innerHTML = '<div style="flex:1;">📱 আপনি অ্যাপের ভেতরের ব্রাউজারে আছেন। ভালো অভিজ্ঞতার জন্য <b>Chrome-এ খুলুন</b>।</div><button style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:8px 10px; font-weight:700; font-size:12px;" onclick="openInChrome()">খুলুন</button><button style="background:none; border:none; font-size:16px; color:var(--ink-soft);" onclick="this.parentNode.remove(); try{sessionStorage.setItem(\'bz_inapp_closed\',\'1\')}catch(e){}">✕</button>';
+  document.body.appendChild(d);
+}
+async function guestSignIn(){
+  if(currentUser) return true;
+  try{
+    await fireAuth.signInAnonymously();
+    for(let i = 0; i < 25 && !currentUser; i++) await new Promise(r=>setTimeout(r, 100));
+    if(!currentUser && fireAuth.currentUser){ currentUser = fireAuth.currentUser; updateAccountAuthArea(); updateCheckoutAuthBanner(); }
+    return !!currentUser;
+  }catch(e){
+    toast('গেস্ট অর্ডার এখন চালু নেই — Google দিয়ে সাইন-ইন করুন');
+    return false;
+  }
+}
+async function startGuestOrder(){ if(await guestSignIn()) toast('গেস্ট হিসেবে চালিয়ে যাচ্ছেন ✓'); }
+(function(){
+  const _sg = signInWithGoogle;
+  signInWithGoogle = async function(){
+    if(isInAppBrowser()){ await guestSignIn(); return; }
+    return _sg();
+  };
+  const _ub = updateCheckoutAuthBanner;
+  updateCheckoutAuthBanner = function(){
+    _ub();
+    const el = document.getElementById('checkoutAuthBanner'); if(!el) return;
+    if(!currentUser){
+      el.insertAdjacentHTML('beforeend', '<button type="button" onclick="startGuestOrder()" style="width:100%; margin:-6px 0 14px; background:#fff; border:1px solid var(--primary); color:var(--primary); border-radius:10px; padding:11px; font-weight:700; font-size:13px;">👤 Google ছাড়া অর্ডার করুন (গেস্ট)</button>');
+    }else if(currentUser.isAnonymous){
+      el.innerHTML = '<div style="font-size:11.5px; color:var(--primary-dark); background:var(--primary-tint); padding:8px 12px; border-radius:8px; margin-bottom:14px;">👤 গেস্ট হিসেবে অর্ডার করছেন। অর্ডারের তথ্য শুধু এই ব্রাউজারে দেখা যাবে।</div>';
+    }
+  };
+  const _ua = updateAccountAuthArea;
+  updateAccountAuthArea = function(){
+    _ua();
+    const el = document.getElementById('accountAuthArea'); if(!el || !currentUser || !currentUser.isAnonymous) return;
+    el.innerHTML = '<div style="text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px;"><div style="font-weight:700; font-size:13.5px; margin-bottom:6px;">👤 আপনি গেস্ট হিসেবে আছেন</div><div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.7;">অর্ডার শুধু এই ব্রাউজারে দেখা যাবে। স্থায়ীভাবে রাখতে Google দিয়ে সাইন-ইন করুন (পুরনো গেস্ট অর্ডার সাথে আসবে না)।</div><button class="checkout-btn" style="margin-top:0; max-width:260px; margin-left:auto; margin-right:auto;" onclick="fireAuth.signOut().then(()=>signInWithGoogle())">🔵 Google দিয়ে সাইন-ইন</button></div>';
+  };
+})();
+setTimeout(showInAppBanner, 1500);
+
+/* =====================================================================
+   🛡️ সুরক্ষিত সার্ভার: অর্ডার ও AI চ্যাট (অ্যাডমিনে সার্ভারের URL দিলে চালু হয়)
+   ===================================================================== */
+function orderApiBase(){ return (((DB.settings || {}).orderApiUrl) || '').trim().replace(/\/+$/, ''); }
+(function(){
+  const _rot = runOrderTransaction;
+  runOrderTransaction = async function(input){
+    const api = orderApiBase();
+    if(!api) return _rot(input);
+    let res = null;
+    try{
+      const token = await currentUser.getIdToken();
+      res = await fetch(api + '/api/place-order', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token }, body: JSON.stringify(input) });
+    }catch(e){
+      if(!(DB.settings || {}).orderApiStrict) return _rot(input);   // সার্ভার ঘুমন্ত/বন্ধ হলে আগের পদ্ধতিতে (কড়া মোড বন্ধ থাকলে)
+      throw new Error('সার্ভারে পৌঁছানো যায়নি — একটু পরে আবার চেষ্টা করুন');
+    }
+    let data = null; try{ data = await res.json(); }catch(e){}
+    if(!res.ok || !data || !data.orderId) throw new Error((data && data.error) || 'অর্ডার করা যায়নি — আবার চেষ্টা করুন');
+    return { orderId: data.orderId, total: data.total, orderSnapshot: Object.assign({}, data.order, { createdAt: new Date().toISOString() }) };
+  };
+  const _ai = getAIAutoReply;
+  getAIAutoReply = async function(text){
+    const api = orderApiBase();
+    if(!api || !currentUser) return _ai(text);
+    try{
+      const token = await currentUser.getIdToken();
+      const res = await fetch(api + '/api/chat-ai', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + token },
+        body: JSON.stringify({ message:text, customerName:currentUser.displayName || '', customerEmail:currentUser.email || '', history:(activeChatMessages || []).slice(-20) }) });
+      if(!res.ok) return null;
+      const d = await res.json();
+      return d && d.reply ? d.reply : null;
+    }catch(e){ return null; }
+  };
 })();
 </script>
 </body>
