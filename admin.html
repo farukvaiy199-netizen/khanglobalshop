@@ -329,6 +329,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
     <div class="admin-tab" data-atab="settingsTab" onclick="gotoAdmin('settingsTab')">সেটিংস</div>
     <div class="admin-tab" data-atab="visitorsTab" onclick="gotoAdmin('visitorsTab')">ভিজিটর</div>
     <div class="admin-tab" data-atab="salesTab" onclick="gotoAdmin('salesTab')">সেলস</div>
+    <div class="admin-tab" data-atab="callsTab" onclick="gotoAdmin('callsTab')">কল</div>
   </div>
 
   <div class="admin-view active" id="dashTab">
@@ -341,6 +342,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
         <option value="all" selected>সর্বমোট</option>
       </select>
       <button type="button" class="mini-btn primary" style="padding:10px 14px;" onclick="gotoAdmin('visitorsTab')">👁 ভিজিটর ডেশবোর্ড →</button>
+      <button type="button" id="dashCallBtn" class="mini-btn primary" style="padding:10px 14px; background:#FCEED8; color:#8a5c00;" onclick="gotoAdmin('callsTab')">📞 কনফার্মেশন কল</button>
     </div>
     <div class="kpi-grid">
       <div class="kpi-card warn"><div class="kic c-pend"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="label">পেন্ডিং টাকা</div><div class="value" id="kpiPending">৳0</div></div>
@@ -447,10 +449,21 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
     <div id="salesPay"></div>
   </div>
 
+  <div class="admin-view" id="callsTab">
+    <div class="set-back" onclick="gotoAdmin('dashTab')"><div class="bk"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></div><b>ড্যাশবোর্ডে ফিরুন</b></div>
+    <div class="pg-title">কনফার্মেশন কল</div>
+    <div class="pg-sub">অর্ডার ফোনে কনফার্ম করার তালিকা (পুরনো অর্ডার আগে)</div>
+    <div class="admin-toolbar">
+      <select id="callFilterSel" onchange="renderCalls()"><option value="pending">কল বাকি</option><option value="noanswer">ফোন ধরেনি</option><option value="done">কনফার্ম হয়েছে</option></select>
+      <button type="button" class="mini-btn primary" style="padding:10px 14px;" onclick="renderCalls(true)">🔄 রিফ্রেশ</button>
+    </div>
+    <div id="callList"></div>
+  </div>
+
   <div class="admin-view" id="settingsTab">
 <div id="setMenu">
 <div class="pg-title">সেটিংস</div><div class="pg-sub">যে বিভাগে চাপবেন, সেটাই খুলবে</div>
-<div class="set-grp">রিপোর্ট ও রিভিউ</div><div class="set-list"><div class="set-row" onclick="gotoAdmin('visitorsTab')"><div class="set-ib" style="background:#E3F3FB;color:#2B86C0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="set-tx"><b>ভিজিটর ও অ্যাকাউন্ট</b><span>কতজন এসেছে, কারা অ্যাকাউন্ট খুলেছে</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('reviewsTab')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="set-tx"><b>গ্রাহক রিভিউ</b><span>অনুমোদন ও ব্যবস্থাপনা</span></div><i class="bdot" id="smReviewDot" style="top:14px; right:46px;"></i><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('stockTab')"><div class="set-ib" style="background:#E3ECFB;color:#2952A3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="set-tx"><b>স্টক রিপোর্ট</b><span>সব পণ্যের স্টকের অবস্থা</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
+<div class="set-grp">রিপোর্ট ও রিভিউ</div><div class="set-list"><div class="set-row" onclick="gotoAdmin('callsTab')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div class="set-tx"><b>কনফার্মেশন কল তালিকা</b><span id="smCallSub">ফোনে কনফার্মের অপেক্ষায় থাকা অর্ডার</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('visitorsTab')"><div class="set-ib" style="background:#E3F3FB;color:#2B86C0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><div class="set-tx"><b>ভিজিটর ও অ্যাকাউন্ট</b><span>কতজন এসেছে, কারা অ্যাকাউন্ট খুলেছে</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('reviewsTab')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div><div class="set-tx"><b>গ্রাহক রিভিউ</b><span>অনুমোদন ও ব্যবস্থাপনা</span></div><i class="bdot" id="smReviewDot" style="top:14px; right:46px;"></i><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="gotoAdmin('stockTab')"><div class="set-ib" style="background:#E3ECFB;color:#2952A3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg></div><div class="set-tx"><b>স্টক রিপোর্ট</b><span>সব পণ্যের স্টকের অবস্থা</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
 <div class="set-grp">শপ</div><div class="set-list"><div class="set-row" onclick="openSetPage('shop')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg></div><div class="set-tx"><b>শপের তথ্য</b><span>নাম, ঠিকানা, ফোন, ট্যাক্স, শিপিং, ঘোষণা</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('domain')"><div class="set-ib" style="background:#E3F3FB;color:#2B86C0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></div><div class="set-tx"><b>ডোমেইন ও ক্লাউড</b><span id="smDomainSub">ডোমেইন সেট নেই</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('brand')"><div class="set-ib" style="background:#F0E6F8;color:#7B3FB0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div><div class="set-tx"><b>লোগো ও ব্যানার</b><span id="smBrandSub">০টি ব্যানার</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
 <div class="set-grp">বিক্রি ও পেমেন্ট</div><div class="set-list"><div class="set-row" onclick="openSetPage('payment')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div class="set-tx"><b>বিকাশ / নগদ ও পেমেন্ট প্ল্যান</b><span>পেমেন্ট নাম্বার ও অগ্রিম শতাংশ</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('coupon')"><div class="set-ib" style="background:#FCEED8;color:#B87400"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div><div class="set-tx"><b>কুপন কোড</b><span id="smCouponSub">০টি কুপন</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('delivery')"><div class="set-ib" style="background:#E3F3FB;color:#2B86C0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="set-tx"><b>ডেলিভারি চার্জ ও ক্যাশ অন ডেলিভারি</b><span id="smDeliverySub">জেলা অনুযায়ী চার্জ ও COD</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('courier')"><div class="set-ib" style="background:#E3ECFB;color:#2952A3"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div class="set-tx"><b>কুরিয়ার (Steadfast ও Pathao)</b><span id="smCourierSub">সংযুক্ত নয়</span></div><span class="set-tag" id="smCourierTag" style="display:none;">সংযুক্ত</span><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('cancel')"><div class="set-ib" style="background:#FBE7DC;color:#C1440E"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div class="set-tx"><b>অর্ডার বাতিলের সময়</b><span id="smCancelSub">৬০ মিনিট</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
 <div class="set-grp">যোগাযোগ ও অটোমেশন</div><div class="set-list"><div class="set-row" onclick="openSetPage('auto')"><div class="set-ib" style="background:#E4F1EC;color:#0F6E5D"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div><div class="set-tx"><b>চ্যাট ও অটোমেশন</b><span id="smAutoSub">AI অটো-রিপ্লাই ও অর্ডার ওয়েবহুক</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div><div class="set-row" onclick="openSetPage('social')"><div class="set-ib" style="background:#F0E6F8;color:#7B3FB0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="13.5" x2="15.4" y2="17.5"/><line x1="15.4" y1="6.5" x2="8.6" y2="10.5"/></svg></div><div class="set-tx"><b>ফেসবুক, হোয়াটসঅ্যাপ ও ফুটার</b><span>সোশ্যাল লিংক ও কপিরাইট</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div></div></div>
@@ -653,6 +666,16 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
 </div>
 <div class="set-page" id="sp_automation" style="display:none;">
 <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft); line-height:1.7;">ℹ️ আপনার AI/অটোমেশন (n8n, Make, নিজের সার্ভার ইত্যাদি) এই শপের সাথে <b>Firebase-এর REST API</b> দিয়ে কথা বলবে। আলাদা একটা <b>"বট" অ্যাকাউন্ট</b> বানিয়ে তাকে সীমিত অনুমতি দেওয়া হয়, যাতে অটোমেশন পণ্য, অর্ডার ও চ্যাট নিয়ে কাজ করতে পারে কিন্তু আপনার কুরিয়ারের গোপন Key বা সেটিংস ছুঁতে না পারে। নিচের প্রতিটা ঘরের পাশে "কপি" বাটন আছে।</div>
+<div style="background:var(--bg); border-radius:14px; padding:14px; margin-bottom:16px;">
+  <div style="font-weight:800; font-size:14.5px; margin-bottom:6px;">🛡️ সুরক্ষিত অর্ডার সার্ভার (ঐচ্ছিক)</div>
+  <div style="font-size:12px; color:var(--ink-soft); line-height:1.8; margin-bottom:10px;">Render-এ অর্ডার সার্ভার চালু করার পর এর URL এখানে বসান। এরপর অর্ডারের দাম, কুপন, ডেলিভারি চার্জ ও স্টক সার্ভারে যাচাই হবে এবং AI চ্যাটও সার্ভারের মাধ্যমে যাবে। URL খালি রাখলে আগের পদ্ধতিই চলবে।</div>
+  <div class="form-group"><label>সার্ভারের URL</label><input id="setOrderApiUrl" placeholder="https://your-server.onrender.com"></div>
+  <label style="display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:10px; line-height:1.6;"><input type="checkbox" id="setOrderApiStrict" style="width:17px; height:17px; flex:none;"> কড়া মোড: সার্ভার না চললে অর্ডার নেওয়া বন্ধ থাকবে (Rules কড়া করার পরেই চালু করুন)</label>
+  <button class="checkout-btn" style="margin-top:0;" onclick="saveOrderApi()">সংরক্ষণ করুন</button>
+  <div style="font-size:12px; color:var(--ink-soft); line-height:1.8; margin:12px 0 6px;"><b>সার্ভার ঠিকমতো চলার পর</b> Rules কড়া করতে এই তিনটা ব্লক বদলান (গ্রাহক আর সরাসরি অর্ডার, স্টক বা কাউন্টার লিখতে পারবে না):</div>
+  <pre id="strictRulesPre" style="background:#1c2321; color:#e8f3ee; border-radius:10px; padding:12px; font-size:10.5px; white-space:pre-wrap; word-break:break-word; margin:0 0 8px;"></pre>
+  <button class="mini-btn primary" style="padding:9px 14px;" onclick="copyText(document.getElementById('strictRulesPre').textContent)">📋 কড়া Rules কপি করুন</button>
+</div>
 <div id="autoConn"></div>
 <div style="font-weight:800; font-size:14.5px; margin:18px 0 8px;">🤖 ধাপ ১: বট অ্যাকাউন্ট বানান</div>
 <div style="font-size:12.5px; color:var(--ink-soft); line-height:1.8; margin-bottom:10px;">Firebase Console → Authentication → Users → <b>Add user</b>: একটা আলাদা ইমেইল ও শক্ত পাসওয়ার্ড দিন (আপনার অ্যাডমিন ইমেইল নয়)। তারপর নিচে বসিয়ে UID বের করুন। পাসওয়ার্ড এখানে সংরক্ষণ হয় না।</div>
@@ -1988,7 +2011,8 @@ let _ordersFetchedAt = 0;
 function normPhone(p){ return String(p || '').replace(/\D/g, '').replace(/^88/, ''); }
 function adminOrderRowHtml(o){
   const trk = (o.steadfastTrackingId ? '<br><span style="color:var(--primary); font-weight:700;">Trk: ' + escapeHtml(o.steadfastTrackingId) + '</span>' : '') +
-              (o.pathaoConsignmentId ? '<br><span style="color:var(--primary); font-weight:700;">Pathao: ' + escapeHtml(o.pathaoConsignmentId) + '</span>' : '');
+              (o.pathaoConsignmentId ? '<br><span style="color:var(--primary); font-weight:700;">Pathao: ' + escapeHtml(o.pathaoConsignmentId) + '</span>' : '') +
+              (o.cjTrackingNo ? '<br><span style="color:var(--primary); font-weight:700;">CJ: ' + escapeHtml(o.cjTrackingNo) + '</span>' : '');
   return '<tr>' +
     '<td><b>' + o.id + '</b></td>' +
     '<td>' + escapeHtml(o.customer) + '<br><span style="color:var(--ink-soft); font-size:11px;">' + escapeHtml(o.phone) + '</span>' + (o.ownerEmail ? '<br><span style="color:var(--ink-soft); font-size:10px;">' + escapeHtml(o.ownerEmail) + '</span>' : '') + '</td>' +
@@ -2825,9 +2849,216 @@ async function autoVerifyBot(){
   openSetPage = function(key){
     _open(key);
     if(key === 'suppliers') renderSupplierPage();
-    if(key === 'automation') renderAutomationPage();
+    if(key === 'automation'){ renderAutomationPage(); fillOrderApiForm(); }
   };
 })();
+
+/* =====================================================================
+   🛒 সাপ্লায়ার (CJ ইত্যাদি) অর্ডারের তথ্য: অর্ডার খুললে কপি করার সুবিধা + CJ ট্র্যাকিং
+   ===================================================================== */
+function supOrderItems(o){
+  return (o.items || []).map(it=>{
+    const p = (DB.products || []).find(x=>x.id === it.pid);
+    return { name: it.name, qty: it.qty, price: it.price, supplier: p && p.supplier ? p.supplier : '', sku: p && p.supplierSku ? p.supplierSku : '' };
+  });
+}
+function supOrderText(o){
+  const detail = String(o.address || '').replace(new RegExp(',\\s*' + String(o.upazila || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ',\\s*' + String(o.district || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$'), '');
+  const lines = [
+    'Order Ref: ' + o.id,
+    'Name: ' + (o.customer || ''),
+    'Phone: ' + String(o.phone || ''),
+    'Country: Bangladesh',
+    'Province/State: ' + (o.district || ''),
+    'City: ' + (o.upazila || ''),
+    'Address: ' + detail,
+    'Zip/Postal code: ',
+    '',
+    'Items:'
+  ];
+  supOrderItems(o).forEach(it=>lines.push('- ' + (it.sku ? 'SKU ' + it.sku : 'SKU: (নিজের পণ্য)') + '  x' + it.qty + '  (' + it.name + ')'));
+  return lines.join('\n');
+}
+function copySupOrder(id){ const o = window._currentOrderForPrint; if(o && o.id === id) copyText(supOrderText(o)); }
+async function saveCjInfo(id){
+  const no = (document.getElementById('cjOrderNo').value || '').trim().slice(0, 60);
+  const trk = (document.getElementById('cjTrackNo').value || '').trim().slice(0, 60);
+  try{
+    await fireDb.doc(`${ORDERS_COL}/${id}`).update({ cjOrderNo: no, cjTrackingNo: trk });
+    if(window._currentOrderForPrint && window._currentOrderForPrint.id === id){ window._currentOrderForPrint.cjOrderNo = no; window._currentOrderForPrint.cjTrackingNo = trk; }
+    toast('CJ তথ্য সংরক্ষণ হয়েছে ✓'); renderAdminOrders();
+  }catch(e){ toast('⚠️ সংরক্ষণ করা যায়নি'); }
+}
+(function(){
+  const _v = viewOrder;
+  viewOrder = async function(id){
+    await _v(id);
+    const o = window._currentOrderForPrint; if(!o || o.id !== id) return;
+    const anchor = document.querySelector('#orderModalBody .summary-row.total'); if(!anchor) return;
+    const items = supOrderItems(o);
+    const rows = items.map(it=>'<div style="font-size:12.5px; padding:6px 0; border-bottom:1px solid var(--line);"><b>' + escapeHtml(it.name) + '</b><br><span style="color:var(--ink-soft);">' + (it.sku ? escapeHtml(it.supplier || 'সাপ্লায়ার') + ' SKU: <b style="color:var(--primary);">' + escapeHtml(it.sku) + '</b>' : 'নিজের পণ্য (সাপ্লায়ার নেই)') + ' • সংখ্যা: ' + it.qty + '</span></div>').join('');
+    anchor.insertAdjacentHTML('afterend',
+      '<div class="cust-card" style="margin-top:14px;"><div style="font-weight:800; font-size:14px; margin-bottom:6px;">🛒 সাপ্লায়ারের কাছে অর্ডার (CJ ইত্যাদি)</div>' + rows +
+      '<button type="button" class="mini-btn primary" style="width:100%; margin:10px 0; padding:10px;" onclick="copySupOrder(\'' + o.id + '\')">📋 ঠিকানা ও SKU কপি করুন</button>' +
+      '<div style="font-size:11.5px; color:var(--ink-soft); margin-bottom:6px;">CJ-তে অর্ডার করার পর তাদের অর্ডার নম্বর ও (পরে) ট্র্যাকিং নম্বর এখানে লিখুন। ট্র্যাকিং নম্বর গ্রাহকও নিজের অর্ডারে দেখবে।</div>' +
+      '<input id="cjOrderNo" placeholder="CJ অর্ডার নম্বর" value="' + escapeHtml(o.cjOrderNo || '') + '" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:6px; font-size:13px;">' +
+      '<input id="cjTrackNo" placeholder="CJ ট্র্যাকিং নম্বর" value="' + escapeHtml(o.cjTrackingNo || '') + '" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; margin-bottom:8px; font-size:13px;">' +
+      '<button type="button" class="mini-btn primary" style="width:100%; padding:10px;" onclick="saveCjInfo(\'' + o.id + '\')">💾 CJ তথ্য সংরক্ষণ</button></div>');
+  };
+})();
+
+/* =====================================================================
+   ⚡ কম রিডের লাইভ আপডেট (আগের প্রতি ৪ সেকেন্ডের পোলিং বদলে)
+   ===================================================================== */
+let _adminUnsubs = [], _lastOrderSig = null, _lastOrderFirst = '', _pollTick = 0;
+function stopAdminListeners(){ _adminUnsubs.forEach(u=>{ try{ u(); }catch(e){} }); _adminUnsubs = []; clearInterval(adminPollTimer); }
+function currentAdminTab(){ const el = document.querySelector('.admin-tab.active'); return el ? el.dataset.atab : ''; }
+startAdminPolling = function(){
+  stopAdminListeners(); _lastOrderSig = null; _lastOrderFirst = ''; _pollTick = 0;
+  try{
+    _adminUnsubs.push(fireDb.collection(CHATS_COL).where('unreadForAdmin', '==', true).limit(1).onSnapshot(snap=>{
+      const d = document.getElementById('chatTabDot'); if(d) d.style.display = snap.size > 0 ? 'block' : 'none';
+      if(currentAdminTab() === 'chatTab' && document.visibilityState === 'visible') renderChatListPane();
+    }, ()=>{}));
+  }catch(e){}
+  try{
+    _adminUnsubs.push(fireDb.collection(ORDERS_COL).orderBy('createdAt', 'desc').limit(20).onSnapshot(snap=>{
+      const list = snap.docs.map(d=>d.data());
+      const sig = list.map(o=>[o.id, o.status, o.paymentStatus, o.cjTrackingNo || '', o.callStatus || ''].join(':')).join('|');
+      const first = list.length ? list[0].id : '';
+      if(_lastOrderSig !== null && sig !== _lastOrderSig){
+        if(first && first !== _lastOrderFirst) toast('🔔 নতুন অর্ডার এসেছে');
+        const t = currentAdminTab();
+        if(t === 'dashTab') renderAdminDashboard(); else if(t === 'ordersTab') renderAdminOrders(); else if(t === 'callsTab') renderCalls(true); else updateCallBadgeSoon();
+      }
+      _lastOrderSig = sig; _lastOrderFirst = first;
+    }, ()=>{}));
+  }catch(e){}
+  adminPollTimer = setInterval(()=>{
+    if(document.visibilityState !== 'visible') return;
+    _pollTick++;
+    const t = currentAdminTab();
+    if(t === 'chatTab'){ if(activeAdminChatId) renderChatThread(activeAdminChatId, true); if(_pollTick % 5 === 0) renderChatListPane(); }
+    if(t === 'reviewsTab' && _pollTick % 15 === 0) renderAdminReviews();
+  }, 6000);
+};
+fireAuth.onAuthStateChanged(u=>{ if(!u) stopAdminListeners(); });
+let _callBadgeTimer = null;
+function updateCallBadgeSoon(){ clearTimeout(_callBadgeTimer); _callBadgeTimer = setTimeout(async ()=>{ await fetchAllOrders(); }, 800); }
+
+/* =====================================================================
+   📞 কনফার্মেশন কল তালিকা
+   ===================================================================== */
+let callFilter = 'pending';
+function callPending(){ return ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'confirmed'); }
+function updateCallBadge(){
+  const n = callPending().length;
+  const b = document.getElementById('dashCallBtn'); if(b) b.textContent = '📞 কনফার্মেশন কল (' + n + ')';
+  const m = document.getElementById('smCallSub'); if(m) m.textContent = n + 'টি অর্ডার ফোনে কনফার্মের অপেক্ষায়';
+}
+(function(){
+  const _f = fetchAllOrders;
+  fetchAllOrders = async function(){ const r = await _f(); try{ updateCallBadge(); }catch(e){} return r; };
+})();
+function agoText(d){
+  if(!d) return '';
+  const m = Math.round((Date.now() - d.getTime()) / 60000);
+  if(m < 1) return 'এইমাত্র'; if(m < 60) return m + ' মিনিট আগে';
+  const h = Math.round(m / 60); if(h < 24) return h + ' ঘণ্টা আগে';
+  return Math.round(h / 24) + ' দিন আগে';
+}
+function callCardHtml(o){
+  const d = tsToDate(o.createdAt), ph = normPhone(o.phone);
+  const prevCancel = ordersCache.filter(x=>x.id !== o.id && normPhone(x.phone) === ph && x.status === 'cancelled').length;
+  const warn = [];
+  if(prevCancel > 0) warn.push('⚠️ এই নম্বরে আগে ' + prevCancel + 'টি অর্ডার বাতিল হয়েছে');
+  const cod = (DB.settings && Array.isArray(DB.settings.codDistricts)) ? DB.settings.codDistricts : ['ঢাকা'];
+  if(o.payment === 'cod' && o.district && !cod.includes(o.district)) warn.push('⚠️ এই জেলায় ক্যাশ অন ডেলিভারি অনুমোদিত নয়');
+  if((o.payment === 'bkash' || o.payment === 'nagad') && !o.transactionId) warn.push('⚠️ ট্রানজেকশন আইডি নেই');
+  if(o.callAttempts > 0) warn.push('📵 ' + o.callAttempts + ' বার ফোন ধরেনি');
+  const items = (o.items || []).map(it=>escapeHtml(it.name) + ' ×' + it.qty).join(', ');
+  const wa = '880' + String(ph).replace(/^0/, '');
+  return '<div class="cust-card">' +
+    '<div class="cc-top"><div style="min-width:0;"><div style="font-weight:800; font-size:15px;">' + escapeHtml(o.customer) + '</div><div style="font-size:11.5px; color:var(--ink-soft);">' + escapeHtml(o.id) + ' • ' + agoText(d) + '</div></div><div style="font-weight:800; color:var(--primary); font-size:16px;">৳' + o.total + '</div></div>' +
+    '<div style="font-size:12.5px; line-height:1.8; margin-top:8px; color:var(--ink-soft);">📍 ' + escapeHtml(o.address) + '<br>🛍️ ' + items + '<br>💳 ' + paymentMethodLabel(o.payment) + (o.transactionId ? ' • TrxID: <b style="color:var(--primary);">' + escapeHtml(o.transactionId) + '</b>' : '') + (o.dueAmount > 0 ? ' • বাকি ৳' + o.dueAmount : '') + '</div>' +
+    (warn.length ? '<div style="margin-top:8px; font-size:12px; color:var(--danger); line-height:1.8;">' + warn.join('<br>') + '</div>' : '') +
+    '<div style="display:flex; gap:8px; margin:10px 0;"><a class="mini-btn primary" style="flex:1; text-align:center; padding:10px; text-decoration:none;" href="tel:' + escapeHtml(o.phone) + '">📞 কল: ' + escapeHtml(o.phone) + '</a><a class="mini-btn primary" style="flex:1; text-align:center; padding:10px; text-decoration:none;" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">💬 WhatsApp</a></div>' +
+    '<input id="callNote_' + o.id + '" placeholder="কলের নোট (ঐচ্ছিক)" value="' + escapeHtml(o.callNote || '') + '" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; margin-bottom:8px;">' +
+    '<div style="display:flex; gap:8px;"><button class="mini-btn primary" style="flex:2; padding:11px; background:var(--primary); color:#fff;" onclick="callAction(\'' + o.id + '\',\'confirm\')">✅ কনফার্ম</button><button class="mini-btn" style="flex:1.3; padding:11px;" onclick="callAction(\'' + o.id + '\',\'noanswer\')">📵 ধরেনি</button><button class="mini-btn danger" style="flex:1; padding:11px;" onclick="callAction(\'' + o.id + '\',\'cancel\')">❌ বাতিল</button></div></div>';
+}
+async function renderCalls(force){
+  const sel = document.getElementById('callFilterSel'); callFilter = sel ? sel.value : 'pending';
+  if(force || !ordersCache.length) await fetchAllOrders();
+  let list;
+  if(callFilter === 'noanswer') list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus === 'noanswer');
+  else if(callFilter === 'done') list = ordersCache.filter(o=>o.callStatus === 'confirmed').slice(0, 40);
+  else list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'noanswer' && o.callStatus !== 'confirmed');
+  if(callFilter !== 'done') list = list.slice().sort((a, b)=>(tsToDate(a.createdAt) || 0) - (tsToDate(b.createdAt) || 0));
+  updateCallBadge();
+  const box = document.getElementById('callList');
+  box.innerHTML = list.length ? list.map(o=>callCardHtml(o)).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 10px;">🎉 এই তালিকায় কোনো অর্ডার নেই</div>';
+}
+async function callAction(id, act){
+  const o = ordersCache.find(x=>x.id === id); if(!o) return;
+  const noteEl = document.getElementById('callNote_' + id), note = noteEl ? noteEl.value.trim().slice(0, 200) : '';
+  const at = new Date().toISOString();
+  let upd;
+  if(act === 'confirm') upd = { callStatus:'confirmed', status:'processing', callNote:note, callAt:at };
+  else if(act === 'noanswer') upd = { callStatus:'noanswer', callAttempts:(o.callAttempts || 0) + 1, callNote:note, callAt:at };
+  else{ if(!confirm(id + ' অর্ডারটি বাতিল করবেন?')) return; upd = { status:'cancelled', callStatus:'cancelled', callNote:note, callAt:at, cancelledBy:'admin' }; }
+  try{
+    await fireDb.doc(`${ORDERS_COL}/${id}`).update(upd);
+    Object.assign(o, upd);
+    if(act === 'cancel') await restoreStockForOrder(id);
+    toast(act === 'confirm' ? 'কনফার্ম হয়েছে — অর্ডার Processing-এ গেছে ✓' : act === 'noanswer' ? 'ফোন ধরেনি — চিহ্নিত হয়েছে' : 'অর্ডার বাতিল হয়েছে');
+  }catch(e){ toast('⚠️ আপডেট করা যায়নি — সংযোগ যাচাই করুন'); return; }
+  renderCalls();
+}
+(function(){
+  const _g = gotoAdmin;
+  gotoAdmin = function(tabId){ _g(tabId); if(tabId === 'callsTab') renderCalls(true); };
+})();
+
+/* =====================================================================
+   🛡️ সুরক্ষিত অর্ডার সার্ভারের সেটিং
+   ===================================================================== */
+const STRICT_RULES = `// এই তিনটা ব্লক আপনার Rules-এর আগের একই পাথের ব্লকের জায়গায় বসান
+
+match /bazaar_store/khanglobalshop_main/products/{productId} {
+  allow read: if true;
+  allow create, update, delete: if isAdmin();
+}
+
+match /bazaar_store/khanglobalshop_main/counters/{counterId} {
+  allow read, write: if isAdmin();
+}
+
+match /bazaar_store/khanglobalshop_main/orders/{orderId} {
+  allow read: if isAdmin() || (isCustomer() && resource.data.ownerUid == request.auth.uid);
+  allow create: if false;
+  allow update: if isAdmin() || (
+    isCustomer() &&
+    resource.data.ownerUid == request.auth.uid &&
+    resource.data.status == 'pending' &&
+    request.resource.data.status == 'cancelled' &&
+    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','cancelledBy']) &&
+    request.time <= resource.data.createdAt + duration.value(1, 'd')
+  );
+  allow delete: if false;
+}`;
+function fillOrderApiForm(){
+  const s = DB.settings || {}, u = document.getElementById('setOrderApiUrl'), c = document.getElementById('setOrderApiStrict'), p = document.getElementById('strictRulesPre');
+  if(u) u.value = s.orderApiUrl || ''; if(c) c.checked = !!s.orderApiStrict; if(p) p.textContent = STRICT_RULES;
+}
+async function saveOrderApi(){
+  let url = document.getElementById('setOrderApiUrl').value.trim().replace(/\/+$/, '');
+  const strict = document.getElementById('setOrderApiStrict').checked;
+  if(url && !/^https:\/\/[^\s]+$/i.test(url)){ toast('URL https:// দিয়ে শুরু হতে হবে'); return; }
+  if(strict && !url){ toast('কড়া মোডের জন্য সার্ভারের URL দিন'); return; }
+  DB.settings.orderApiUrl = url; DB.settings.orderApiStrict = strict;
+  if(!await persistSettings()) return;
+  toast(url ? 'সার্ভার সেটিং সংরক্ষণ হয়েছে ✓' : 'সার্ভার বন্ধ — আগের পদ্ধতি চলবে');
+}
 </script>
 </body>
 </html>
