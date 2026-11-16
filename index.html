@@ -230,6 +230,18 @@ img{max-width:100%; display:block;}
 .footer-links{display:flex; flex-wrap:wrap; gap:8px 16px; margin-bottom:18px;}
 .footer-links a{font-size:12.5px; color:var(--primary); font-weight:600; cursor:pointer;}
 .rv-pick{display:flex; gap:6px; font-size:28px; letter-spacing:2px; cursor:pointer; margin-bottom:12px;}
+
+/* ---------------- ছবির গ্যালারি ও সাইজ/ওজন অপশন ---------------- */
+.pd-caption{font-size:12.5px; color:var(--ink-soft); text-align:center; margin:-6px 0 10px; min-height:18px;}
+.pd-thumbs{display:flex; gap:8px; margin:0 0 14px; overflow-x:auto;}
+.pd-th{width:60px; height:60px; border-radius:10px; object-fit:cover; border:2px solid var(--line); flex-shrink:0; cursor:pointer; background:#fff;}
+.pd-th.active{border-color:var(--primary);}
+.var-wrap{margin:4px 0 12px;}
+.var-chips{display:flex; flex-wrap:wrap; gap:8px;}
+.var-chip{border:1.5px solid var(--line); border-radius:12px; padding:8px 14px; background:#fff; font-size:13.5px; font-weight:700; cursor:pointer; text-align:center; min-width:76px;}
+.var-chip small{display:block; font-size:11.5px; color:var(--primary); font-weight:700; margin-top:1px;}
+.var-chip.active{border-color:var(--primary); background:var(--primary-tint);}
+.var-chip.out{opacity:.45; text-decoration:line-through;}
 </style>
 </head>
 <body>
@@ -1830,8 +1842,9 @@ setTimeout(showInAppBanner, 1500);
    ===================================================================== */
 function orderApiBase(){ return (((DB.settings || {}).orderApiUrl) || '').trim().replace(/\/+$/, ''); }
 (function(){
-  const _rot = runOrderTransaction;
+  const _rot = (inp)=>runOrderTransactionDirect(inp);
   runOrderTransaction = async function(input){
+    input.items = cart.map(c=>({ pid:c.pid, vid:c.vid || '', qty:c.qty }));
     const api = orderApiBase();
     if(!api) return _rot(input);
     let res = null;
@@ -1860,6 +1873,253 @@ function orderApiBase(){ return (((DB.settings || {}).orderApiUrl) || '').trim()
     }catch(e){ return null; }
   };
 })();
+
+/* =====================================================================
+   🖼️ একাধিক ছবি (ক্যাপশনসহ) + সাইজ/ওজন/রঙ অপশন (প্রতিটার আলাদা দাম ও স্টক)
+   ===================================================================== */
+function pVariants(p){ return Array.isArray(p.variants) ? p.variants.filter(v=>v && v.id) : []; }
+function pImages(p){ const a = Array.isArray(p.images) ? p.images.filter(i=>i && i.url) : []; return a.length ? a : (p.image ? [{ url:p.image, caption:'' }] : []); }
+function lineInfo(c){
+  const p = DB.products.find(x=>x.id === c.pid); if(!p) return null;
+  const vs = pVariants(p);
+  if(vs.length){ const v = vs.find(x=>x.id === c.vid); if(!v) return null; return { p, v, price:v.price, stock:v.stock || 0, label:p.name + ' (' + v.name + ')' }; }
+  return { p, v:null, price:p.price, stock:p.stock || 0, label:p.name };
+}
+function cartKey(c){ return c.pid + '|' + (c.vid || ''); }
+function stockMsgHtml(n){
+  if(n <= 0) return '<div class="stock-low" style="margin-bottom:10px;">⚠️ বর্তমানে স্টকে নেই</div>';
+  if(n <= 5) return '<div class="stock-low" style="margin-bottom:10px;">⚠️ মাত্র ' + n + 'টি স্টকে বাকি</div>';
+  return '<div style="color:var(--primary); font-size:12.5px; font-weight:600; margin-bottom:10px;">✓ স্টকে আছে (' + n + 'টি)</div>';
+}
+
+/* ---------- কার্ট ---------- */
+addToCart = function(id, qty, vid){
+  const p = DB.products.find(x=>x.id === id); if(!p) return false;
+  vid = vid || '';
+  if(pVariants(p).length && !pVariants(p).some(v=>v.id === vid)){ toast('আগে ' + (p.variantLabel || 'অপশন') + ' বেছে নিন'); return false; }
+  const info = lineInfo({ pid:id, vid }); if(!info) return false;
+  if(info.stock <= 0){ toast('দুঃখিত, এটি স্টকে নেই'); return false; }
+  const existing = cart.find(c=>c.pid === id && (c.vid || '') === vid);
+  const cur = existing ? existing.qty : 0;
+  if(cur + qty > info.stock){
+    if(info.stock <= cur){ toast('স্টকে মাত্র ' + info.stock + 'টি আছে'); return false; }
+    qty = info.stock - cur; toast('স্টকে মাত্র ' + info.stock + 'টি আছে');
+  }
+  if(existing) existing.qty += qty; else cart.push(vid ? { pid:id, vid, qty } : { pid:id, qty });
+  persistCart();
+  trackEvent('AddToCart', 'add_to_cart', { content_ids:[id], content_name:info.label, value:info.price * qty, currency:'BDT' });
+  return true;
+};
+changeCartQty = function(key, delta){
+  const item = cart.find(c=>cartKey(c) === key); if(!item) return;
+  const info = lineInfo(item);
+  if(delta > 0 && info && item.qty + delta > info.stock){ toast('স্টকে মাত্র ' + info.stock + 'টি আছে'); return; }
+  item.qty += delta;
+  if(item.qty <= 0) cart = cart.filter(c=>cartKey(c) !== key);
+  persistCart(); renderCart();
+};
+removeFromCart = function(key){ cart = cart.filter(c=>cartKey(c) !== key); persistCart(); renderCart(); };
+renderCart = function(){
+  removeSticky();
+  const list = document.getElementById('cartList'), emptyEl = document.getElementById('cartEmpty'), summaryBlock = document.getElementById('cartSummaryBlock');
+  if(cart.length === 0){ list.innerHTML = ''; emptyEl.style.display = 'block'; summaryBlock.style.display = 'none'; return; }
+  emptyEl.style.display = 'none'; summaryBlock.style.display = 'block';
+  list.innerHTML = cart.map(c=>{
+    const info = lineInfo(c); if(!info) return '';
+    const p = info.p, key = cartKey(c);
+    const img = pImages(p)[0];
+    return '<div class="cart-item"><div class="thumb" style="' + (img ? 'padding:0; overflow:hidden;' : '') + '">' + (img ? '<img src="' + img.url + '" style="width:100%; height:100%; object-fit:cover;">' : p.emoji) + '</div><div class="info"><div class="name">' + escapeHtml(p.name) + (info.v ? ' <span style="color:var(--primary); font-weight:700;">(' + escapeHtml(info.v.name) + ')</span>' : '') + '</div>' +
+      '<div class="row-bottom"><div class="qty-box"><button onclick="changeCartQty(\'' + key + '\',-1)">-</button><span class="qn">' + c.qty + '</span><button onclick="changeCartQty(\'' + key + '\',1)">+</button></div><span class="price">৳' + (info.price * c.qty) + '</span></div>' +
+      '<a class="remove-link" onclick="removeFromCart(\'' + key + '\')">মুছে ফেলুন</a></div></div>';
+  }).join('');
+  computeSummary();
+};
+computeSummary = function(){
+  const subtotal = cart.reduce((s, c)=>{ const info = lineInfo(c); return s + (info ? info.price * c.qty : 0); }, 0);
+  let discount = 0; if(appliedCoupon && DB.settings.coupons[appliedCoupon]) discount = DB.settings.coupons[appliedCoupon];
+  const taxableAmount = Math.max(subtotal - discount, 0);
+  const taxRate = parseFloat(DB.settings.tax) || 0;
+  const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
+  const shipping = calcShipping(subtotal, selectedDistrict, selectedPayment).final;
+  const total = taxableAmount + tax + shipping;
+  document.getElementById('sumSubtotal').textContent = '৳' + subtotal;
+  document.getElementById('sumDiscount').textContent = '-৳' + discount;
+  const taxRow = document.getElementById('sumTaxRow');
+  if(taxRow){
+    if(taxRate > 0){ taxRow.style.display = 'flex'; document.getElementById('sumTaxLabel').textContent = 'ট্যাক্স (' + taxRate + '%)'; document.getElementById('sumTax').textContent = '৳' + tax; }
+    else taxRow.style.display = 'none';
+  }
+  document.getElementById('sumShip').textContent = shipping === 0 ? 'ফ্রি' : '৳' + shipping;
+  document.getElementById('sumTotal').textContent = '৳' + total;
+  return { subtotal, discount, tax, shipping, total };
+};
+quickAdd = function(id){
+  const p = DB.products.find(x=>x.id === id); if(!p) return;
+  if(pVariants(p).length){ toast((p.variantLabel || 'অপশন') + ' বেছে নিন'); openProduct(id); return; }
+  if(!addToCart(id, 1)) return; toast('কার্টে যোগ করা হয়েছে ✓');
+};
+(function(){
+  const _pc = productCardHTML;
+  productCardHTML = function(p){
+    let h = _pc(p);
+    if(pVariants(p).length > 1) h = h.replace('<span class="price">৳', '<span class="price">থেকে ৳');
+    return h;
+  };
+})();
+
+/* ---------- পণ্যের পাতা: গ্যালারি + অপশন বাছাই + বাছাই অনুযায়ী দাম ---------- */
+let pdSelVid = '', pdImgs = [], pdCur = null, pdImgIdx = 0;
+openProduct = function(id){
+  const p = DB.products.find(x=>x.id === id); if(!p) return;
+  pdCur = p; pdImgs = pImages(p); pdImgIdx = 0;
+  currentReviewProductId = id; reviewVerifiedOrderFound = false; selectedReviewStars = 0;
+  const vs = pVariants(p);
+  pdSelVid = vs.length ? (vs.find(v=>(v.stock || 0) > 0) || vs[0]).id : '';
+  const view = document.getElementById('productView');
+  view.innerHTML = `
+    <div class="pd-thumb" id="pdMain" style="${pdImgs.length ? 'padding:0; overflow:hidden;' : ''}">${pdImgs.length ? `<img id="pdMainImg" src="${escapeHtml(pdImgs[0].url)}" style="width:100%; height:100%; object-fit:cover; border-radius:var(--radius);">` : p.emoji}</div>
+    <div class="pd-caption" id="pdCaption">${escapeHtml(pdImgs[0] ? (pdImgs[0].caption || '') : '')}</div>
+    ${pdImgs.length > 1 ? `<div class="pd-thumbs">${pdImgs.map((im, i)=>`<img class="pd-th ${i === 0 ? 'active' : ''}" src="${escapeHtml(im.url)}" onclick="pdShowImage(${i})">`).join('')}</div>` : ''}
+    <h2 class="pd-title">${escapeHtml(p.name)}</h2>
+    <div class="pd-meta"><span>⭐ ${p.rating || 4.0}</span><span>SKU: ${escapeHtml(p.sku)}</span><span>${escapeHtml(p.category)}</span></div>
+    <div class="pd-price" id="pdPriceBox"></div>
+    <button class="share-link-btn" onclick="copyProductLink('${p.id}')">🔗 পণ্যের লিংক কপি করুন</button>
+    ${vs.length ? `<div class="var-wrap"><div style="font-size:13px; font-weight:700; margin-bottom:8px;">${escapeHtml(p.variantLabel || 'অপশন')} বেছে নিন</div><div class="var-chips" id="pdVariants">${vs.map(v=>`<div class="var-chip ${(v.stock || 0) <= 0 ? 'out' : ''}" data-vid="${escapeHtml(v.id)}" onclick="pdSelectVariant('${escapeHtml(v.id)}')">${escapeHtml(v.name)}<small>৳${v.price}</small></div>`).join('')}</div></div>` : ''}
+    <div id="pdStockMsg"></div>
+    <p class="pd-desc">${escapeHtml(p.desc)}</p>
+    <div class="qty-row"><span style="font-size:13px; font-weight:600;">পরিমাণ</span><div class="qty-box"><button onclick="changePdQty(-1)">-</button><span class="qn" id="pdQty">1</span><button onclick="changePdQty(1)">+</button></div></div>
+    <div class="reviews">
+      <h4 id="reviewCountLabel" style="margin-bottom:10px; font-size:14px;">রিভিউ</h4>
+      <div id="reviewsListArea"><div style="color:var(--ink-soft); font-size:13px;">লোড হচ্ছে...</div></div>
+      <div id="reviewFormArea" style="margin-top:16px; border-top:1px solid var(--line); padding-top:14px;"></div>
+    </div>
+    <div style="height:70px;"></div>`;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  view.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  window.scrollTo(0, 0);
+  const main = document.getElementById('pdMain');
+  if(main && pdImgs.length > 1){
+    let sx = 0;
+    main.addEventListener('touchstart', e=>{ sx = e.touches[0].clientX; }, { passive:true });
+    main.addEventListener('touchend', e=>{ const dx = e.changedTouches[0].clientX - sx; if(Math.abs(dx) > 45) pdShowImage((pdImgIdx + (dx < 0 ? 1 : -1) + pdImgs.length) % pdImgs.length); }, { passive:true });
+  }
+  showStickyCta(p);
+  pdUpdateVariantUI();
+  loadAndRenderReviews(id);
+  renderReviewFormArea(id);
+  queueView();
+};
+function pdShowImage(i){
+  if(!pdImgs[i]) return; pdImgIdx = i;
+  const im = document.getElementById('pdMainImg'); if(im) im.src = pdImgs[i].url;
+  const cap = document.getElementById('pdCaption'); if(cap) cap.textContent = pdImgs[i].caption || '';
+  document.querySelectorAll('.pd-th').forEach((t, k)=>t.classList.toggle('active', k === i));
+}
+function pdSelectVariant(vid){ pdSelVid = vid; const q = document.getElementById('pdQty'); if(q) q.textContent = '1'; pdUpdateVariantUI(); }
+function pdUpdateVariantUI(){
+  if(!pdCur) return;
+  const info = lineInfo({ pid:pdCur.id, vid:pdSelVid }); if(!info) return;
+  const old = info.v ? (info.v.oldPrice || 0) : (pdCur.oldPrice || 0);
+  const pct = old > info.price ? Math.round((1 - info.price / old) * 100) : 0;
+  const pb = document.getElementById('pdPriceBox');
+  if(pb) pb.innerHTML = '<span class="now">৳' + info.price + '</span>' + (old > info.price ? '<span class="old">৳' + old + '</span><span style="color:var(--danger); font-weight:700; font-size:13px;">-' + pct + '%</span>' : '');
+  const sm = document.getElementById('pdStockMsg'); if(sm) sm.innerHTML = stockMsgHtml(info.stock);
+  document.querySelectorAll('#pdVariants .var-chip').forEach(c=>c.classList.toggle('active', c.dataset.vid === pdSelVid));
+  const bc = document.getElementById('pdBtnCart'), bb = document.getElementById('pdBtnBuy');
+  if(bc) bc.disabled = info.stock <= 0;
+  if(bb){ bb.disabled = info.stock <= 0; bb.textContent = info.stock <= 0 ? 'স্টকে নেই' : 'এখনই কিনুন'; }
+}
+showStickyCta = function(p){
+  const existing = document.getElementById('pdSticky'); if(existing) existing.remove();
+  const info = lineInfo({ pid:p.id, vid:pdSelVid }), out = !info || info.stock <= 0;
+  const div = document.createElement('div'); div.className = 'sticky-cta'; div.id = 'pdSticky';
+  div.innerHTML = '<button class="btn-cart" id="pdBtnCart" ' + (out ? 'disabled' : '') + ' onclick="addFromDetail(\'' + p.id + '\')">🛒 কার্টে যোগ করুন</button><button class="btn-buy" id="pdBtnBuy" ' + (out ? 'disabled' : '') + ' onclick="buyNow(\'' + p.id + '\')">' + (out ? 'স্টকে নেই' : 'এখনই কিনুন') + '</button>';
+  document.body.appendChild(div);
+};
+changePdQty = function(delta){
+  const el = document.getElementById('pdQty'); let v = parseInt(el.textContent) + delta; if(v < 1) v = 1;
+  const info = pdCur ? lineInfo({ pid:pdCur.id, vid:pdSelVid }) : null;
+  if(info && info.stock > 0 && v > info.stock){ toast('স্টকে মাত্র ' + info.stock + 'টি আছে'); v = info.stock; }
+  el.textContent = v;
+};
+addFromDetail = function(id){ const qty = parseInt(document.getElementById('pdQty').textContent) || 1; if(!addToCart(id, qty, pdSelVid)) return; toast('কার্টে যোগ করা হয়েছে ✓'); };
+buyNow = function(id){ const qty = parseInt(document.getElementById('pdQty').textContent) || 1; if(!addToCart(id, qty, pdSelVid)) return; removeSticky(); goto('checkoutView'); };
+
+/* ---------- অর্ডার (সরাসরি পদ্ধতি): অপশনের আলাদা স্টক কমে, সাইজসহ নাম থাকে ---------- */
+async function runOrderTransactionDirect(input){
+  const counterRef = fireDb.doc(COUNTER_DOC);
+  const byPid = new Map();
+  input.items.forEach(it=>{
+    if(!byPid.has(it.pid)) byPid.set(it.pid, { ref: fireDb.doc(`${PRODUCTS_COL}/${it.pid}`), lines: [] });
+    byPid.get(it.pid).lines.push({ vid: it.vid || '', qty: it.qty });
+  });
+  const groups = [...byPid.entries()];
+  return fireDb.runTransaction(async (tx)=>{
+    const counterSnap = await tx.get(counterRef);
+    const snaps = await Promise.all(groups.map(([pid, g])=>tx.get(g.ref)));
+    let subtotal = 0; const itemsSnapshot = [], writes = [];
+    snaps.forEach((snap, i)=>{
+      const [pid, g] = groups[i];
+      if(!snap.exists) throw new Error('দুঃখিত, কার্টের একটি পণ্য আর পাওয়া যাচ্ছে না');
+      const p = snap.data();
+      if(p.status !== 'active') throw new Error('দুঃখিত, কার্টের একটি পণ্য আর পাওয়া যাচ্ছে না');
+      const vs = pVariants(p);
+      if(vs.length){
+        const nv = vs.map(v=>Object.assign({}, v));
+        g.lines.forEach(l=>{
+          const v = nv.find(x=>x.id === l.vid);
+          if(!v) throw new Error('দুঃখিত, "' + p.name + '" এর বাছাই করা অপশনটি আর নেই');
+          if(l.qty > (v.stock || 0)) throw new Error('দুঃখিত, "' + p.name + ' (' + v.name + ')" স্টকে মাত্র ' + (v.stock || 0) + 'টি আছে');
+          v.stock = (v.stock || 0) - l.qty; subtotal += v.price * l.qty;
+          itemsSnapshot.push({ pid, vid: v.id, variant: v.name, name: p.name + ' (' + v.name + ')', qty: l.qty, price: v.price });
+        });
+        writes.push([g.ref, { variants: nv, stock: nv.reduce((s, v)=>s + (v.stock || 0), 0) }]);
+      }else{
+        const qty = g.lines.reduce((s, l)=>s + l.qty, 0);
+        if(qty > (p.stock || 0)) throw new Error('দুঃখিত, "' + p.name + '" স্টকে মাত্র ' + (p.stock || 0) + 'টি আছে');
+        subtotal += p.price * qty; itemsSnapshot.push({ pid, name: p.name, qty, price: p.price });
+        writes.push([g.ref, { stock: Math.max((p.stock || 0) - qty, 0) }]);
+      }
+    });
+    let discount = 0;
+    if(input.couponCode && DB.settings.coupons && DB.settings.coupons[input.couponCode]) discount = DB.settings.coupons[input.couponCode];
+    const taxableAmount = Math.max(subtotal - discount, 0);
+    const taxRate = parseFloat(DB.settings.tax) || 0;
+    const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
+    if(input.payment === 'cod' && !isCodAllowed(input.district)) throw new Error('আপনার জেলায় ক্যাশ অন ডেলিভারি নেই — অগ্রিম পেমেন্ট করুন');
+    const shipInfo = calcShipping(subtotal, input.district, input.payment);
+    const shipping = shipInfo.final;
+    const total = taxableAmount + tax + shipping;
+    let advanceAmount = 0, dueAmount = 0, finalPlanPercent = null;
+    if(input.payment === 'bkash' || input.payment === 'nagad'){
+      const plans = DB.settings.paymentPlans || [];
+      if(plans.length > 0){
+        if(!input.paymentPlanPercent || !plans.includes(input.paymentPlanPercent)) throw new Error('পেমেন্ট প্ল্যান বেছে নিন');
+        finalPlanPercent = input.paymentPlanPercent;
+        advanceAmount = Math.round(total * finalPlanPercent / 100);
+        dueAmount = Math.max(total - advanceAmount, 0);
+      }
+    }
+    const nextNum = (counterSnap.exists ? counterSnap.data().next : 1001);
+    const orderId = `ORD-${nextNum}`;
+    const nowTs = firebase.firestore.FieldValue.serverTimestamp();
+    const orderRef = fireDb.doc(`${ORDERS_COL}/${orderId}`);
+    const order = {
+      id: orderId, ownerUid: currentUser.uid, ownerEmail: currentUser.email || '',
+      customer: input.name, phone: input.phone, address: input.address, items: itemsSnapshot,
+      subtotal, discount, tax, shipping, total,
+      district: input.district || '', upazila: input.upazila || '', shippingBase: shipInfo.base, prepayDiscount: shipInfo.off,
+      status: 'pending', payment: input.payment, paymentStatus: 'unpaid', transactionId: input.transactionId || '',
+      paymentPlanPercent: finalPlanPercent, advanceAmount, dueAmount,
+      courier: 'নির্ধারণ করা হয়নি', date: new Date().toISOString().slice(0, 10), createdAt: nowTs
+    };
+    tx.set(orderRef, order);
+    tx.set(counterRef, { next: nextNum + 1 });
+    writes.forEach(([ref, d])=>tx.update(ref, d));
+    return { orderId, total, orderSnapshot: Object.assign({}, order, { createdAt: new Date().toISOString() }) };
+  });
+}
 </script>
 </body>
 </html>
