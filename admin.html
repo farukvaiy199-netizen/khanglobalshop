@@ -666,6 +666,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
 </div>
 <div class="set-page" id="sp_automation" style="display:none;">
 <div class="form-group" style="background:var(--accent-tint); padding:10px 12px; border-radius:8px; font-size:12px; color:var(--ink-soft); line-height:1.7;">ℹ️ আপনার AI/অটোমেশন (n8n, Make, নিজের সার্ভার ইত্যাদি) এই শপের সাথে <b>Firebase-এর REST API</b> দিয়ে কথা বলবে। আলাদা একটা <b>"বট" অ্যাকাউন্ট</b> বানিয়ে তাকে সীমিত অনুমতি দেওয়া হয়, যাতে অটোমেশন পণ্য, অর্ডার ও চ্যাট নিয়ে কাজ করতে পারে কিন্তু আপনার কুরিয়ারের গোপন Key বা সেটিংস ছুঁতে না পারে। নিচের প্রতিটা ঘরের পাশে "কপি" বাটন আছে।</div>
+<div id="sbCard"></div>
 <div style="background:var(--bg); border-radius:14px; padding:14px; margin-bottom:16px;">
   <div style="font-weight:800; font-size:14.5px; margin-bottom:6px;">🛡️ সুরক্ষিত অর্ডার সার্ভার (ঐচ্ছিক)</div>
   <div style="font-size:12px; color:var(--ink-soft); line-height:1.8; margin-bottom:10px;">Render-এ অর্ডার সার্ভার চালু করার পর এর URL এখানে বসান। এরপর অর্ডারের দাম, কুপন, ডেলিভারি চার্জ ও স্টক সার্ভারে যাচাই হবে এবং AI চ্যাটও সার্ভারের মাধ্যমে যাবে। URL খালি রাখলে আগের পদ্ধতিই চলবে।</div>
@@ -684,6 +685,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
 <button class="checkout-btn" style="margin-top:0;" onclick="autoVerifyBot()">✅ যাচাই করে UID বের করুন</button>
 <div id="autoBotResult" style="font-size:12.5px; margin:10px 0; line-height:1.8;"></div>
 <div style="font-weight:800; font-size:14.5px; margin:18px 0 8px;">📜 ধাপ ২: Firestore Rules-এ বটের অনুমতি</div>
+<label style="display:flex; align-items:center; gap:8px; font-size:12.5px; margin-bottom:10px; line-height:1.6;"><input type="checkbox" id="autoRulesProdChk" onchange="autoRulesProd=this.checked; renderAutomationPage(); renderSbCard();" style="width:17px; height:17px; flex:none;"> বটকে পণ্য যোগ/বদলের অনুমতিও দিন (ডিফল্ট বন্ধ; শুধু পড়া, অর্ডারের স্ট্যাটাস ও চ্যাটে উত্তর)</label>
 <div id="autoRules"></div>
 <div style="font-weight:800; font-size:14.5px; margin:18px 0 8px;">🔌 ধাপ ৩: API ঠিকানা ও উদাহরণ</div>
 <div id="autoEndpoints"></div>
@@ -725,6 +727,30 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
     <div class="form-group"><label>স্টক পরিমাণ</label><input id="pmStock" type="number"></div>
     <div class="form-group"><label>SKU/কোড</label><input id="pmSku"></div>
     <div class="form-group"><label>বিবরণ</label><textarea id="pmDesc" rows="3"></textarea></div>
+    <div style="background:var(--bg); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <div style="font-weight:800; font-size:13.5px; margin-bottom:3px;">🖼️ ছবির ক্যাপশন ও আরও ছবি</div>
+      <div style="font-size:11.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:8px;">উপরের ছবিটা মূল ছবি। এখানে তার ক্যাপশন, আর আরও ৩টি পর্যন্ত ছবি (প্রতিটার নিচে ক্যাপশন) দিতে পারেন।</div>
+      <input id="pmMainCaption" placeholder="মূল ছবির ক্যাপশন (ঐচ্ছিক)" oninput="pmMainCaption=this.value" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; margin-bottom:8px;">
+      <div id="pmExtraList"></div>
+      <button type="button" class="mini-btn primary" id="pmAddExtraBtn" onclick="pmAddExtra()" style="padding:8px 12px;">+ আরও ছবি যোগ করুন</button>
+    </div>
+    <div style="background:var(--bg); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <div style="font-weight:800; font-size:13.5px; margin-bottom:3px;">🏷️ সাইজ / ওজন / রঙ ইত্যাদি অপশন</div>
+      <div style="font-size:11.5px; color:var(--ink-soft); line-height:1.6; margin-bottom:8px;">অপশন যোগ করলে প্রতিটার আলাদা দাম ও স্টক থাকবে, আর গ্রাহক যেটা বাছবে তার দাম দেখাবে। তখন উপরের "দাম" ও "স্টক" ঘর নিজে হিসাব হবে (সবচেয়ে কম দাম, মোট স্টক)। অপশন না লাগলে খালি রাখুন।</div>
+      <div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;">
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('cloth')">👕 পোশাক S–XXL</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('shoes')">👟 জুতা ৩৮–৪৪</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('waist')">👖 প্যান্টের মাপ</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('weight')">🍯 ওজন (কেজি/গ্রাম)</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('liquid')">🧴 লিটার/মিলি</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('pack')">📦 প্যাক/পিস</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('color')">🎨 রঙ</button>
+        <button type="button" class="mini-btn" onclick="pmApplyPreset('memory')">📱 মেমোরি</button>
+      </div>
+      <input id="pmVarLabel" placeholder="অপশনের নাম (যেমন: সাইজ, ওজন, রঙ)" oninput="pmVarLabel=this.value" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; margin-bottom:8px;">
+      <div id="pmVarList"></div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;"><button type="button" class="mini-btn primary" onclick="pmAddVar()" style="padding:8px 12px;">+ নতুন অপশন</button><span id="pmVarSummary" style="font-size:11.5px; color:var(--ink-soft);"></span></div>
+    </div>
     <div class="form-group"><label>স্ট্যাটাস</label><select id="pmStatus"><option value="active">সক্রিয়</option><option value="inactive">নিষ্ক্রিয়</option></select></div>
     <button class="checkout-btn" onclick="saveProduct()">সংরক্ষণ করুন</button>
   </div>
@@ -2849,7 +2875,7 @@ async function autoVerifyBot(){
   openSetPage = function(key){
     _open(key);
     if(key === 'suppliers') renderSupplierPage();
-    if(key === 'automation'){ renderAutomationPage(); fillOrderApiForm(); }
+    if(key === 'automation'){ renderAutomationPage(); fillOrderApiForm(); renderSbCard(); }
   };
 })();
 
@@ -3058,6 +3084,222 @@ async function saveOrderApi(){
   DB.settings.orderApiUrl = url; DB.settings.orderApiStrict = strict;
   if(!await persistSettings()) return;
   toast(url ? 'সার্ভার সেটিং সংরক্ষণ হয়েছে ✓' : 'সার্ভার বন্ধ — আগের পদ্ধতি চলবে');
+}
+
+/* =====================================================================
+   🖼️ একাধিক ছবি + 🏷️ সাইজ/ওজন/রঙ অপশন (আলাদা দাম ও স্টকসহ)
+   ===================================================================== */
+let pmExtras = [], pmMainCaption = '', pmVarLabel = '', pmVariants = [];
+const pmEl = id => document.getElementById(id);
+const VAR_PRESETS = {
+  cloth:{ label:'সাইজ', names:['S','M','L','XL','XXL'] },
+  shoes:{ label:'জুতার সাইজ', names:['৩৮','৩৯','৪০','৪১','৪২','৪৩','৪৪'] },
+  waist:{ label:'মাপ (ইঞ্চি)', names:['২৮','৩০','৩২','৩৪','৩৬','৩৮'] },
+  weight:{ label:'ওজন', names:['১ কেজি','৫০০ গ্রাম','২৫০ গ্রাম','১০০ গ্রাম'] },
+  liquid:{ label:'পরিমাণ', names:['১ লিটার','৫০০ মিলি','২৫০ মিলি','১০০ মিলি'] },
+  pack:{ label:'প্যাক', names:['১ পিস','২ পিস','৩ পিস','১ ডজন'] },
+  color:{ label:'রঙ', names:['কালো','সাদা','লাল','নীল','সবুজ'] },
+  memory:{ label:'মেমোরি', names:['৬৪ GB','১২৮ GB','২৫৬ GB'] }
+};
+const newVarId = ()=>'v' + Math.random().toString(36).slice(2, 8);
+function pmLoadExtras(p){
+  const imgs = (p && Array.isArray(p.images)) ? p.images : [];
+  const main = p ? p.image : '';
+  pmMainCaption = (imgs.find(i=>i.url === main) || {}).caption || '';
+  pmExtras = imgs.filter(i=>i.url && i.url !== main).slice(0, 3).map(i=>({ url:i.url, caption:i.caption || '' }));
+  pmVarLabel = (p && p.variantLabel) || '';
+  pmVariants = (p && Array.isArray(p.variants)) ? p.variants.map(v=>({ id:v.id, name:v.name, price:v.price, oldPrice:v.oldPrice || '', stock:v.stock })) : [];
+  pmEl('pmMainCaption').value = pmMainCaption; pmEl('pmVarLabel').value = pmVarLabel;
+  renderPmExtras(); renderPmVariants();
+}
+(function(){
+  const _o = openProductModal;
+  openProductModal = function(id){ _o(id); pmLoadExtras(id ? DB.products.find(x=>x.id === id) : null); };
+})();
+function renderPmExtras(){
+  pmEl('pmExtraList').innerHTML = pmExtras.map((x, i)=>
+    '<div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:9px; margin-bottom:8px;">' +
+    '<div style="display:flex; gap:8px; align-items:center; margin-bottom:6px;">' + (x.url ? '<img src="' + escapeHtml(x.url) + '" style="width:54px; height:54px; object-fit:cover; border-radius:8px; flex-shrink:0;">' : '<div style="width:54px; height:54px; background:var(--bg); border-radius:8px; flex-shrink:0;"></div>') +
+    '<input type="file" accept="image/*" onchange="pmExtraUpload(' + i + ',event)" style="font-size:11.5px; min-width:0; flex:1;"><button type="button" class="mini-btn danger" onclick="pmRemoveExtra(' + i + ')">✕</button></div>' +
+    '<input placeholder="এই ছবির ক্যাপশন (যেমন: পেছনের দিক)" value="' + escapeHtml(x.caption) + '" oninput="pmExtras[' + i + '].caption=this.value" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:9px; font-size:13px;"></div>').join('');
+  pmEl('pmAddExtraBtn').style.display = pmExtras.length >= 3 ? 'none' : 'inline-block';
+}
+function pmAddExtra(){ if(pmExtras.length < 3){ pmExtras.push({ url:'', caption:'' }); renderPmExtras(); } }
+function pmRemoveExtra(i){ pmExtras.splice(i, 1); renderPmExtras(); }
+function pmExtraUpload(i, evt){
+  const file = evt.target.files[0]; if(!file) return;
+  resizeImageToDataURL(file, 700, 0.82, function(dataUrl){ if(pmExtras[i]){ pmExtras[i].url = dataUrl; renderPmExtras(); } });
+}
+function pmVarNumInput(i, key, ph, val){ return '<input type="number" min="0" placeholder="' + ph + '" value="' + (val === undefined || val === null ? '' : val) + '" oninput="pmVariants[' + i + '].' + key + '=this.value; pmVarSummary()" style="flex:1; min-width:0; border:1px solid var(--line); border-radius:8px; padding:9px; font-size:13px;">'; }
+function renderPmVariants(){
+  pmEl('pmVarList').innerHTML = pmVariants.map((v, i)=>
+    '<div style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:9px; margin-bottom:8px;">' +
+    '<div style="display:flex; gap:6px; margin-bottom:6px;"><input placeholder="নাম (যেমন M, ১ কেজি)" value="' + escapeHtml(v.name || '') + '" oninput="pmVariants[' + i + '].name=this.value" style="flex:1; min-width:0; border:1px solid var(--line); border-radius:8px; padding:9px; font-size:13px;"><button type="button" class="mini-btn danger" onclick="pmRemoveVar(' + i + ')">✕</button></div>' +
+    '<div style="display:flex; gap:6px;">' + pmVarNumInput(i, 'price', 'দাম ৳', v.price) + pmVarNumInput(i, 'oldPrice', 'পুরনো দাম', v.oldPrice) + pmVarNumInput(i, 'stock', 'স্টক', v.stock) + '</div></div>').join('');
+  pmVarSummary();
+}
+function pmVarSummary(){
+  const el = pmEl('pmVarSummary'); if(!el) return;
+  const ok = pmVariants.filter(v=>parseFloat(v.price) > 0);
+  el.textContent = ok.length ? 'দাম ৳' + Math.min(...ok.map(v=>parseFloat(v.price))) + ' থেকে • মোট স্টক ' + pmVariants.reduce((s, v)=>s + (parseInt(v.stock) || 0), 0) : '';
+}
+function pmAddVar(){ if(pmVariants.length >= 20){ toast('সর্বোচ্চ ২০টি অপশন'); return; } pmVariants.push({ id:newVarId(), name:'', price:'', oldPrice:'', stock:'' }); renderPmVariants(); }
+function pmRemoveVar(i){ pmVariants.splice(i, 1); renderPmVariants(); }
+function pmApplyPreset(key){
+  const pr = VAR_PRESETS[key]; if(!pr) return;
+  if(pmVariants.some(v=>v.name || v.price || v.stock) && !confirm('আগের অপশনগুলো মুছে নতুন তালিকা বসবে। চালিয়ে যাবেন?')) return;
+  pmVarLabel = pr.label; pmEl('pmVarLabel').value = pr.label;
+  pmVariants = pr.names.map(n=>({ id:newVarId(), name:n, price:'', oldPrice:'', stock:'' }));
+  renderPmVariants();
+}
+
+saveProduct = async function(){
+  const id = pmEl('pmId').value;
+  const name = pmEl('pmName').value.trim();
+  if(!name){ toast('পণ্যের নাম দিন'); return; }
+  // অপশন যাচাই
+  const rows = pmVariants.filter(v=>(v.name || '').trim() || v.price !== '' || v.stock !== '');
+  const variants = [], seen = new Set();
+  for(const v of rows){
+    const vn = (v.name || '').trim(), vp = parseFloat(v.price), vs = parseInt(v.stock);
+    if(!vn){ toast('প্রতিটা অপশনের নাম দিন'); return; }
+    if(seen.has(vn)){ toast('"' + vn + '" নামে দুটি অপশন আছে'); return; }
+    if(!(vp > 0)){ toast('"' + vn + '"-এর দাম দিন'); return; }
+    if(isNaN(vs) || vs < 0){ toast('"' + vn + '"-এর স্টক দিন (০ বা বেশি)'); return; }
+    seen.add(vn);
+    variants.push({ id: v.id || newVarId(), name: vn, price: vp, oldPrice: parseFloat(v.oldPrice) > vp ? parseFloat(v.oldPrice) : 0, stock: vs });
+  }
+  // ছবি: মূল ছবি + অতিরিক্ত
+  const images = [];
+  if(pmImageData) images.push({ url: pmImageData, caption: (pmMainCaption || '').trim().slice(0, 120) });
+  pmExtras.filter(x=>x.url).slice(0, 3).forEach(x=>images.push({ url: x.url, caption: (x.caption || '').trim().slice(0, 120) }));
+  const data = {
+    name, category: pmEl('pmCategory').value,
+    emoji: pmEl('pmEmoji').value.trim() || '📦',
+    image: images.length ? images[0].url : '',
+    images,
+    price: parseFloat(pmEl('pmPrice').value) || 0,
+    oldPrice: parseFloat(pmEl('pmOldPrice').value) || 0,
+    stock: parseInt(pmEl('pmStock').value) || 0,
+    sku: pmEl('pmSku').value.trim(),
+    desc: pmEl('pmDesc').value.trim(),
+    status: pmEl('pmStatus').value,
+    variants, variantLabel: variants.length ? ((pmVarLabel || '').trim() || 'অপশন') : ''
+  };
+  if(variants.length){
+    const cheapest = variants.reduce((a, b)=>(b.price < a.price ? b : a));
+    data.price = cheapest.price; data.oldPrice = cheapest.oldPrice || 0;
+    data.stock = variants.reduce((s, v)=>s + v.stock, 0);
+  }
+  try{
+    if(id) await fireDb.doc(`${PRODUCTS_COL}/${id}`).update(data);
+    else await fireDb.doc(`${PRODUCTS_COL}/p${Date.now()}`).set(Object.assign({}, data, { rating: 4.0 }));
+  }catch(e){ toast('⚠️ সংরক্ষণ করা যায়নি'); return; }
+  await loadCoreData();
+  closeModal('productModal');
+  renderAdminProducts();
+  renderAdminDashboard();
+  toast('পণ্য সংরক্ষণ করা হয়েছে ✓');
+};
+
+/* ---------- অপশনসহ স্টক ফেরত/কমানো (অর্ডার বাতিল হলে) ---------- */
+function stockPatchFor(pd, lines, sign){
+  const vs = Array.isArray(pd.variants) ? pd.variants.filter(v=>v && v.id) : [];
+  if(vs.length){
+    const nv = pd.variants.map(v=>Object.assign({}, v));
+    lines.forEach(l=>{ const v = nv.find(x=>x.id === l.vid); if(v) v.stock = Math.max((v.stock || 0) + sign * l.qty, 0); });
+    return { variants: nv, stock: nv.reduce((s, v)=>s + (v.stock || 0), 0) };
+  }
+  return { stock: Math.max((pd.stock || 0) + sign * lines.reduce((s, l)=>s + l.qty, 0), 0) };
+}
+function groupOrderItems(items){
+  const m = new Map();
+  (items || []).forEach(it=>{ if(!m.has(it.pid)) m.set(it.pid, []); m.get(it.pid).push({ vid: it.vid || '', qty: it.qty || 0 }); });
+  return [...m.entries()];
+}
+restoreStockForOrder = async function(orderId){
+  try{
+    await fireDb.runTransaction(async tx=>{
+      const oRef = fireDb.doc(`${ORDERS_COL}/${orderId}`);
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists) return;
+      const o = oSnap.data();
+      if(o.status !== 'cancelled' || o.stockRestored) return;
+      const groups = groupOrderItems(o.items);
+      const refs = groups.map(([pid])=>fireDb.doc(`${PRODUCTS_COL}/${pid}`));
+      const snaps = await Promise.all(refs.map(r=>tx.get(r)));
+      snaps.forEach((sn, i)=>{ if(sn.exists) tx.update(refs[i], stockPatchFor(sn.data(), groups[i][1], +1)); });
+      tx.update(oRef, { stockRestored: true });
+    });
+    return true;
+  }catch(e){ return false; }
+};
+redeductStockForOrder = async function(orderId){
+  try{
+    await fireDb.runTransaction(async tx=>{
+      const oRef = fireDb.doc(`${ORDERS_COL}/${orderId}`);
+      const oSnap = await tx.get(oRef);
+      if(!oSnap.exists) return;
+      const o = oSnap.data();
+      if(o.status === 'cancelled' || !o.stockRestored) return;
+      const groups = groupOrderItems(o.items);
+      const refs = groups.map(([pid])=>fireDb.doc(`${PRODUCTS_COL}/${pid}`));
+      const snaps = await Promise.all(refs.map(r=>tx.get(r)));
+      snaps.forEach((sn, i)=>{ if(sn.exists) tx.update(refs[i], stockPatchFor(sn.data(), groups[i][1], -1)); });
+      tx.update(oRef, { stockRestored: false });
+    });
+  }catch(e){}
+};
+renderStockReport = function(){
+  const table = document.getElementById('stockTable');
+  const pill = n=>n === 0 ? '<span class="status-pill cancelled">স্টক শেষ</span>' : n <= 5 ? '<span class="status-pill pending">কম স্টক</span>' : '<span class="status-pill delivered">পর্যাপ্ত</span>';
+  table.innerHTML = '<tr><th>পণ্য</th><th>SKU</th><th>স্টক</th><th>স্ট্যাটাস</th></tr>' + DB.products.map(p=>{
+    let h = '<tr><td>' + (p.emoji || '') + ' ' + escapeHtml(p.name) + '</td><td>' + escapeHtml(p.sku) + '</td><td>' + p.stock + '</td><td>' + pill(p.stock) + '</td></tr>';
+    (Array.isArray(p.variants) ? p.variants : []).forEach(v=>{ h += '<tr style="background:var(--bg);"><td style="padding-left:26px; font-size:11.5px;">↳ ' + escapeHtml(p.variantLabel || 'অপশন') + ': ' + escapeHtml(v.name) + ' (৳' + v.price + ')</td><td></td><td>' + (v.stock || 0) + '</td><td>' + pill(v.stock || 0) + '</td></tr>'; });
+    return h;
+  }).join('');
+};
+
+/* =====================================================================
+   📱 SmartBiz অ্যাপে বসানোর তথ্য + এক ক্লিকে বট অ্যাকাউন্ট
+   ===================================================================== */
+let autoRulesProd = false, sbBotCreds = null, sbCopies = [];
+(function(){
+  const _full = botRulesText;
+  botRulesText = function(uid){
+    let t = _full(uid);
+    if(!autoRulesProd) t = t.replace(/match \/bazaar_store\/khanglobalshop_main\/products\/\{pid\} \{\n  allow create, update: if isBot\(\);\n\}\n/, '');
+    return t;
+  };
+})();
+function sbCopy(i){ copyText(sbCopies[i]); }
+function randPass(n){ const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789', a = new Uint32Array(n); crypto.getRandomValues(a); return [...a].map(x=>chars[x % chars.length]).join(''); }
+function renderSbCard(){
+  const box = document.getElementById('sbCard'); if(!box) return;
+  sbCopies = [];
+  const row = (label, value, note)=>{ sbCopies.push(value); const i = sbCopies.length - 1;
+    return '<div style="margin-bottom:9px;"><div style="font-size:11.5px; color:#7a5a1a; font-weight:700; margin-bottom:3px;">' + label + '</div><div style="display:flex; gap:6px;"><div style="flex:1; min-width:0; background:#fff; border-radius:8px; padding:10px; font-family:monospace; font-size:11.5px; word-break:break-all;">' + escapeHtml(value) + '</div><button class="mini-btn primary" onclick="sbCopy(' + i + ')">কপি</button></div>' + (note ? '<div style="font-size:10.5px; color:#7a5a1a; margin-top:2px;">' + note + '</div>' : '') + '</div>'; };
+  let bot;
+  if(sbBotCreds) bot = row('বটের ইমেইল', sbBotCreds.email) + row('বটের পাসওয়ার্ড', sbBotCreds.pass, '⚠️ এখনই কপি করে অ্যাপে বসান — এই পাতা বন্ধ করলে আর দেখা যাবে না।');
+  else bot = '<div style="background:#fff; border-radius:10px; padding:10px; margin-bottom:9px;"><div style="font-size:12px; color:var(--ink-soft); line-height:1.7; margin-bottom:8px;">অর্ডার ও কাস্টমারের মেসেজ দেখতে বট লাগে (পণ্য, স্টক ও কুপনের জন্য লাগে না)। নিচের বাটন চাপলে বট অ্যাকাউন্ট তৈরি হয়ে ইমেইল ও পাসওয়ার্ড আসবে।</div><input id="sbBotEmail" placeholder="বটের ইমেইল (খালি রাখলে নিজে বানাবে)" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; margin-bottom:8px;"><button class="checkout-btn" style="margin-top:0;" onclick="createBotAccount()">🤖 বট অ্যাকাউন্ট তৈরি করুন</button></div>';
+  box.innerHTML = '<div style="background:linear-gradient(135deg,#FCEED8,#FBE0C8); border-radius:16px; padding:14px; margin-bottom:16px;"><div style="font-weight:800; font-size:15px; margin-bottom:3px;">📱 SmartBiz অ্যাপে বসানোর তথ্য</div><div style="font-size:11.5px; color:#7a5a1a; line-height:1.7; margin-bottom:10px;">অ্যাপের "ই-কমার্স ওয়েবসাইট" পাতার ঘরের সাথে হুবহু মেলানো। প্রতিটার পাশে কপি বাটন।</div>' +
+    row('Firebase Project ID', firebaseConfig.projectId) + row('Web API Key (পাবলিক কী, গোপন নয়)', firebaseConfig.apiKey) + row('শপের রুট পাথ', FIRESTORE_ROOT) + bot +
+    '<div style="font-size:12px; color:#7a5a1a; line-height:1.9; margin-top:6px;"><b>করণীয়:</b> ১) উপরে বট তৈরি করুন ২) নিচের "ধাপ ২" থেকে Rules কপি করে Firebase-এ বসিয়ে Publish দিন ৩) এই ৫টি তথ্য অ্যাপে বসিয়ে Connect চাপুন।</div><button class="mini-btn primary" style="margin-top:8px; padding:9px 14px;" onclick="copyRules()">📋 Rules কপি করুন' + (autoBotUid ? '' : ' (বট তৈরির পর UID বসবে)') + '</button><div style="font-size:11.5px; color:#7a5a1a; line-height:1.8; margin-top:10px;"><b>কোন সুবিধায় কী লাগে:</b><br>• পণ্য, দাম, স্টক, অফার ও কুপন: Project ID, Web API Key, রুট পাথ। বট না হলেও চলে।<br>• অর্ডার ও কাস্টমারের মেসেজ: বট ও Rules লাগে।</div></div>';
+}
+async function createBotAccount(){
+  const typed = (pmEl('sbBotEmail').value || '').trim();
+  const email = typed || ('smartbiz-bot-' + Math.random().toString(36).slice(2, 8) + '@khanglobalshop.app');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ toast('ইমেইল সঠিক নয়'); return; }
+  if(email.toLowerCase() === ((fireAuth.currentUser && fireAuth.currentUser.email) || '').toLowerCase()){ toast('অ্যাডমিনের ইমেইল দেওয়া যাবে না'); return; }
+  const pass = randPass(20);
+  try{
+    const res = await fetch('https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=' + encodeURIComponent(firebaseConfig.apiKey), { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ email, password:pass, returnSecureToken:false }) });
+    const d = await res.json();
+    if(!res.ok){ const m = (d && d.error && d.error.message) || ''; toast(/EMAIL_EXISTS/.test(m) ? 'এই ইমেইলে আগেই অ্যাকাউন্ট আছে — অন্য ইমেইল দিন' : /OPERATION_NOT_ALLOWED/.test(m) ? 'Firebase-এ Email/Password সাইন-ইন বন্ধ আছে' : 'বট তৈরি হয়নি: ' + m.slice(0, 60)); return; }
+    sbBotCreds = { email, pass }; autoBotUid = d.localId;
+    renderSbCard(); renderAutomationPage();
+    toast('বট তৈরি হয়েছে ✓ — পাসওয়ার্ড কপি করুন');
+  }catch(e){ toast('নেটওয়ার্ক সমস্যা — আবার চেষ্টা করুন'); }
 }
 </script>
 </body>
