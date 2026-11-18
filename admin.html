@@ -454,7 +454,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
     <div class="pg-title">কনফার্মেশন কল</div>
     <div class="pg-sub">অর্ডার ফোনে কনফার্ম করার তালিকা (পুরনো অর্ডার আগে)</div>
     <div class="admin-toolbar">
-      <select id="callFilterSel" onchange="renderCalls()"><option value="pending">কল বাকি</option><option value="noanswer">ফোন ধরেনি</option><option value="done">কনফার্ম হয়েছে</option></select>
+      <select id="callFilterSel" onchange="renderCalls()"><option value="pending">কল বাকি</option><option value="later">কিছুদিন পরে (হলুদ)</option><option value="noanswer">ফোন ধরেনি</option><option value="done">কনফার্ম হয়েছে</option></select>
       <button type="button" class="mini-btn primary" style="padding:10px 14px;" onclick="renderCalls(true)">🔄 রিফ্রেশ</button>
     </div>
     <div id="callList"></div>
@@ -2806,8 +2806,11 @@ match /bazaar_store/khanglobalshop_main/products/{pid} {
 }
 match /bazaar_store/khanglobalshop_main/orders/{oid} {
   allow read: if isBot();
+  // SmartBiz অ্যাপে ফোনে কনফার্ম করা চ্যাট-অর্ডার এখানে নতুন তৈরি হয়
+  allow create: if isBot() && request.resource.data.source == 'smartbiz';
   allow update: if isBot() && request.resource.data.diff(resource.data).affectedKeys()
-    .hasOnly(['status','courier','paymentStatus','adminNote','steadfastTrackingId','pathaoConsignmentId']);
+    .hasOnly(['status','courier','paymentStatus','adminNote','steadfastTrackingId','pathaoConsignmentId',
+              'callStatus','callNote','callAt','remindAt','callAttempts','cancelledBy','cancelReason']);
 }
 match /bazaar_store/khanglobalshop_main/chats/{cid} {
   allow read, create, update: if isBot();
@@ -2978,7 +2981,7 @@ function updateCallBadgeSoon(){ clearTimeout(_callBadgeTimer); _callBadgeTimer =
    📞 কনফার্মেশন কল তালিকা
    ===================================================================== */
 let callFilter = 'pending';
-function callPending(){ return ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'confirmed'); }
+function callPending(){ return ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'confirmed' && o.callStatus !== 'later'); }
 function updateCallBadge(){
   const n = callPending().length;
   const b = document.getElementById('dashCallBtn'); if(b) b.textContent = '📞 কনফার্মেশন কল (' + n + ')';
@@ -3004,6 +3007,7 @@ function callCardHtml(o){
   if(o.payment === 'cod' && o.district && !cod.includes(o.district)) warn.push('⚠️ এই জেলায় ক্যাশ অন ডেলিভারি অনুমোদিত নয়');
   if((o.payment === 'bkash' || o.payment === 'nagad') && !o.transactionId) warn.push('⚠️ ট্রানজেকশন আইডি নেই');
   if(o.callAttempts > 0) warn.push('📵 ' + o.callAttempts + ' বার ফোন ধরেনি');
+  if(o.callStatus === 'later') warn.push('🟡 কিছুদিন পরে নেবে' + (o.remindAt ? ' — আবার ফোন: ' + escapeHtml(o.remindAt) : '') + (o.callNote ? ' (' + escapeHtml(o.callNote) + ')' : ''));
   const items = (o.items || []).map(it=>escapeHtml(it.name) + ' ×' + it.qty).join(', ');
   const wa = '880' + String(ph).replace(/^0/, '');
   return '<div class="cust-card">' +
@@ -3012,7 +3016,7 @@ function callCardHtml(o){
     (warn.length ? '<div style="margin-top:8px; font-size:12px; color:var(--danger); line-height:1.8;">' + warn.join('<br>') + '</div>' : '') +
     '<div style="display:flex; gap:8px; margin:10px 0;"><a class="mini-btn primary" style="flex:1; text-align:center; padding:10px; text-decoration:none;" href="tel:' + escapeHtml(o.phone) + '">📞 কল: ' + escapeHtml(o.phone) + '</a><a class="mini-btn primary" style="flex:1; text-align:center; padding:10px; text-decoration:none;" target="_blank" rel="noopener" href="https://wa.me/' + wa + '">💬 WhatsApp</a></div>' +
     '<input id="callNote_' + o.id + '" placeholder="কলের নোট (ঐচ্ছিক)" value="' + escapeHtml(o.callNote || '') + '" style="width:100%; border:1px solid var(--line); border-radius:8px; padding:10px; font-size:13px; margin-bottom:8px;">' +
-    '<div style="display:flex; gap:8px;"><button class="mini-btn primary" style="flex:2; padding:11px; background:var(--primary); color:#fff;" onclick="callAction(\'' + o.id + '\',\'confirm\')">✅ কনফার্ম</button><button class="mini-btn" style="flex:1.3; padding:11px;" onclick="callAction(\'' + o.id + '\',\'noanswer\')">📵 ধরেনি</button><button class="mini-btn danger" style="flex:1; padding:11px;" onclick="callAction(\'' + o.id + '\',\'cancel\')">❌ বাতিল</button></div></div>';
+    '<div style="display:flex; gap:8px;"><button class="mini-btn primary" style="flex:2; padding:11px; background:var(--primary); color:#fff;" onclick="callAction(\'' + o.id + '\',\'confirm\')">✅ কনফার্ম</button><button class="mini-btn" style="flex:1.3; padding:11px;" onclick="callAction(\'' + o.id + '\',\'noanswer\')">📵 ধরেনি</button><button class="mini-btn" style="flex:1.3; padding:11px; background:#fff3cf;" onclick="callAction(\'' + o.id + '\',\'later\')">⏳ পরে</button><button class="mini-btn danger" style="flex:1; padding:11px;" onclick="callAction(\'' + o.id + '\',\'cancel\')">❌ বাতিল</button></div></div>';
 }
 async function renderCalls(force){
   const sel = document.getElementById('callFilterSel'); callFilter = sel ? sel.value : 'pending';
@@ -3020,8 +3024,9 @@ async function renderCalls(force){
   let list;
   if(callFilter === 'noanswer') list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus === 'noanswer');
   else if(callFilter === 'done') list = ordersCache.filter(o=>o.callStatus === 'confirmed').slice(0, 40);
-  else list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'noanswer' && o.callStatus !== 'confirmed');
-  if(callFilter !== 'done') list = list.slice().sort((a, b)=>(tsToDate(a.createdAt) || 0) - (tsToDate(b.createdAt) || 0));
+  else if(callFilter === 'later') list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus === 'later').sort((a, b)=>String(a.remindAt || '9999').localeCompare(String(b.remindAt || '9999')));
+  else list = ordersCache.filter(o=>o.status === 'pending' && o.callStatus !== 'noanswer' && o.callStatus !== 'confirmed' && o.callStatus !== 'later');
+  if(callFilter !== 'done' && callFilter !== 'later') list = list.slice().sort((a, b)=>(tsToDate(a.createdAt) || 0) - (tsToDate(b.createdAt) || 0));
   updateCallBadge();
   const box = document.getElementById('callList');
   box.innerHTML = list.length ? list.map(o=>callCardHtml(o)).join('') : '<div style="text-align:center; color:var(--ink-soft); font-size:13px; padding:30px 10px;">🎉 এই তালিকায় কোনো অর্ডার নেই</div>';
@@ -3032,13 +3037,19 @@ async function callAction(id, act){
   const at = new Date().toISOString();
   let upd;
   if(act === 'confirm') upd = { callStatus:'confirmed', status:'processing', callNote:note, callAt:at };
+  else if(act === 'later'){
+    const d = (prompt('কবে আবার ফোন করবেন? (সাল-মাস-তারিখ, যেমন 2026-12-05) — ফাঁকা রাখলে শুধু নোট থাকবে', o.remindAt || '') || '').trim();
+    if(d && !/^\d{4}-\d{2}-\d{2}$/.test(d)){ toast('তারিখ এভাবে লিখুন: 2026-12-05'); return; }
+    if(!d && !note){ toast('তারিখ বা নোট — অন্তত একটা লিখুন'); return; }
+    upd = { callStatus:'later', callNote:note, callAt:at, remindAt:d };
+  }
   else if(act === 'noanswer') upd = { callStatus:'noanswer', callAttempts:(o.callAttempts || 0) + 1, callNote:note, callAt:at };
   else{ if(!confirm(id + ' অর্ডারটি বাতিল করবেন?')) return; upd = { status:'cancelled', callStatus:'cancelled', callNote:note, callAt:at, cancelledBy:'admin' }; }
   try{
     await fireDb.doc(`${ORDERS_COL}/${id}`).update(upd);
     Object.assign(o, upd);
     if(act === 'cancel') await restoreStockForOrder(id);
-    toast(act === 'confirm' ? 'কনফার্ম হয়েছে — অর্ডার Processing-এ গেছে ✓' : act === 'noanswer' ? 'ফোন ধরেনি — চিহ্নিত হয়েছে' : 'অর্ডার বাতিল হয়েছে');
+    toast(act === 'confirm' ? 'কনফার্ম হয়েছে — অর্ডার Processing-এ গেছে ✓' : act === 'noanswer' ? 'ফোন ধরেনি — চিহ্নিত হয়েছে' : act === 'later' ? 'কিছুদিন পরে — নোট রাখা হয়েছে' : 'অর্ডার বাতিল হয়েছে');
   }catch(e){ toast('⚠️ আপডেট করা যায়নি — সংযোগ যাচাই করুন'); return; }
   renderCalls();
 }
@@ -3484,6 +3495,19 @@ async function smsCopy(){
   catch(e){ const ta = document.getElementById('smsText'); ta.select(); try{ document.execCommand('copy'); toast('লেখা কপি হয়েছে ✓'); }catch(e2){ toast('কপি করা যায়নি — লেখাটা চেপে ধরে কপি করুন'); } }
 }
 
+/* ---------- রিসিভ করেনি: অর্ডার বাতিল + স্টক ফেরত; SmartBiz অ্যাপে "রিসিভ করেননি" দেখায় ---------- */
+async function markNotReceived(id){
+  if(!confirm(id + ' — কাস্টমার পার্সেল রিসিভ করেননি? অর্ডার বাতিল হবে ও স্টক ফিরবে।')) return;
+  try{
+    await fireDb.doc(`${ORDERS_COL}/${id}`).update({ status:'cancelled', cancelReason:'not_received', cancelledBy:'admin' });
+    const c = ordersCache.find(x=>x.id === id); if(c){ c.status = 'cancelled'; c.cancelReason = 'not_received'; }
+    await restoreStockForOrder(id);
+    toast('বাতিল হয়েছে — "রিসিভ করেননি" চিহ্নিত ✓');
+    try{ closeModal('orderModal'); }catch(e){}
+    try{ await fetchAllOrders(); renderAdminOrders && renderAdminOrders(); }catch(e){}
+  }catch(e){ toast('⚠️ আপডেট করা যায়নি — সংযোগ যাচাই করুন'); }
+}
+
 /* ---------- অর্ডারের জানালায় SMS অংশ ---------- */
 (function(){
   const _vo = viewOrder;
@@ -3496,7 +3520,7 @@ async function smsCopy(){
       const sent = o.smsSent && o.smsSent[x.k];
       return '<button type="button" class="mini-btn' + (sent ? '' : ' primary') + '" style="padding:9px 10px; font-size:12px;" onclick="smsOpen(\'' + o.id + '\',\'' + x.k + '\')">' + x.t + (sent ? ' ✓' : '') + '</button>';
     }).join('');
-    label.insertAdjacentHTML('beforebegin', '<div id="smsBlock" style="margin:14px 0 6px; padding:12px; border:1px dashed var(--line); border-radius:12px;"><div style="font-size:12.5px; font-weight:700; margin-bottom:8px;">💬 গ্রাহককে SMS (ফোনের SMS অ্যাপে)</div><div style="display:flex; flex-wrap:wrap; gap:6px;">' + btns + '</div><div style="font-size:11px; color:var(--ink-soft); margin-top:6px;">✓ = আগে খোলা হয়েছে</div></div>');
+    label.insertAdjacentHTML('beforebegin', '<div id="smsBlock" style="margin:14px 0 6px; padding:12px; border:1px dashed var(--line); border-radius:12px;"><div style="font-size:12.5px; font-weight:700; margin-bottom:8px;">💬 গ্রাহককে SMS (ফোনের SMS অ্যাপে)</div><div style="display:flex; flex-wrap:wrap; gap:6px;">' + btns + '</div><div style="font-size:11px; color:var(--ink-soft); margin-top:6px;">✓ = আগে খোলা হয়েছে</div>' + (o.status !== 'cancelled' ? '<button type="button" class="mini-btn danger" style="width:100%; margin-top:10px; padding:10px;" onclick="markNotReceived(\'' + o.id + '\')">↩️ কাস্টমার রিসিভ করেনি (ফেরত / রিজেক্ট)</button>' : '') + '</div>');
   };
   // ফোনে কনফার্মের পর প্রস্তাব
   const _ca = callAction;
