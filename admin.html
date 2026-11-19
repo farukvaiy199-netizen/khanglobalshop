@@ -580,6 +580,7 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
 <div class="form-group"><label>ঢাকার ভিতরে ডেলিভারি চার্জ (৳)</label><input id="setShipInside" type="number" min="0" placeholder="যেমন 60"></div>
 <div class="form-group"><label>ঢাকার বাইরে ডেলিভারি চার্জ (৳)</label><input id="setShipOutside" type="number" min="0" placeholder="যেমন 120"></div>
 <div class="form-group"><label>অগ্রিম পেমেন্টে ডেলিভারি চার্জে ছাড় (৳)</label><input id="setPrepayDiscount" type="number" min="0" placeholder="যেমন 30"></div>
+<div class="form-group" style="background:var(--primary-tint,#eef7f3); border-radius:10px; padding:10px 12px;"><label style="display:flex; align-items:center; gap:8px; margin:0; cursor:pointer;"><input type="checkbox" id="setOtpEnabled" style="width:auto;"> ওয়েবসাইটে ওটিপি কোডের ঘর দেখান (ঐচ্ছিক ঘর)</label><div style="font-size:11.5px; color:var(--ink-soft); margin-top:4px;">বন্ধ থাকলে নতুন অ্যাকাউন্টের ফর্মে ঘরটি দেখা যাবে না। আসল ওটিপি পাঠানো পরে যোগ হবে।</div></div>
 <div class="sec-head" style="margin-top:6px;"><h3 style="font-size:15px;">💵 ক্যাশ অন ডেলিভারি চালু জেলা</h3><span id="codCount" style="font-size:12px; color:var(--primary); font-weight:700;"></span></div>
 <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
   <input id="codSearch" oninput="filterCodList()" placeholder="জেলা খুঁজুন" style="flex:1; min-width:120px; border:1px solid var(--line); border-radius:10px; padding:9px 12px; font-family:inherit; font-size:13px;">
@@ -1909,6 +1910,7 @@ function fillDeliveryForm(){
   setv('setShipInside', s.shipInsideDhaka !== undefined ? s.shipInsideDhaka : 60);
   setv('setShipOutside', s.shipOutsideDhaka !== undefined ? s.shipOutsideDhaka : 120);
   setv('setPrepayDiscount', s.prepayDiscount !== undefined ? s.prepayDiscount : 30);
+  const ot = document.getElementById('setOtpEnabled'); if(ot) ot.checked = !!s.otpEnabled;
   const cod = Array.isArray(s.codDistricts) ? s.codDistricts : ['ঢাকা'];
   const box = document.getElementById('codDistrictList'); if(!box) return;
   box.innerHTML = Object.keys(BD_DIST_BY_DIV).map(div=>
@@ -1941,6 +1943,7 @@ async function saveDeliverySettings(){
   DB.settings.shipInsideDhaka = a;
   DB.settings.shipOutsideDhaka = b;
   DB.settings.prepayDiscount = c;
+  DB.settings.otpEnabled = !!(document.getElementById('setOtpEnabled') || {}).checked;
   DB.settings.codDistricts = [...document.querySelectorAll('#codDistrictList input:checked')].map(i=>i.value);
   if(!await persistSettings()) return;
   updateSetMenuInfo();
