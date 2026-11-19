@@ -264,6 +264,8 @@ img{max-width:100%; display:block;}
   <div class="grid" id="newArrivalsGrid"></div>
   <div class="sec-head"><h3>⭐ বৈশিষ্ট্যযুক্ত পণ্য</h3><span class="see-all" onclick="goto('shopView')">সব দেখুন</span></div>
   <div class="grid" id="featuredGrid"></div>
+  <div class="sec-head"><h3>🛍️ সকল পণ্য</h3></div>
+  <div class="grid" id="homeAllGrid"></div>
   <div id="homeReviews"></div>
 </div>
 
@@ -595,6 +597,7 @@ function renderProducts(){
   const active = DB.products.filter(p=>p.status==='active');
   document.getElementById('newArrivalsGrid').innerHTML = active.slice(-4).reverse().map(productCardHTML).join('');
   document.getElementById('featuredGrid').innerHTML = active.filter(p=>p.oldPrice>0).slice(0,4).map(productCardHTML).join('');
+  document.getElementById('homeAllGrid').innerHTML = active.slice().reverse().map(productCardHTML).join('');
   let list = active.slice();
   const q = (document.getElementById('searchInput').value||'').trim().toLowerCase();
   if(q) list = list.filter(p=>p.name.toLowerCase().includes(q));
@@ -2157,41 +2160,95 @@ function isPhoneUser(u){ return !!(u && u.email && u.email.slice(-(PHONE_DOMAIN.
 function userPhone(u){ return isPhoneUser(u) ? u.email.split('@')[0] : ''; }
 
 let authMode = 'login', _authBusy = false;
+(function(){
+  if(document.getElementById('authCss')) return;
+  const st = document.createElement('style'); st.id = 'authCss';
+  st.textContent = `
+#authModal{position:fixed; inset:0; z-index:400; display:none; align-items:center; justify-content:center; padding:16px; background:radial-gradient(circle at 30% 20%,rgba(30,120,90,.55),rgba(8,20,30,.88)); backdrop-filter:blur(6px); perspective:1100px; overflow:hidden;}
+#authModal .au-orb{position:absolute; border-radius:50%; filter:blur(2px); opacity:.55; animation:auFloat 9s ease-in-out infinite;}
+#authModal .au-orb.o1{width:150px;height:150px;left:-40px;top:8%;background:linear-gradient(135deg,#34d399,#0ea5e9);}
+#authModal .au-orb.o2{width:100px;height:100px;right:-20px;top:55%;background:linear-gradient(135deg,#fbbf24,#f472b6);animation-delay:-3s;}
+#authModal .au-orb.o3{width:70px;height:70px;left:18%;bottom:6%;background:linear-gradient(135deg,#a78bfa,#38bdf8);animation-delay:-6s;}
+@keyframes auFloat{0%,100%{transform:translate3d(0,0,0) rotate(0)}50%{transform:translate3d(14px,-26px,40px) rotate(25deg)}}
+#authModal .au-card{position:relative; width:100%; max-width:410px; max-height:94vh; overflow:auto; border-radius:24px; background:linear-gradient(160deg,rgba(255,255,255,.97),rgba(240,250,246,.95)); box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.5) inset; transform-style:preserve-3d; transition:transform .15s ease-out; animation:auIn .55s cubic-bezier(.2,.9,.3,1.2);}
+@keyframes auIn{from{opacity:0; transform:rotateX(35deg) translateY(60px) scale(.9)}to{opacity:1; transform:none}}
+#authModal .au-head{padding:24px 22px 18px; color:#fff; background:linear-gradient(135deg,var(--primary),#0f766e 60%,#0e7490); border-radius:24px 24px 0 0; position:relative; overflow:hidden; transform:translateZ(30px);}
+#authModal .au-head:after{content:''; position:absolute; right:-30px; top:-30px; width:130px; height:130px; border-radius:50%; background:rgba(255,255,255,.14);}
+#authModal .au-logo{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px;animation:auSpin 6s ease-in-out infinite;transform-style:preserve-3d;}
+@keyframes auSpin{0%,100%{transform:rotateY(0)}50%{transform:rotateY(180deg)}}
+#authModal .au-title{font-weight:800;font-size:19px;}
+#authModal .au-sub{font-size:12px;opacity:.9;margin-top:3px;}
+#authModal .au-x{position:absolute;right:12px;top:12px;z-index:2;border:none;background:rgba(255,255,255,.25);color:#fff;border-radius:50%;width:30px;height:30px;font-size:15px;cursor:pointer;}
+#authModal .au-body{padding:18px 20px 22px;}
+#authModal .au-tabs{position:relative;display:flex;background:#e8f1ee;border-radius:12px;padding:4px;margin-bottom:16px;}
+#authModal .au-tabs:before{content:'';position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);background:#fff;border-radius:9px;box-shadow:0 2px 8px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,1.4,.5,1);}
+#authModal .au-tabs.signup:before{transform:translateX(100%);}
+#authModal .au-tabs button{position:relative;flex:1;border:none;background:none;padding:10px;font-weight:700;font-size:13px;color:#4b6b62;cursor:pointer;}
+#authModal .au-tabs button.on{color:var(--primary-dark,#0b5d44);}
+#authModal .au-f{position:relative;margin-bottom:12px;}
+#authModal .au-f .ic{position:absolute;left:13px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+#authModal .au-f input{width:100%;box-sizing:border-box;padding:13px 14px 13px 40px;border:1.5px solid #d6e4df;border-radius:12px;font-size:14px;background:#fff;outline:none;transition:border-color .2s,box-shadow .2s,transform .2s;}
+#authModal .au-f input:focus{border-color:var(--primary);box-shadow:0 0 0 4px rgba(16,150,110,.15);transform:translateZ(10px) scale(1.01);}
+#authModal .au-f .opt{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10.5px;color:#7a948b;background:#eef5f2;border-radius:6px;padding:2px 7px;}
+#authModal .au-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);border:none;background:none;font-size:16px;cursor:pointer;}
+#authModal .au-btn{width:100%;border:none;border-radius:13px;padding:14px;font-weight:800;font-size:15px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--primary),#0f766e);box-shadow:0 10px 22px rgba(15,118,110,.35);transition:transform .15s,box-shadow .15s;position:relative;overflow:hidden;}
+#authModal .au-btn:active{transform:translateY(2px) scale(.99);box-shadow:0 4px 10px rgba(15,118,110,.3);}
+#authModal .au-btn:disabled{opacity:.7;}
+#authModal .au-btn:after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.4),transparent);animation:auShine 3s infinite;}
+@keyframes auShine{to{left:130%}}
+#authModal .au-err{color:#C0392B;font-size:12.5px;min-height:18px;margin:2px 2px 8px;}
+#authModal .au-hint{font-size:11.5px;color:#5b7a70;line-height:1.7;margin-top:12px;text-align:center;}
+#authModal .au-trust{display:flex;justify-content:center;gap:14px;margin-top:12px;font-size:10.5px;color:#6a8a80;}
+@media (prefers-reduced-motion:reduce){#authModal *{animation:none!important;transition:none!important}}
+`;
+  document.head.appendChild(st);
+})();
+function authOtpOn(){ try{ return !!(DB && DB.settings && DB.settings.otpEnabled); }catch(e){ return false; } }
 function authModalEl(){
   let m = document.getElementById('authModal');
   if(m) return m;
   m = document.createElement('div');
   m.id = 'authModal';
-  m.style.cssText = 'position:fixed; inset:0; z-index:400; background:rgba(0,0,0,.45); display:none; align-items:flex-end; justify-content:center;';
-  m.innerHTML = '<div style="background:#fff; width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:20px 18px 26px; max-height:92vh; overflow:auto;">' +
-    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><div id="authTitle" style="font-weight:800; font-size:17px;"></div><button type="button" onclick="closeAuthModal()" style="border:none; background:var(--primary-tint); border-radius:50%; width:32px; height:32px; font-size:16px;">✕</button></div>' +
-    '<div style="display:flex; gap:8px; margin-bottom:14px;">' +
-      '<button type="button" id="authTabLogin" onclick="setAuthMode(\'login\')" style="flex:1; padding:10px; border-radius:10px; font-weight:700; font-size:13px;">সাইন-ইন</button>' +
-      '<button type="button" id="authTabSignup" onclick="setAuthMode(\'signup\')" style="flex:1; padding:10px; border-radius:10px; font-weight:700; font-size:13px;">নতুন অ্যাকাউন্ট</button></div>' +
-    '<div class="form-group" id="authNameWrap"><label>পুরো নাম</label><input id="authName" autocomplete="name" placeholder="আপনার নাম"></div>' +
-    '<div class="form-group"><label>মোবাইল নম্বর</label><input id="authPhone" inputmode="numeric" autocomplete="tel" placeholder="01XXXXXXXXX"></div>' +
-    '<div class="form-group"><label>পাসওয়ার্ড</label><input id="authPass" type="password" autocomplete="current-password" placeholder="কমপক্ষে ৬ অক্ষর"></div>' +
-    '<div id="authErr" style="color:#C0392B; font-size:12.5px; min-height:18px; margin-bottom:6px;"></div>' +
-    '<button type="button" id="authSubmit" class="checkout-btn" style="margin-top:0;" onclick="submitAuth()"></button>' +
-    '<div id="authHint" style="font-size:11.5px; color:var(--ink-soft); line-height:1.7; margin-top:12px;"></div>' +
-    '</div>';
+  m.innerHTML = '<span class="au-orb o1"></span><span class="au-orb o2"></span><span class="au-orb o3"></span>' +
+    '<div class="au-card" id="authCard">' +
+      '<button type="button" class="au-x" onclick="closeAuthModal()" aria-label="বন্ধ">✕</button>' +
+      '<div class="au-head"><div class="au-logo">🛍️</div><div class="au-title" id="authTitle"></div><div class="au-sub" id="authSub"></div></div>' +
+      '<div class="au-body">' +
+        '<div class="au-tabs" id="authTabs"><button type="button" id="authTabLogin" onclick="setAuthMode(\'login\')">সাইন-ইন</button><button type="button" id="authTabSignup" onclick="setAuthMode(\'signup\')">নতুন অ্যাকাউন্ট</button></div>' +
+        '<div class="au-f" id="authNameWrap"><span class="ic">👤</span><input id="authName" autocomplete="name" placeholder="পুরো নাম"></div>' +
+        '<div class="au-f"><span class="ic">📱</span><input id="authPhone" inputmode="numeric" autocomplete="tel" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>' +
+        '<div class="au-f"><span class="ic">🔒</span><input id="authPass" type="password" autocomplete="current-password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"><button type="button" class="au-eye" onclick="var i=document.getElementById(\'authPass\');i.type=i.type===\'password\'?\'text\':\'password\'">👁️</button></div>' +
+        '<div class="au-f" id="authOtpWrap" style="display:none;"><span class="ic">🔑</span><input id="authOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="ওটিপি কোড"><span class="opt">ঐচ্ছিক</span></div>' +
+        '<div class="au-err" id="authErr"></div>' +
+        '<button type="button" id="authSubmit" class="au-btn" onclick="submitAuth()"></button>' +
+        '<div class="au-hint" id="authHint"></div>' +
+        '<div class="au-trust"><span>🔐 সুরক্ষিত</span><span>⚡ দ্রুত</span><span>🚚 সারা দেশে ডেলিভারি</span></div>' +
+      '</div></div>';
   m.addEventListener('click', e=>{ if(e.target === m) closeAuthModal(); });
+  m.addEventListener('mousemove', e=>{
+    const c = document.getElementById('authCard'); if(!c || window.innerWidth < 700) return;
+    const x = (e.clientX / window.innerWidth - .5), y = (e.clientY / window.innerHeight - .5);
+    c.style.transform = 'rotateY(' + (x * 10) + 'deg) rotateX(' + (-y * 8) + 'deg)';
+  });
+  m.addEventListener('mouseleave', ()=>{ const c = document.getElementById('authCard'); if(c) c.style.transform = ''; });
   document.body.appendChild(m);
   return m;
 }
 function setAuthMode(mode){
   authMode = mode;
-  const on = 'background:var(--primary); color:#fff; border:1px solid var(--primary);', off = 'background:#fff; color:var(--primary); border:1px solid var(--primary);';
   const $ = id=>document.getElementById(id);
-  $('authTabLogin').style.cssText += (mode === 'login' ? on : off);
-  $('authTabSignup').style.cssText += (mode === 'signup' ? on : off);
+  $('authTabs').className = 'au-tabs' + (mode === 'signup' ? ' signup' : '');
+  $('authTabLogin').className = mode === 'login' ? 'on' : '';
+  $('authTabSignup').className = mode === 'signup' ? 'on' : '';
   $('authNameWrap').style.display = mode === 'signup' ? '' : 'none';
-  $('authTitle').textContent = mode === 'signup' ? '📱 নতুন অ্যাকাউন্ট খুলুন' : '📱 সাইন-ইন করুন';
-  $('authSubmit').textContent = mode === 'signup' ? 'অ্যাকাউন্ট খুলুন' : 'সাইন-ইন';
+  $('authOtpWrap').style.display = (mode === 'signup' && authOtpOn()) ? '' : 'none';
+  $('authTitle').textContent = mode === 'signup' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'স্বাগতম, আবার দেখে ভালো লাগল';
+  $('authSub').textContent = mode === 'signup' ? 'মাত্র ৩০ সেকেন্ডে — নাম, নম্বর আর পাসওয়ার্ড' : 'আপনার নম্বর ও পাসওয়ার্ড দিয়ে ঢুকুন';
+  $('authSubmit').textContent = mode === 'signup' ? 'অ্যাকাউন্ট খুলুন →' : 'সাইন-ইন →';
   $('authPass').autocomplete = mode === 'signup' ? 'new-password' : 'current-password';
   $('authErr').textContent = '';
   $('authHint').textContent = mode === 'signup'
-    ? 'আপনার নম্বরই আপনার ইউজার-আইডি। পাসওয়ার্ড ভুলে গেলে আমাদের WhatsApp/Messenger-এ জানালে নতুন পাসওয়ার্ড দেওয়া হবে।'
+    ? 'আপনার নম্বরই আপনার ইউজার-আইডি। পাসওয়ার্ড ভুলে গেলে আমাদের WhatsApp/Messenger-এ জানান।'
     : 'অ্যাকাউন্ট না থাকলে "নতুন অ্যাকাউন্ট" চাপুন। পাসওয়ার্ড ভুলে গেলে আমাদের WhatsApp/Messenger-এ জানান।';
 }
 function openAuthModal(mode){
