@@ -1980,7 +1980,7 @@ async function renderVisitors(force){
   const views = visits.reduce((s,v)=>s + (v.views||0), 0);
   // অ্যাকাউন্ট: users + পুরনো (অর্ডার/চ্যাট থেকে)
   const map = new Map();
-  users.forEach(u=>{ const k = (u.email||u.uid||'').toLowerCase(); map.set(k, { name:u.name||'', email:u.email||'', photo:u.photo||'', created: tsToDate(u.createdAt), last: tsToDate(u.lastLogin), legacy:false }); });
+  users.forEach(u=>{ const k = (u.email||u.uid||'').toLowerCase(); map.set(k, { uid:u.uid||'', name:u.name||'', email:u.email||'', photo:u.photo||'', created: tsToDate(u.createdAt), last: tsToDate(u.lastLogin), legacy:false }); });
   ordersCache.forEach(o=>{ if(!o.ownerEmail) return; const k = o.ownerEmail.toLowerCase(); const dt = tsToDate(o.createdAt);
     if(!map.has(k)) map.set(k, { name:o.customer||'', email:o.ownerEmail, photo:'', created:dt, last:dt, legacy:true });
     else { const m = map.get(k); if(dt && (!m.created || dt < m.created)) m.created = dt; if(dt && (!m.last || dt > m.last)) m.last = dt; } });
@@ -2022,8 +2022,8 @@ function renderVisitorAccounts(){
     const cnt = ordersCache.filter(o=>(o.ownerEmail||'').toLowerCase() === (a.email||'').toLowerCase()).length;
     const ini = escapeHtml((a.name || a.email || '?').trim().charAt(0).toUpperCase());
     return '<div class="acct-row" onclick="searchOrdersFor(\'' + escapeHtml(a.email) + '\')"><div class="acct-av">' + (a.photo ? '<img src="' + escapeHtml(a.photo) + '" alt="">' : ini) + '</div>' +
-      '<div class="acct-tx"><b>' + escapeHtml(a.name || 'নাম নেই') + '</b><span>' + escapeHtml(a.email) + '</span></div>' +
-      '<div class="acct-meta">যোগ: ' + fmt(a.created) + '<br>অর্ডার: ' + cnt + (a.legacy ? '<br>(পুরনো গ্রাহক)' : '') + '</div></div>';
+      '<div class="acct-tx"><b>' + escapeHtml(a.name || 'নাম নেই') + '</b><span>' + escapeHtml(acctShownEmail(a.email)) + '</span></div>' +
+      '<div class="acct-meta">যোগ: ' + fmt(a.created) + '<br>অর্ডার: ' + cnt + (a.legacy ? '<br>(পুরনো গ্রাহক)' : '') + (a.uid && acctIsPhone(a.email) ? '<br><button type="button" style="margin-top:4px; border:1px solid #e0c36a; background:#fff8e1; border-radius:8px; padding:4px 9px; font-size:11px; font-weight:700;" onclick="event.stopPropagation(); adminResetPhonePassword(\'' + escapeHtml(a.uid) + '\', \'' + escapeHtml((a.name||'').replace(/[\'\\\\]/g,'')) + '\')">🔑 পাসওয়ার্ড রিসেট</button>' : '') + '</div></div>';
   }).join('');
 }
 function searchOrdersFor(text){
@@ -2974,6 +2974,21 @@ startAdminPolling = function(){
   }, 6000);
 };
 fireAuth.onAuthStateChanged(u=>{ if(!u) stopAdminListeners(); });
+function acctIsPhone(e){ return String(e || '').slice(-25) === '@phone.khanglobalshop.com'; }
+async function adminResetPhonePassword(uid, name){
+  const base = ((DB.settings && DB.settings.orderApiUrl) || '').replace(/\/+$/, '');
+  if(!base){ toast('আগে সেটিংস → অটোমেশন API-তে সুরক্ষিত অর্ডার সার্ভারের URL দিন'); return; }
+  if(!confirm((name || 'এই কাস্টমার') + '-এর জন্য নতুন পাসওয়ার্ড বানাবেন? আগের পাসওয়ার্ড আর চলবে না।')) return;
+  try{
+    const tok = await fireAuth.currentUser.getIdToken();
+    const r = await fetch(base + '/api/admin/reset-password', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok }, body: JSON.stringify({ uid }) });
+    const d = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error || 'হয়নি');
+    try{ await navigator.clipboard.writeText(d.password); }catch(e){}
+    alert('নতুন পাসওয়ার্ড: ' + d.password + '\n\n(কপি হয়েছে) কাস্টমারকে জানিয়ে দিন — এটা দিয়ে সাইন-ইন করবে।');
+  }catch(e){ toast('রিসেট হয়নি: ' + (e.message || 'আবার চেষ্টা করুন')); }
+}
+function acctShownEmail(e){ e = String(e || ''); return e.slice(-25) === '@phone.khanglobalshop.com' ? '📱 ' + e.split('@')[0] : e; }
 let _callBadgeTimer = null;
 function updateCallBadgeSoon(){ clearTimeout(_callBadgeTimer); _callBadgeTimer = setTimeout(async ()=>{ await fetchAllOrders(); }, 800); }
 
