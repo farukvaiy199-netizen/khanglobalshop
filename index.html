@@ -582,7 +582,7 @@ function productCardHTML(p){
   const discountPct = p.oldPrice && p.oldPrice > p.price ? Math.round((1-p.price/p.oldPrice)*100) : 0;
   const outOfStock = (p.stock||0) <= 0;
   return `<div class="card" onclick="openProduct('${p.id}')">
-    <div class="thumb" style="${p.image?'padding:0; overflow:hidden;':''}">${p.image?`<img src="${p.image}" style="width:100%; height:100%; object-fit:cover;">`:p.emoji}${discountPct>0?`<div class="discount-tag">-${discountPct}%</div>`:''}</div>
+    <div class="thumb" style="${p.image?'padding:0; overflow:hidden;':''}">${p.image?`<img src="${p.image}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`:p.emoji}${discountPct>0?`<div class="discount-tag">-${discountPct}%</div>`:''}</div>
     <button class="share-icon-btn" onclick="event.stopPropagation(); copyProductLink('${p.id}')" title="পণ্যের লিংক কপি করুন">🔗</button>
     <div class="body">
       <div class="name">${escapeHtml(p.name)}</div>
@@ -780,7 +780,7 @@ function renderCart(){
   emptyEl.style.display='none'; summaryBlock.style.display='block';
   list.innerHTML = cart.map(c=>{
     const p=DB.products.find(x=>x.id===c.pid); if(!p) return '';
-    return `<div class="cart-item"><div class="thumb" style="${p.image?'padding:0; overflow:hidden;':''}">${p.image?`<img src="${p.image}" style="width:100%; height:100%; object-fit:cover;">`:p.emoji}</div><div class="info"><div class="name">${escapeHtml(p.name)}</div>
+    return `<div class="cart-item"><div class="thumb" style="${p.image?'padding:0; overflow:hidden;':''}">${p.image?`<img src="${p.image}" loading="lazy" decoding="async" style="width:100%; height:100%; object-fit:cover;">`:p.emoji}</div><div class="info"><div class="name">${escapeHtml(p.name)}</div>
       <div class="row-bottom"><div class="qty-box"><button onclick="changeCartQty('${c.pid}',-1)">-</button><span class="qn">${c.qty}</span><button onclick="changeCartQty('${c.pid}',1)">+</button></div><span class="price">৳${p.price*c.qty}</span></div>
       <a class="remove-link" onclick="removeFromCart('${c.pid}')">মুছে ফেলুন</a></div></div>`;
   }).join('');
@@ -1487,19 +1487,33 @@ function applyAnnounce(force){
 window.addEventListener('resize', ()=>applyAnnounce(true));
 
 async function init(){
-  await pullFromCloud();
-  DB = loadData();
-  applyAnnounce(true);
-  applyBranding();
-  applyContactLinks();
-  renderCategoryChips();
-  renderProducts();
-  renderHeroSlider();
-  updateCartBadge();
-  updateAccountAuthArea();
-  checkChatUnreadBadge();
-  checkDeepLinkProduct();
-  setInterval(async ()=>{
+  // গতি: আগের দেখা পণ্য ফোনে জমা থাকলে সাথে সাথে দেখাই, ক্লাউড থেকে নতুন ডেটা পেছনে এনে বদলে দিই
+  let hadCache = false;
+  try{ const c = loadData(); hadCache = !!(c && c.products && c.products.length); }catch(e){}
+  const paint = ()=>{
+    DB = loadData();
+    applyAnnounce(true);
+    applyBranding();
+    applyContactLinks();
+    renderCategoryChips();
+    renderProducts();
+    renderHeroSlider();
+    updateCartBadge();
+    updateAccountAuthArea();
+    checkChatUnreadBadge();
+  };
+  if(hadCache){
+    paint();
+    pullFromCloud().then(ok=>{ if(ok){ paint(); } checkDeepLinkProduct(); });
+  }else{
+    await pullFromCloud();
+    paint();
+    checkDeepLinkProduct();
+  }
+  // আগে প্রতি ৫ সেকেন্ডে সব পণ্য নামাত (ধীর + Firestore-এর দৈনিক পড়ার সীমা শেষ হয়ে যেত)। এখন ২ মিনিটে একবার, শুধু পেজ খোলা থাকলে।
+  let _lastPull = Date.now();
+  const heavyTick = async ()=>{
+    _lastPull = Date.now();
     await pullFromCloud();
     DB = loadData();
     checkChatUnreadBadge();
@@ -1509,7 +1523,10 @@ async function init(){
     if(activeId==='homeView'){ applyBranding(); renderCategoryChips(); renderHeroSlider(); renderProducts(); }
     if(activeId==='shopView') renderProducts();
     if(activeId==='accountView') refreshMyOrders();
-  }, 5000);
+  };
+  setInterval(()=>{ if(!document.hidden) heavyTick(); }, 120000);
+  setInterval(()=>{ if(!document.hidden) checkChatUnreadBadge(); }, 30000);
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && Date.now() - _lastPull > 60000) heavyTick(); });
 }
 init();
 
@@ -1553,11 +1570,13 @@ fireAuth.onAuthStateChanged(async (user)=>{
   if(!user){ _acctRecorded = false; return; }
   if(_acctRecorded || user.isAnonymous) return;
   _acctRecorded = true;
+  if(isPhoneUser(user)){ for(let i = 0; i < 20 && !user.displayName; i++) await new Promise(r=>setTimeout(r, 200)); }
   try{
     const ref = fireDb.doc(`${USERS_COL}/${user.uid}`);
     const snap = await ref.get();
     const ts = firebase.firestore.FieldValue.serverTimestamp();
     const base = { name: user.displayName || '', email: user.email || '', photo: user.photoURL || '', lastLogin: ts };
+    if(isPhoneUser(user)){ base.phone = userPhone(user); base.authType = 'phone'; }
     if(!snap.exists) await ref.set(Object.assign({ uid: user.uid, createdAt: ts }, base));
     else await ref.update(base);
   }catch(e){}
@@ -2120,6 +2139,133 @@ async function runOrderTransactionDirect(input){
     return { orderId, total, orderSnapshot: Object.assign({}, order, { createdAt: new Date().toISOString() }) };
   });
 }
+
+/* =====================================================================
+   📱 নাম + মোবাইল নম্বর + পাসওয়ার্ড দিয়ে অ্যাকাউন্ট (OTP পরে যোগ হবে)
+   পেছনে নম্বর থেকে একটা গোপন ইমেইল বানানো হয়; কাস্টমার তা দেখে না।
+   ===================================================================== */
+const PHONE_DOMAIN = 'phone.khanglobalshop.com';
+function bnToEn(s){ return String(s || '').replace(/[০-৯]/g, d=>'০১২৩৪৫৬৭৮৯'.indexOf(d)); }
+function normPhone(p){
+  let s = bnToEn(p).replace(/[\s\-()]/g, '');
+  if(s.indexOf('+880') === 0) s = '0' + s.slice(4); else if(s.indexOf('880') === 0 && s.length === 13) s = '0' + s.slice(3);
+  return s;
+}
+function isBdPhone(p){ return /^01[3-9]\d{8}$/.test(p); }
+function phoneEmail(p){ return p + '@' + PHONE_DOMAIN; }
+function isPhoneUser(u){ return !!(u && u.email && u.email.slice(-(PHONE_DOMAIN.length + 1)) === '@' + PHONE_DOMAIN); }
+function userPhone(u){ return isPhoneUser(u) ? u.email.split('@')[0] : ''; }
+
+let authMode = 'login', _authBusy = false;
+function authModalEl(){
+  let m = document.getElementById('authModal');
+  if(m) return m;
+  m = document.createElement('div');
+  m.id = 'authModal';
+  m.style.cssText = 'position:fixed; inset:0; z-index:400; background:rgba(0,0,0,.45); display:none; align-items:flex-end; justify-content:center;';
+  m.innerHTML = '<div style="background:#fff; width:100%; max-width:480px; border-radius:20px 20px 0 0; padding:20px 18px 26px; max-height:92vh; overflow:auto;">' +
+    '<div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;"><div id="authTitle" style="font-weight:800; font-size:17px;"></div><button type="button" onclick="closeAuthModal()" style="border:none; background:var(--primary-tint); border-radius:50%; width:32px; height:32px; font-size:16px;">✕</button></div>' +
+    '<div style="display:flex; gap:8px; margin-bottom:14px;">' +
+      '<button type="button" id="authTabLogin" onclick="setAuthMode(\'login\')" style="flex:1; padding:10px; border-radius:10px; font-weight:700; font-size:13px;">সাইন-ইন</button>' +
+      '<button type="button" id="authTabSignup" onclick="setAuthMode(\'signup\')" style="flex:1; padding:10px; border-radius:10px; font-weight:700; font-size:13px;">নতুন অ্যাকাউন্ট</button></div>' +
+    '<div class="form-group" id="authNameWrap"><label>পুরো নাম</label><input id="authName" autocomplete="name" placeholder="আপনার নাম"></div>' +
+    '<div class="form-group"><label>মোবাইল নম্বর</label><input id="authPhone" inputmode="numeric" autocomplete="tel" placeholder="01XXXXXXXXX"></div>' +
+    '<div class="form-group"><label>পাসওয়ার্ড</label><input id="authPass" type="password" autocomplete="current-password" placeholder="কমপক্ষে ৬ অক্ষর"></div>' +
+    '<div id="authErr" style="color:#C0392B; font-size:12.5px; min-height:18px; margin-bottom:6px;"></div>' +
+    '<button type="button" id="authSubmit" class="checkout-btn" style="margin-top:0;" onclick="submitAuth()"></button>' +
+    '<div id="authHint" style="font-size:11.5px; color:var(--ink-soft); line-height:1.7; margin-top:12px;"></div>' +
+    '</div>';
+  m.addEventListener('click', e=>{ if(e.target === m) closeAuthModal(); });
+  document.body.appendChild(m);
+  return m;
+}
+function setAuthMode(mode){
+  authMode = mode;
+  const on = 'background:var(--primary); color:#fff; border:1px solid var(--primary);', off = 'background:#fff; color:var(--primary); border:1px solid var(--primary);';
+  const $ = id=>document.getElementById(id);
+  $('authTabLogin').style.cssText += (mode === 'login' ? on : off);
+  $('authTabSignup').style.cssText += (mode === 'signup' ? on : off);
+  $('authNameWrap').style.display = mode === 'signup' ? '' : 'none';
+  $('authTitle').textContent = mode === 'signup' ? '📱 নতুন অ্যাকাউন্ট খুলুন' : '📱 সাইন-ইন করুন';
+  $('authSubmit').textContent = mode === 'signup' ? 'অ্যাকাউন্ট খুলুন' : 'সাইন-ইন';
+  $('authPass').autocomplete = mode === 'signup' ? 'new-password' : 'current-password';
+  $('authErr').textContent = '';
+  $('authHint').textContent = mode === 'signup'
+    ? 'আপনার নম্বরই আপনার ইউজার-আইডি। পাসওয়ার্ড ভুলে গেলে আমাদের WhatsApp/Messenger-এ জানালে নতুন পাসওয়ার্ড দেওয়া হবে।'
+    : 'অ্যাকাউন্ট না থাকলে "নতুন অ্যাকাউন্ট" চাপুন। পাসওয়ার্ড ভুলে গেলে আমাদের WhatsApp/Messenger-এ জানান।';
+}
+function openAuthModal(mode){
+  const m = authModalEl();
+  setAuthMode(mode || 'login');
+  m.style.display = 'flex';
+}
+function closeAuthModal(){ const m = document.getElementById('authModal'); if(m) m.style.display = 'none'; }
+function authErrMsg(e){
+  const c = (e && e.code) || '';
+  if(c === 'auth/email-already-in-use' || c === 'auth/credential-already-in-use') return 'এই নম্বরে আগেই অ্যাকাউন্ট খোলা আছে — "সাইন-ইন" চাপুন';
+  if(c === 'auth/user-not-found' || c === 'auth/wrong-password' || c === 'auth/invalid-credential' || c === 'auth/invalid-login-credentials') return 'নম্বর বা পাসওয়ার্ড ভুল';
+  if(c === 'auth/weak-password') return 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের দিন';
+  if(c === 'auth/too-many-requests') return 'অনেকবার চেষ্টা হয়েছে — কিছুক্ষণ পরে আবার চেষ্টা করুন';
+  if(c === 'auth/network-request-failed') return 'ইন্টারনেট সংযোগ দেখুন';
+  if(c === 'auth/operation-not-allowed') return 'এই পদ্ধতি এখনো চালু করা হয়নি';
+  return 'কিছু একটা ভুল হয়েছে — আবার চেষ্টা করুন';
+}
+async function submitAuth(){
+  if(_authBusy) return;
+  const $ = id=>document.getElementById(id), err = $('authErr');
+  const name = $('authName').value.trim().replace(/\s+/g, ' '), phone = normPhone($('authPhone').value), pass = $('authPass').value;
+  err.textContent = '';
+  if(authMode === 'signup' && (name.length < 3 || name.length > 60)){ err.textContent = 'পুরো নাম লিখুন (কমপক্ষে ৩ অক্ষর)'; return; }
+  if(!isBdPhone(phone)){ err.textContent = 'সঠিক ১১ সংখ্যার মোবাইল নম্বর দিন (01XXXXXXXXX)'; return; }
+  if(pass.length < 6 || pass.length > 64){ err.textContent = 'পাসওয়ার্ড ৬ থেকে ৬৪ অক্ষরের হতে হবে'; return; }
+  _authBusy = true; const btn = $('authSubmit'); btn.disabled = true; const label = btn.textContent; btn.textContent = 'অপেক্ষা করুন…';
+  try{
+    const email = phoneEmail(phone);
+    if(authMode === 'signup'){
+      const cu = fireAuth.currentUser;
+      let cred;
+      if(cu && cu.isAnonymous) cred = await cu.linkWithCredential(firebase.auth.EmailAuthProvider.credential(email, pass)); // গেস্টের অর্ডার সাথে থাকে
+      else cred = await fireAuth.createUserWithEmailAndPassword(email, pass);
+      await cred.user.updateProfile({ displayName: name });
+      currentUser = fireAuth.currentUser;
+      updateAccountAuthArea(); updateCheckoutAuthBanner();
+      toast('অ্যাকাউন্ট খোলা হয়েছে ✓');
+    }else{
+      await fireAuth.signInWithEmailAndPassword(email, pass);
+      toast('সাইন-ইন হয়েছে ✓');
+    }
+    closeAuthModal();
+    $('authPass').value = '';
+  }catch(e){ err.textContent = authErrMsg(e); }
+  finally{ _authBusy = false; btn.disabled = false; btn.textContent = label; }
+}
+(function(){
+  const phoneBtn = '<button type="button" onclick="openAuthModal(\'login\')" style="width:100%; max-width:260px; margin:10px auto 0; display:block; background:#fff; border:1px solid var(--primary); color:var(--primary); border-radius:10px; padding:11px; font-weight:700; font-size:13px;">📱 নম্বর ও পাসওয়ার্ড দিয়ে সাইন-ইন</button>';
+  const _ua3 = updateAccountAuthArea;
+  updateAccountAuthArea = function(){
+    _ua3();
+    const el = document.getElementById('accountAuthArea'); if(!el) return;
+    if(isPhoneUser(currentUser)){
+      el.innerHTML = '<div style="display:flex; align-items:center; gap:10px; background:var(--primary-tint); border-radius:10px; padding:12px 14px;"><div style="width:38px; height:38px; border-radius:50%; background:var(--primary); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; flex-shrink:0;">' + escapeHtml((currentUser.displayName || '?').trim().charAt(0).toUpperCase()) + '</div><div style="flex:1; min-width:0;"><div style="font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">' + escapeHtml(currentUser.displayName || '') + '</div><div style="font-size:11.5px; color:var(--ink-soft);">📱 ' + escapeHtml(userPhone(currentUser)) + '</div></div><button style="border:1px solid var(--line); background:#fff; border-radius:8px; padding:7px 12px; font-size:11.5px; font-weight:700; flex-shrink:0;" onclick="signOutUser()">সাইন-আউট</button></div>';
+    }else if(!currentUser || currentUser.isAnonymous){
+      el.insertAdjacentHTML('beforeend', phoneBtn);
+    }
+  };
+  const _ub3 = updateCheckoutAuthBanner;
+  updateCheckoutAuthBanner = function(){
+    _ub3();
+    const el = document.getElementById('checkoutAuthBanner'); if(!el) return;
+    if(isPhoneUser(currentUser)){
+      el.innerHTML = '<div style="font-size:11.5px; color:var(--primary-dark); background:var(--primary-tint); padding:8px 12px; border-radius:8px; margin-bottom:14px;">✓ ' + escapeHtml(currentUser.displayName || '') + ' (' + escapeHtml(userPhone(currentUser)) + ') হিসেবে সাইন-ইন করা আছে</div>';
+      const n = document.getElementById('ckName'), p = document.getElementById('ckPhone');
+      if(n && !n.value && currentUser.displayName) n.value = currentUser.displayName;
+      if(p && !p.value) p.value = userPhone(currentUser);
+    }else if(!currentUser || currentUser.isAnonymous){
+      el.insertAdjacentHTML('beforeend', '<button type="button" onclick="openAuthModal(\'signup\')" style="width:100%; margin:-6px 0 14px; background:#fff; border:1px solid var(--primary); color:var(--primary); border-radius:10px; padding:11px; font-weight:700; font-size:13px;">📱 নম্বর দিয়ে অ্যাকাউন্ট খুলুন / সাইন-ইন</button>');
+    }
+  };
+  try{ updateAccountAuthArea(); updateCheckoutAuthBanner(); }catch(e){}
+})();
 </script>
 </body>
 </html>
