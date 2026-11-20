@@ -423,6 +423,9 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
         <option value="1">আজ</option>
         <option value="7" selected>গত ৭ দিন</option>
         <option value="30">গত ৩০ দিন</option>
+        <option value="90">গত ৩ মাস</option>
+        <option value="365">গত ১ বছর</option>
+        <option value="all">সর্বমোট (শুরু থেকে এখন পর্যন্ত)</option>
       </select>
       <button type="button" class="mini-btn primary" style="padding:10px 14px;" onclick="renderVisitors(true)">🔄 রিফ্রেশ</button>
     </div>
@@ -562,8 +565,11 @@ body{background:linear-gradient(160deg,#DDF3EA 0%,#E3F2FB 50%,#D5EBF8 100%) fixe
     <div class="form-group"><label>ফেসবুক পেজ লিংক</label><input id="setFacebook" placeholder="https://facebook.com/yourpage"></div>
     <div class="form-group"><label>হোয়াটসঅ্যাপ নাম্বার (কান্ট্রি কোড সহ, যেমন 8801XXXXXXXXX)</label><input id="setWhatsapp" placeholder="8801XXXXXXXXX"></div>
     <div class="sec-head" style="margin-top:20px;"><h3 style="font-size:15px;">🔻 গ্রাহক প্যানেলের ফুটার</h3></div>
-    <div class="form-group"><label>টুইটার লিংক</label><input id="setTwitter" placeholder="https://twitter.com/yourpage"></div>
     <div class="form-group"><label>ইনস্টাগ্রাম লিংক</label><input id="setInstagram" placeholder="https://instagram.com/yourpage"></div>
+    <div class="form-group"><label>টেলিগ্রাম লিংক</label><input id="setTelegram" placeholder="https://t.me/yourchannel"></div>
+    <div class="form-group"><label>টিকটক লিংক</label><input id="setTiktok" placeholder="https://www.tiktok.com/@yourname"></div>
+    <div class="form-group"><label>ইউটিউব লিংক</label><input id="setYoutube" placeholder="https://youtube.com/@yourchannel"></div>
+    <div style="font-size:11.5px; color:var(--ink-soft); margin:-4px 0 10px;">যেটা ফাঁকা রাখবেন সেটার আইকন ওয়েবসাইটের নিচে দেখাবে না।</div>
     <div class="form-group"><label>ফুটার কপিরাইট লাইন</label><input id="setFooterCopyright" placeholder="© সর্বস্বত্ব সংরক্ষিত।"></div>
 </div>
 <div class="set-page" id="sp_security" style="display:none;">
@@ -814,7 +820,7 @@ function closeModal(id){ document.getElementById(id).classList.remove('active');
 let DB = { settings:{}, settingsSecure:{}, categories:[], products:[] };
 
 function defaultSettings(){
-  return {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'', phone:'', address:'', currency:'৳', tax:0, freeShip:500, announce:'', coupons:{}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:true, bkashNumber:'', nagadNumber:'', twitter:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:DEFAULT_AI_WEBHOOK_URL, orderWebhookUrl:DEFAULT_ORDER_WEBHOOK_URL, domain:'', orderCancelWindowMinutes:60};
+  return {storeName:'Bazaar', tagline:'আপনার বিশ্বস্ত অনলাইন বাজার', email:'', phone:'', address:'', currency:'৳', tax:0, freeShip:500, announce:'', coupons:{}, logo:'', banner:'', banners:[], facebook:'', whatsapp:'', aiAutoReply:true, bkashNumber:'', nagadNumber:'', telegram:'', tiktok:'', youtube:'', instagram:'', footerCopyright:'© সর্বস্বত্ব সংরক্ষিত।', paymentPlans:[50,75,100], aiWebhookUrl:DEFAULT_AI_WEBHOOK_URL, orderWebhookUrl:DEFAULT_ORDER_WEBHOOK_URL, domain:'', orderCancelWindowMinutes:60};
 }
 function applySettingsDefaults(s){
   const d = defaultSettings();
@@ -1117,9 +1123,14 @@ async function viewOrder(id){
       <option value="paid" ${o.paymentStatus==='paid'?'selected':''}>Paid</option>
     </select>
     <button class="checkout-btn" onclick="updateOrder('${o.id}')">আপডেট করুন</button>
-    <button class="mini-btn" style="width:100%; margin-top:8px; padding:10px;" onclick="printInvoice('${o.id}')">🧾 ইনভয়েস প্রিন্ট করুন</button>
+    <div style="display:flex; gap:8px; margin-top:8px; align-items:stretch;">
+      <select id="invSize" onchange="try{localStorage.setItem('invSize', this.value)}catch(e){}" style="flex:0 0 46%; padding:9px; border:1px solid var(--line); border-radius:10px; background:#fff; font-size:13px;">
+        <option value="a4">A4 (বড় পৃষ্ঠা)</option><option value="a5">A5 (মাঝারি)</option><option value="80">৮০ মিমি (রসিদ প্রিন্টার)</option><option value="58">৫৮ মিমি (ছোট প্রিন্টার)</option>
+      </select>
+      <button class="mini-btn" style="flex:1; padding:10px;" onclick="printInvoice('${o.id}')">🧾 ইনভয়েস প্রিন্ট / PDF</button>
+    </div>
   `;
-  openModal('orderModal');
+  openModal('orderModal'); try{ const sv = localStorage.getItem('invSize'); const se = document.getElementById('invSize'); if(sv && se) se.value = sv; }catch(e){}
   window._currentOrderForPrint = o;
 }
 async function updateOrder(id){
@@ -1552,7 +1563,9 @@ async function loadSettingsForm(){
   document.getElementById('setWhatsapp').value = s.whatsapp || '';
   document.getElementById('setBkashNumber').value = s.bkashNumber || '';
   document.getElementById('setNagadNumber').value = s.nagadNumber || '';
-  document.getElementById('setTwitter').value = s.twitter || '';
+  document.getElementById('setTelegram').value = s.telegram || '';
+  document.getElementById('setTiktok').value = s.tiktok || '';
+  document.getElementById('setYoutube').value = s.youtube || '';
   document.getElementById('setInstagram').value = s.instagram || '';
   document.getElementById('setFooterCopyright').value = s.footerCopyright || '';
   document.getElementById('setAiAutoReply').checked = !!s.aiAutoReply;
@@ -1763,7 +1776,9 @@ async function saveSettings(){
   DB.settings.whatsapp = document.getElementById('setWhatsapp').value.trim();
   DB.settings.bkashNumber = document.getElementById('setBkashNumber').value.trim();
   DB.settings.nagadNumber = document.getElementById('setNagadNumber').value.trim();
-  DB.settings.twitter = document.getElementById('setTwitter').value.trim();
+  DB.settings.telegram = document.getElementById('setTelegram').value.trim();
+  DB.settings.tiktok = document.getElementById('setTiktok').value.trim();
+  DB.settings.youtube = document.getElementById('setYoutube').value.trim();
   DB.settings.instagram = document.getElementById('setInstagram').value.trim();
   DB.settings.footerCopyright = document.getElementById('setFooterCopyright').value.trim() || '© সর্বস্বত্ব সংরক্ষিত।';
   DB.settings.aiAutoReply = document.getElementById('setAiAutoReply').checked;
@@ -1959,15 +1974,17 @@ function bdDateStr(offsetDays){ return new Date(Date.now() + 6*3600*1000 - (offs
 let visCache = { key:'', at:0, visits:[], users:[] };
 let visAccounts = [];
 async function renderVisitors(force){
-  const days = parseInt(document.getElementById('visPeriod').value) || 7;
-  const startStr = bdDateStr(days - 1);
-  const key = 'd' + days;
+  const rawP = document.getElementById('visPeriod').value, isAll = rawP === 'all';
+  const days = isAll ? 0 : (parseInt(rawP) || 7);
+  const startStr = isAll ? '0000-01-01' : bdDateStr(days - 1);
+  const key = isAll ? 'all' : 'd' + days;
   const kpis = document.getElementById('visKpis');
   if(force || visCache.key !== key || Date.now() - visCache.at > 60000){
     kpis.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:16px; color:var(--ink-soft); font-size:13px;">লোড হচ্ছে...</div>';
     let visits = [], users = [], failed = false;
     try{
-      const vs = await fireDb.collection(VISITS_COL).where('date', '>=', startStr).limit(3000).get();
+      const vs = isAll ? await fireDb.collection(VISITS_COL).limit(20000).get()
+        : await fireDb.collection(VISITS_COL).where('date', '>=', startStr).limit(days > 30 ? 12000 : 3000).get();
       visits = vs.docs.map(d=>d.data());
     }catch(e){ failed = true; }
     try{
@@ -1990,7 +2007,7 @@ async function renderVisitors(force){
   chatsCache.forEach(c=>{ if(!c.customerEmail) return; const k = c.customerEmail.toLowerCase(); const dt = tsToDate(c.createdAt);
     if(!map.has(k)) map.set(k, { name:c.customerName||'', email:c.customerEmail, photo:'', created:dt, last:dt, legacy:true }); });
   visAccounts = [...map.values()].sort((a,b)=>((b.created?b.created.getTime():0) - (a.created?a.created.getTime():0)));
-  const startMs = new Date(startStr + 'T00:00:00+06:00').getTime();
+  const startMs = isAll ? 0 : new Date(startStr + 'T00:00:00+06:00').getTime();
   const newAcct = visAccounts.filter(a=>a.created && a.created.getTime() >= startMs).length;
   const card = (cls, icon, val, label) => '<div class="kpi-card"><div class="kic ' + cls + '">' + icon + '</div><div class="value">' + val + '</div><div class="label">' + label + '</div></div>';
   const I_EYE = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -2002,14 +2019,20 @@ async function renderVisitors(force){
     card('c-prod', I_USER, newAcct.toLocaleString(), 'নতুন অ্যাকাউন্ট') +
     card('c-ven', I_USER, visAccounts.length.toLocaleString(), 'মোট অ্যাকাউন্ট');
   // চার্ট
+  const monthly = isAll || days > 45;   // লম্বা সময় হলে মাস ধরে চার্ট
   const perDay = {};
-  for(let i = days - 1; i >= 0; i--) perDay[bdDateStr(i)] = { vids:new Set(), views:0 };
-  visits.forEach(v=>{ if(perDay[v.date]){ perDay[v.date].vids.add(v.vid); perDay[v.date].views += (v.views||0); } });
+  if(!monthly){ for(let i = days - 1; i >= 0; i--) perDay[bdDateStr(i)] = { vids:new Set(), views:0 }; }
+  else {
+    const first = isAll ? visits.reduce((m, v)=>(v.date && v.date < m ? v.date : m), bdDateStr(0)) : startStr;
+    let [y, m] = first.split('-').map(Number); const [ey, em] = bdDateStr(0).split('-').map(Number);
+    while(y < ey || (y === ey && m <= em)){ perDay[y + '-' + String(m).padStart(2, '0')] = { vids:new Set(), views:0 }; m++; if(m > 12){ m = 1; y++; } }
+  }
+  visits.forEach(v=>{ const k = monthly ? String(v.date || '').slice(0, 7) : v.date; if(perDay[k]){ perDay[k].vids.add(v.vid); perDay[k].views += (v.views||0); } });
   const dates = Object.keys(perDay);
   const maxV = Math.max(1, ...dates.map(d=>perDay[d].vids.size));
   document.getElementById('visChart').innerHTML = '<div class="vis-chart">' + dates.map(d=>{
     const n = perDay[d].vids.size, h = Math.round((n / maxV) * 90);
-    const lbl = days <= 7 ? d.slice(5) : d.slice(8);
+    const lbl = monthly ? d.slice(2) : (days <= 7 ? d.slice(5) : d.slice(8));
     return '<div class="vis-col"><div class="vis-num">' + (n || '') + '</div><div class="vis-bar" style="height:' + (n ? h : 3) + 'px; ' + (n ? '' : 'opacity:.25;') + '"></div><div class="vis-lbl">' + lbl + '</div><div class="vis-view">' + (perDay[d].views || '') + '</div></div>';
   }).join('') + '</div>';
   renderVisitorAccounts();
@@ -2495,6 +2518,12 @@ async function exportFullBackup(){
 printInvoice = function(id){
   const o = window._currentOrderForPrint; if(!o || o.id !== id) return;
   const st = DB.settings || {}, w = window.open('', '_blank'); if(!w){ toast('পপআপ ব্লক হয়েছে — অনুমতি দিন'); return; }
+  const sizeSel = document.getElementById('invSize'); let size = sizeSel ? sizeSel.value : ''; if(!size){ try{ size = localStorage.getItem('invSize') || ''; }catch(e){} } size = size || 'a4';
+  const THERMAL = 'body{padding:0;margin:0 auto;font-size:11px;line-height:1.35}.top{flex-direction:column;text-align:center;gap:6px;border-bottom:2px dashed #000;padding-bottom:8px;margin-bottom:8px}.brand{flex-direction:column;gap:4px}.brand img{width:42px;height:42px}.brand b{font-size:14px}.brand small{font-size:10px}.inv{text-align:center}.inv h2{font-size:14px;letter-spacing:1px}.inv div{font-size:10.5px}.two{flex-direction:column;gap:6px;font-size:10.5px;margin-bottom:8px}.two div{text-align:left!important}table{font-size:10.5px}th{background:none;border-bottom:1px solid #000;padding:3px 2px}td{padding:3px 2px;border-bottom:1px dotted #999}table th:first-child,table td:first-child{display:none}.tot{width:100%;font-size:11px;margin-top:8px}.tot .g{border-top:1px dashed #000;font-size:13px}.foot{margin-top:10px;font-size:10px;padding-top:8px}';
+  const sizeCss = size === '80' ? '@page{size:80mm auto;margin:3mm}body{width:72mm;max-width:72mm}' + THERMAL
+    : size === '58' ? '@page{size:58mm auto;margin:2mm}body{width:54mm;max-width:54mm}' + THERMAL + 'body{font-size:10px}table,.two,.tot{font-size:9.5px}.brand img{display:none}'
+    : size === 'a5' ? '@page{size:A5;margin:9mm}body{padding:0;max-width:100%;font-size:12px}.brand img{width:48px;height:48px}.tot{width:220px}'
+    : '@page{size:A4;margin:12mm}body{padding:0}';
   const rows = (o.items||[]).map((it, i)=>'<tr><td>' + (i + 1) + '</td><td>' + escapeHtml(it.name) + '</td><td style="text-align:center">' + it.qty + '</td><td style="text-align:right">৳' + it.price + '</td><td style="text-align:right">৳' + (it.price * it.qty) + '</td></tr>').join('');
   w.document.write('<html><head><meta charset="utf-8"><title>Invoice ' + escapeHtml(o.id) + '</title><style>' +
     'body{font-family:"Hind Siliguri",Arial,sans-serif;color:#1c2321;padding:28px;max-width:760px;margin:auto}' +
@@ -2505,7 +2534,7 @@ printInvoice = function(id){
     'table{width:100%;border-collapse:collapse;font-size:13px}th{background:#E4F1EC;text-align:left;padding:9px}td{padding:9px;border-bottom:1px solid #e7e2d6}' +
     '.tot{margin-left:auto;width:260px;margin-top:14px;font-size:13.5px}.tot div{display:flex;justify-content:space-between;padding:4px 0}.tot .g{border-top:2px solid #0F6E5D;font-weight:800;font-size:16px;margin-top:6px;padding-top:8px}' +
     '.foot{margin-top:30px;text-align:center;color:#5b655f;font-size:12px;border-top:1px dashed #ccc;padding-top:12px}' +
-    '</style></head><body>' +
+    sizeCss + '</style></head><body>' +
     '<div class="top"><div class="brand">' + (st.logo ? '<img src="' + st.logo + '">' : '') + '<div><b>' + escapeHtml(st.storeName || 'Bazaar') + '</b><small>' + escapeHtml(st.tagline || '') + '</small><small>' + escapeHtml(st.address || '') + (st.phone ? ' • ' + escapeHtml(st.phone) : '') + '</small></div></div>' +
     '<div class="inv"><h2>INVOICE</h2><div>অর্ডার: <b>' + escapeHtml(o.id) + '</b></div><div>তারিখ: ' + escapeHtml(o.date) + '</div></div></div>' +
     '<div class="two"><div><b>বিল গ্রহীতা</b><br>' + escapeHtml(o.customer) + '<br>' + escapeHtml(o.phone) + '<br>' + escapeHtml(o.address) + '</div>' +
