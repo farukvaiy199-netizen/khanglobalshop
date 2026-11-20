@@ -243,6 +243,69 @@ img{max-width:100%; display:block;}
 .var-chip.active{border-color:var(--primary); background:var(--primary-tint);}
 .var-chip.out{opacity:.45; text-decoration:line-through;}
 </style>
+<style id="featCss">
+/* ===== প্রিমিয়াম হোম ডিজাইন ===== */
+:root{ --gold:#C9962E; --gold-soft:#F6E7C1; --ink-deep:#10231E; }
+.hero-slider{border-radius:22px; box-shadow:0 14px 34px rgba(15,110,93,.22); margin-bottom:14px;}
+.hero-track .hero-banner{min-height:170px; padding:26px 22px; background-image:linear-gradient(135deg,#0B5A4C 0%,#0F6E5D 55%,#138A73 100%);}
+.hero-banner::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 85% 15%,rgba(255,255,255,.18),transparent 45%),linear-gradient(0deg,rgba(0,0,0,.28),transparent 55%); pointer-events:none;}
+.hero-banner h2{font-size:24px; letter-spacing:.2px; text-shadow:0 2px 12px rgba(0,0,0,.3); position:relative; z-index:2;}
+.hero-banner p{position:relative; z-index:2;}
+.hero-banner .cta{background:linear-gradient(135deg,#F2C45A,#E8A33D); box-shadow:0 6px 16px rgba(232,163,61,.45); padding:9px 22px;}
+.trust-strip{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin:0 0 6px;}
+.trust-strip div{background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 4px 8px; text-align:center; font-size:10.5px; font-weight:600; color:var(--ink-soft); line-height:1.25; box-shadow:0 2px 8px rgba(16,35,30,.04);}
+.trust-strip b{display:block; font-size:19px; margin-bottom:3px; filter:saturate(1.1);}
+.sec-head{margin:26px 0 14px; align-items:center;}
+.sec-head h3{font-size:19px; letter-spacing:.2px; display:flex; align-items:center; gap:10px;}
+.sec-head h3::before{content:""; width:5px; height:22px; border-radius:4px; background:linear-gradient(180deg,#E8A33D,#0F6E5D);}
+.sec-head .see-all{background:var(--primary-tint); color:var(--primary-dark); padding:6px 14px; border-radius:999px; font-size:12px; font-weight:700; transition:.2s;}
+.sec-head .see-all:active{transform:scale(.95);}
+.cat-chip{border-radius:16px; padding:9px 18px; box-shadow:0 2px 8px rgba(16,35,30,.05); transition:.2s;}
+.cat-chip:active{transform:scale(.96);}
+.grid{gap:14px;}
+.hscroll{scroll-padding-left:16px; display:flex !important; overflow-x:auto; gap:14px; scroll-snap-type:x mandatory; padding:4px 2px 14px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none;}
+.hscroll::-webkit-scrollbar{display:none;}
+.hscroll .pc{flex:0 0 158px; scroll-snap-align:start;}
+.pc{position:relative; background:#fff; border-radius:20px; overflow:hidden; cursor:pointer; box-shadow:0 6px 20px rgba(16,35,30,.07); border:1px solid rgba(231,226,214,.7); transition:transform .25s cubic-bezier(.2,.8,.3,1), box-shadow .25s; opacity:0; transform:translateY(18px);}
+.pc.in{opacity:1; transform:none; transition:opacity .55s ease, transform .55s cubic-bezier(.2,.8,.3,1), box-shadow .25s;}
+.pc:active{transform:scale(.975);}
+@media (hover:hover){.pc:hover{transform:translateY(-5px); box-shadow:0 16px 34px rgba(16,35,30,.15);} .pc:hover .pc-img img{transform:scale(1.07);}}
+.pc-img{position:relative; aspect-ratio:1/1.05; background:linear-gradient(145deg,#EAF4F0,#F8F1E0); display:flex; align-items:center; justify-content:center; font-size:46px; overflow:hidden;}
+.pc-img img{width:100%; height:100%; object-fit:cover; transition:transform .6s cubic-bezier(.2,.8,.3,1);}
+.pc-img::after{content:""; position:absolute; inset:auto 0 0 0; height:42%; background:linear-gradient(0deg,rgba(0,0,0,.20),transparent); pointer-events:none;}
+.pc-off{position:absolute; top:10px; left:10px; z-index:2; background:linear-gradient(135deg,#E5532A,#C1440E); color:#fff; font-size:11px; font-weight:800; padding:4px 9px; border-radius:999px; box-shadow:0 4px 10px rgba(193,68,14,.4);}
+.pc-new{position:absolute; top:10px; left:10px; z-index:2; background:linear-gradient(135deg,#F2C45A,#C9962E); color:#3b2a05; font-size:10.5px; font-weight:800; padding:4px 10px; border-radius:999px; box-shadow:0 4px 10px rgba(201,150,46,.45);}
+.pc-off + .pc-new{top:36px;}
+.pc-share{position:absolute; top:9px; right:9px; z-index:2; width:28px; height:28px; border-radius:50%; border:none; background:rgba(255,255,255,.88); backdrop-filter:blur(6px); font-size:12px; display:flex; align-items:center; justify-content:center; box-shadow:0 3px 10px rgba(0,0,0,.15);}
+.pc-fab{position:absolute; right:10px; bottom:10px; z-index:2; width:40px; height:40px; border-radius:50%; border:none; background:linear-gradient(135deg,#138A73,#0B5A4C); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 18px rgba(11,90,76,.45); transition:transform .2s;}
+.pc-fab:active{transform:scale(.88) rotate(-8deg);}
+.pc-fab:disabled{background:#8d968f; box-shadow:none;}
+.pc-sold{position:absolute; inset:0; z-index:1; background:rgba(255,255,255,.62); display:flex; align-items:center; justify-content:center; font-weight:800; color:#5b655f; font-size:13px; letter-spacing:.3px;}
+.pc-body{padding:12px 13px 14px;}
+.pc-name{font-size:13.5px; font-weight:600; line-height:1.35; color:var(--ink-deep); min-height:36px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+.pc-prices{display:flex; align-items:baseline; gap:7px; margin-top:7px;}
+.pc-prices b{font-family:'Baloo Da 2','Hind Siliguri',sans-serif; font-size:17px; color:var(--primary-dark);}
+.pc-prices s{font-size:12px; color:#9aa29d;}
+.pc-low{margin-top:5px; font-size:10.5px; font-weight:700; color:#C1440E;}
+@media (prefers-reduced-motion:reduce){.pc{opacity:1;transform:none;transition:none;}}
+/* ===== লোকেশন ===== */
+.loc-card{background:linear-gradient(135deg,#E9F6F1,#FFF6E3); border:1px solid #CFE6DC; border-radius:16px; padding:12px 14px; margin-bottom:14px; display:flex; align-items:center; gap:12px;}
+.loc-btn{flex:0 0 auto; width:46px; height:46px; border-radius:50%; border:none; cursor:pointer; background:linear-gradient(135deg,#138A73,#0B5A4C); color:#fff; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 18px rgba(11,90,76,.4); position:relative;}
+.loc-btn.busy::after{content:""; position:absolute; inset:-5px; border-radius:50%; border:2px solid #138A73; animation:locPulse 1s ease-out infinite;}
+@keyframes locPulse{from{transform:scale(.85);opacity:.9}to{transform:scale(1.35);opacity:0}}
+.loc-card b{font-size:13.5px; color:var(--ink-deep);} .loc-card small{display:block; font-size:11.5px; color:var(--ink-soft); margin-top:2px; line-height:1.4;}
+.loc-steps{display:flex; flex-wrap:wrap; gap:6px; margin:-4px 0 14px;}
+.loc-steps span{background:#fff; border:1px solid #CFE6DC; color:#0A4E42; font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:999px; animation:locIn .35s ease both;}
+@keyframes locIn{from{opacity:0; transform:translateY(6px) scale(.9)}to{opacity:1; transform:none}}
+.loc-err{color:#C1440E; font-size:12px; margin:-6px 0 12px;}
+/* ওটিপি */
+#authModal .au-f .otp-send{position:absolute; right:7px; top:50%; transform:translateY(-50%); border:none; background:linear-gradient(135deg,var(--primary),#0f766e); color:#fff; font-size:11.5px; font-weight:700; padding:7px 11px; border-radius:9px; cursor:pointer;}
+#authModal .au-f .otp-send:disabled{background:#c9d6d1; color:#5b7a70; cursor:default;}
+#authModal #authOtp{padding-right:104px;}
+#authModal .au-otpmsg{font-size:11.5px; margin:-6px 2px 10px; min-height:14px; color:#5b7a70;}
+#authModal .au-otpmsg.err{color:#C0392B;}
+
+</style>
 </head>
 <body>
 
@@ -1271,7 +1334,9 @@ function renderFooter(){
   document.getElementById('footerEmail').textContent = s.email || '—';
   const socials = [];
   if(s.facebook) socials.push(`<a href="${s.facebook}" target="_blank" rel="noopener" title="Facebook"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22 12.06C22 6.505 17.523 2 12 2S2 6.505 2 12.06c0 5.02 3.657 9.184 8.438 9.94v-7.03H7.898v-2.91h2.54V9.845c0-2.522 1.492-3.915 3.777-3.915 1.094 0 2.238.196 2.238.196v2.475h-1.26c-1.243 0-1.63.775-1.63 1.57v1.888h2.773l-.443 2.91h-2.33V22c4.78-.756 8.437-4.92 8.437-9.94Z"/></svg></a>`);
-  if(s.twitter) socials.push(`<a href="${s.twitter}" target="_blank" rel="noopener" title="Twitter"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.49-1.75.85-2.72 1.04A4.28 4.28 0 0 0 15.5 4c-2.37 0-4.29 1.92-4.29 4.29 0 .34.04.67.11.98-3.57-.18-6.73-1.89-8.85-4.48-.37.63-.58 1.37-.58 2.16 0 1.49.76 2.81 1.92 3.58-.7-.02-1.36-.22-1.94-.53v.05c0 2.08 1.48 3.82 3.44 4.21-.36.1-.74.15-1.13.15-.28 0-.55-.03-.81-.08.55 1.71 2.14 2.95 4.02 2.99A8.6 8.6 0 0 1 2 18.58 12.13 12.13 0 0 0 8.56 20.5c7.87 0 12.18-6.52 12.18-12.18 0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.13-2.22Z"/></svg></a>`);
+  if(s.telegram) socials.push(`<a href="${s.telegram}" target="_blank" rel="noopener" title="Telegram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.3 18.6 19.6c-.2 1.1-.9 1.3-1.8.8l-5-3.7-2.4 2.3c-.3.3-.5.5-1 .5l.4-5.1 9.3-8.4c.4-.4-.1-.6-.6-.2L6.1 13.1 1.2 11.5c-1.1-.3-1.1-1.1.2-1.6L20.5 2.5c.9-.3 1.7.2 1.4 1.8z"/></svg></a>`);
+  if(s.tiktok) socials.push(`<a href="${s.tiktok}" target="_blank" rel="noopener" title="TikTok"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.8 5.8 0 1 0 5 5.7V9a7.4 7.4 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.3-1.5z"/></svg></a>`);
+  if(s.youtube) socials.push(`<a href="${s.youtube}" target="_blank" rel="noopener" title="YouTube"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23 7.2a3 3 0 0 0-2.1-2.1C19 4.6 12 4.6 12 4.6s-7 0-8.9.5A3 3 0 0 0 1 7.2C.5 9.1.5 12 .5 12s0 2.9.5 4.8a3 3 0 0 0 2.1 2.1c1.9.5 8.9.5 8.9.5s7 0 8.9-.5a3 3 0 0 0 2.1-2.1c.5-1.9.5-4.8.5-4.8s0-2.9-.5-4.8zM9.7 15.5v-7l6 3.5-6 3.5z"/></svg></a>`);
   if(s.instagram) socials.push(`<a href="${s.instagram}" target="_blank" rel="noopener" title="Instagram"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2c2.72 0 3.06.01 4.12.06 1.06.05 1.79.22 2.43.47.66.26 1.22.6 1.77 1.15.55.55.9 1.11 1.15 1.77.25.64.42 1.37.47 2.43.05 1.06.06 1.4.06 4.12s-.01 3.06-.06 4.12c-.05 1.06-.22 1.79-.47 2.43a4.9 4.9 0 0 1-1.15 1.77 4.9 4.9 0 0 1-1.77 1.15c-.64.25-1.37.42-2.43.47-1.06.05-1.4.06-4.12.06s-3.06-.01-4.12-.06c-1.06-.05-1.79-.22-2.43-.47a4.9 4.9 0 0 1-1.77-1.15 4.9 4.9 0 0 1-1.15-1.77c-.25-.64-.42-1.37-.47-2.43C2.01 15.06 2 14.72 2 12s.01-3.06.06-4.12c.05-1.06.22-1.79.47-2.43.26-.66.6-1.22 1.15-1.77.55-.55 1.11-.9 1.77-1.15.64-.25 1.37-.42 2.43-.47C8.94 2.01 9.28 2 12 2Zm0 5a5 5 0 1 0 0 10 5 5 0 0 0 0-10Zm0 8.25A3.25 3.25 0 1 1 12 8.75a3.25 3.25 0 0 1 0 6.5ZM17.4 6.6a1.17 1.17 0 1 0 0 2.34 1.17 1.17 0 0 0 0-2.34Z"/></svg></a>`);
   document.getElementById('footerSocials').innerHTML = socials.join('');
   document.getElementById('footerCopyright').textContent = s.footerCopyright || '© সর্বস্বত্ব সংরক্ষিত।';
@@ -2218,7 +2283,7 @@ function authModalEl(){
         '<div class="au-f" id="authNameWrap"><span class="ic">👤</span><input id="authName" autocomplete="name" placeholder="পুরো নাম"></div>' +
         '<div class="au-f"><span class="ic">📱</span><input id="authPhone" inputmode="numeric" autocomplete="tel" placeholder="মোবাইল নম্বর (01XXXXXXXXX)"></div>' +
         '<div class="au-f"><span class="ic">🔒</span><input id="authPass" type="password" autocomplete="current-password" placeholder="পাসওয়ার্ড (কমপক্ষে ৬ অক্ষর)"><button type="button" class="au-eye" onclick="var i=document.getElementById(\'authPass\');i.type=i.type===\'password\'?\'text\':\'password\'">👁️</button></div>' +
-        '<div class="au-f" id="authOtpWrap" style="display:none;"><span class="ic">🔑</span><input id="authOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="ওটিপি কোড"><span class="opt">ঐচ্ছিক</span></div>' +
+        '<div class="au-f" id="authOtpWrap" style="display:none;"><span class="ic">🔑</span><input id="authOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="ওটিপি কোড (ঐচ্ছিক)"><button type="button" class="otp-send" id="authOtpBtn" onclick="sendOtp()">ওটিপি পাঠান</button></div><div class="au-otpmsg" id="authOtpMsg" style="display:none;"></div>' +
         '<div class="au-err" id="authErr"></div>' +
         '<button type="button" id="authSubmit" class="au-btn" onclick="submitAuth()"></button>' +
         '<div class="au-hint" id="authHint"></div>' +
@@ -2242,6 +2307,7 @@ function setAuthMode(mode){
   $('authTabSignup').className = mode === 'signup' ? 'on' : '';
   $('authNameWrap').style.display = mode === 'signup' ? '' : 'none';
   $('authOtpWrap').style.display = (mode === 'signup' && authOtpOn()) ? '' : 'none';
+  $('authOtpMsg').style.display = (mode === 'signup' && authOtpOn()) ? '' : 'none';
   $('authTitle').textContent = mode === 'signup' ? 'নতুন অ্যাকাউন্ট খুলুন' : 'স্বাগতম, আবার দেখে ভালো লাগল';
   $('authSub').textContent = mode === 'signup' ? 'মাত্র ৩০ সেকেন্ডে — নাম, নম্বর আর পাসওয়ার্ড' : 'আপনার নম্বর ও পাসওয়ার্ড দিয়ে ঢুকুন';
   $('authSubmit').textContent = mode === 'signup' ? 'অ্যাকাউন্ট খুলুন →' : 'সাইন-ইন →';
@@ -2323,6 +2389,149 @@ async function submitAuth(){
   };
   try{ updateAccountAuthArea(); updateCheckoutAuthBanner(); }catch(e){}
 })();
+</script>
+<script id="featPack">
+/* ===== ফিচার প্যাক: প্রিমিয়াম কার্ড, লোকেশন, ওটিপি ===== */
+(function(){
+  /* ---- প্রিমিয়াম পণ্য কার্ড ---- */
+  const CART_SVG = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20.5" r="1.3"/><circle cx="17" cy="20.5" r="1.3"/></svg>';
+  window.productCardHTML = function(p){
+    const off = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
+    const sold = (p.stock || 0) <= 0;
+    const act = DB.products.filter(x => x.status === 'active');
+    const isNew = act.slice(-4).indexOf(p) >= 0;
+    const img = p.image ? '<img src="' + p.image + '" loading="lazy" decoding="async" alt="">' : (p.emoji || '🛍️');
+    return '<div class="pc" onclick="openProduct(\'' + p.id + '\')">' +
+      '<div class="pc-img">' + img +
+        (off > 0 ? '<span class="pc-off">-' + off + '%</span>' : '') + (isNew ? '<span class="pc-new">✨ নতুন</span>' : '') +
+        '<button class="pc-share" onclick="event.stopPropagation(); copyProductLink(\'' + p.id + '\')" title="লিংক কপি">🔗</button>' +
+        (sold ? '<div class="pc-sold">স্টকে নেই</div>' : '') +
+        '<button class="pc-fab" ' + (sold ? 'disabled' : '') + ' aria-label="কার্টে যোগ করুন" onclick="event.stopPropagation(); quickAdd(\'' + p.id + '\')">' + CART_SVG + '</button>' +
+      '</div><div class="pc-body"><div class="pc-name">' + escapeHtml(p.name) + '</div>' +
+      '<div class="pc-prices"><b>৳' + p.price + '</b>' + (p.oldPrice ? '<s>৳' + p.oldPrice + '</s>' : '') + '</div>' +
+      (!sold && p.stock <= 5 ? '<div class="pc-low">🔥 মাত্র ' + p.stock + 'টি বাকি</div>' : '') +
+      '</div></div>';
+  };
+  let io = null;
+  function reveal(){
+    const cards = document.querySelectorAll('.pc:not(.in)');
+    if(!('IntersectionObserver' in window)){ cards.forEach(c => c.classList.add('in')); return; }
+    if(!io) io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ const el = e.target, i = +el.dataset.i || 0; setTimeout(() => el.classList.add('in'), Math.min(i, 6) * 70); io.unobserve(el); } }), { rootMargin: '0px 0px -30px 0px' });
+    cards.forEach((c, i) => { c.dataset.i = i % 8; io.observe(c); });
+  }
+  const _rp = window.renderProducts;
+  window.renderProducts = function(){ _rp.apply(this, arguments); document.getElementById('newArrivalsGrid').classList.add('hscroll'); reveal(); };
+  // শপ পেজের তালিকা পরে আঁকা হলেও কার্ড দেখা যাক
+  setInterval(reveal, 900);
+  // ট্রাস্ট স্ট্রিপ
+  (function(){
+    const slider = document.getElementById('heroSlider');
+    if(slider && !document.getElementById('trustStrip')){
+      const d = document.createElement('div'); d.className = 'trust-strip'; d.id = 'trustStrip';
+      d.innerHTML = '<div><b>🌿</b>১০০% খাঁটি</div><div><b>🚚</b>সারা দেশে ডেলিভারি</div><div><b>💵</b>ক্যাশ অন ডেলিভারি</div><div><b>🛡️</b>নিরাপদ অর্ডার</div>';
+      slider.parentNode.insertBefore(d, slider.nextSibling);
+    }
+  })();
+
+  /* ---- লোকেশন থেকে ঠিকানা ---- */
+  const EN = {'ঢাকা':['dhaka'],'গাজীপুর':['gazipur'],'নারায়ণগঞ্জ':['narayanganj'],'নরসিংদী':['narsingdi'],'মানিকগঞ্জ':['manikganj'],'মুন্সিগঞ্জ':['munshiganj'],'টাঙ্গাইল':['tangail'],'কিশোরগঞ্জ':['kishoreganj'],'ফরিদপুর':['faridpur'],'রাজবাড়ী':['rajbari'],'মাদারীপুর':['madaripur'],'শরীয়তপুর':['shariatpur'],'গোপালগঞ্জ':['gopalganj'],'চট্টগ্রাম':['chattogram','chittagong'],'কক্সবাজার':["cox's bazar",'coxs bazar','cox bazar'],'কুমিল্লা':['cumilla','comilla'],'ফেনী':['feni'],'ব্রাহ্মণবাড়িয়া':['brahmanbaria'],'রাঙ্গামাটি':['rangamati'],'নোয়াখালী':['noakhali'],'চাঁদপুর':['chandpur'],'লক্ষ্মীপুর':['lakshmipur','laxmipur'],'বান্দরবান':['bandarban'],'খাগড়াছড়ি':['khagrachhari','khagrachari'],'রাজশাহী':['rajshahi'],'চাঁপাইনবাবগঞ্জ':['chapainawabganj','nawabganj'],'নওগাঁ':['naogaon'],'নাটোর':['natore'],'পাবনা':['pabna'],'সিরাজগঞ্জ':['sirajganj'],'বগুড়া':['bogura','bogra'],'জয়পুরহাট':['joypurhat'],'খুলনা':['khulna'],'বাগেরহাট':['bagerhat'],'সাতক্ষীরা':['satkhira'],'যশোর':['jashore','jessore'],'ঝিনাইদহ':['jhenaidah'],'মাগুরা':['magura'],'নড়াইল':['narail'],'কুষ্টিয়া':['kushtia'],'চুয়াডাঙ্গা':['chuadanga'],'মেহেরপুর':['meherpur'],'বরিশাল':['barishal','barisal'],'ভোলা':['bhola'],'পটুয়াখালী':['patuakhali'],'পিরোজপুর':['pirojpur'],'ঝালকাঠি':['jhalokati','jhalakathi'],'বরগুনা':['barguna'],'সিলেট':['sylhet'],'মৌলভীবাজার':['moulvibazar','maulvibazar'],'হবিগঞ্জ':['habiganj'],'সুনামগঞ্জ':['sunamganj'],'রংপুর':['rangpur'],'গাইবান্ধা':['gaibandha'],'কুড়িগ্রাম':['kurigram'],'লালমনিরহাট':['lalmonirhat'],'নীলফামারী':['nilphamari'],'ঠাকুরগাঁও':['thakurgaon'],'পঞ্চগড়':['panchagarh'],'দিনাজপুর':['dinajpur'],'ময়মনসিংহ':['mymensingh'],'জামালপুর':['jamalpur'],'নেত্রকোণা':['netrokona','netrakona'],'শেরপুর':['sherpur']};
+  const clean = s => String(s || '').toLowerCase().replace(/জেলা|উপজেলা|থানা|সদর|ইউনিয়ন|district|zila|upazila|upazilla|thana|union|sadar|city corporation|সিটি কর্পোরেশন/g, '').replace(/[\s,\-।\.]+/g, ' ').trim();
+  function matchDistrict(cands){
+    const names = Object.keys(EN);
+    for(const c0 of cands){ const c = clean(c0); if(!c) continue;
+      for(const n of names){ if(c === clean(n) || (c.length > 2 && (c.indexOf(clean(n)) >= 0 || clean(n).indexOf(c) >= 0))) return n; }
+      for(const n of names){ if(EN[n].some(a => c === a || c.indexOf(a) >= 0)) return n; }
+    }
+    return '';
+  }
+  function matchUpazila(district, cands){
+    const list = upazilasOf(district);
+    for(const c0 of cands){ const c = clean(c0); if(!c) continue;
+      for(const u of list){ const cu = clean(u); if(cu && (c === cu || (cu.length > 2 && c.indexOf(cu) >= 0) || (c.length > 2 && cu.indexOf(c) >= 0))) return u; }
+    }
+    return '';
+  }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let locBusy = false;
+  window.useMyLocation = async function(){
+    if(locBusy) return;
+    const btn = document.getElementById('locBtn'), steps = document.getElementById('locSteps'), err = document.getElementById('locErr');
+    err.textContent = ''; steps.innerHTML = '';
+    if(!navigator.geolocation){ err.textContent = 'আপনার ব্রাউজারে লোকেশন সুবিধা নেই — নিচে নিজে ঠিকানা লিখুন।'; return; }
+    locBusy = true; btn.classList.add('busy');
+    const chip = t => { const s = document.createElement('span'); s.textContent = t; steps.appendChild(s); };
+    try{
+      chip('📡 লোকেশন খোঁজা হচ্ছে…');
+      const pos = await new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }));
+      steps.innerHTML = ''; chip('✓ লোকেশন পাওয়া গেছে'); await sleep(350);
+      const url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=bn,en&lat=' + pos.coords.latitude + '&lon=' + pos.coords.longitude;
+      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 12000);
+      const j = await (await fetch(url, { signal: ctl.signal })).json();
+      const a = (j && j.address) || {};
+      if(!a || (j && j.error)) throw new Error('ঠিকানা পাওয়া যায়নি');
+      // জেলা
+      const dName = matchDistrict([a.state_district, a.county, a.city, a.town, a.state]);
+      if(dName){ document.getElementById('ckDistrict').value = dName; onDistrictChange(); chip('✓ জেলা: ' + dName); await sleep(400); }
+      // উপজেলা/থানা
+      const uName = dName ? matchUpazila(dName, [a.county, a.municipality, a.city_district, a.suburb, a.town, a.city, a.subdistrict]) : '';
+      if(uName){ document.getElementById('ckUpazila').value = uName; onUpazilaChange(); chip('✓ উপজেলা/থানা: ' + uName); await sleep(400); }
+      // ইউনিয়ন, গ্রাম/এলাকা, রাস্তা
+      const all = Object.values(a).map(String);
+      let union = (all.find(v => /ইউনিয়ন|union/i.test(v)) || '').replace(/\s*(ইউনিয়ন|union)( parishad| পরিষদ)?/ig, '').trim() || a.municipality || '';
+      const village = a.village || a.hamlet || a.neighbourhood || a.suburb || a.quarter || a.locality || '';
+      const road = a.road || '';
+      const parts = [];
+      if(village){ parts.push('গ্রাম/এলাকা: ' + village); chip('✓ গ্রাম/এলাকা: ' + village); await sleep(400); }
+      if(union && union !== village){ parts.push('ইউনিয়ন: ' + union); chip('✓ ইউনিয়ন: ' + union); await sleep(400); }
+      if(road){ parts.push('রাস্তা: ' + road); chip('✓ রাস্তা: ' + road); await sleep(300); }
+      if(!uName){ const raw = a.county || a.city_district || a.suburb || ''; if(raw){ parts.push('উপজেলা: ' + raw); } }
+      if(!parts.length && j.display_name) parts.push(String(j.display_name).split(',').slice(0, 3).join(','));
+      const ta = document.getElementById('ckAddress');
+      const keep = ta.value.split('\n').filter(l => l.trim() && !/^(গ্রাম\/এলাকা|ইউনিয়ন|রাস্তা|উপজেলা):/.test(l.trim()));
+      ta.value = keep.concat(parts.length ? [parts.join(', ')] : []).join('\n');
+      if(!dName) err.textContent = 'জেলা মেলেনি — জেলা নিজে বেছে নিন।';
+      else if(!uName) err.textContent = 'উপজেলা/থানা মেলেনি — নিজে বেছে নিন।';
+      chip('✏️ দরকার হলে নিচে বদলে নিন');
+    }catch(e){
+      steps.innerHTML = '';
+      err.textContent = (e && e.code === 1) ? 'লোকেশনের অনুমতি দেওয়া হয়নি — ব্রাউজারের সেটিংসে অনুমতি দিন, অথবা নিজে ঠিকানা লিখুন।'
+        : (e && e.code === 3) ? 'লোকেশন পেতে দেরি হচ্ছে — আবার চেষ্টা করুন বা নিজে লিখুন।' : 'লোকেশন থেকে ঠিকানা আনা যায়নি — নিচে নিজে লিখুন।';
+    }finally{ locBusy = false; btn.classList.remove('busy'); }
+  };
+  (function(){
+    const addr = document.getElementById('ckDistrict');
+    if(!addr || document.getElementById('locCard')) return;
+    const row = addr.closest('.form-group');
+    const d = document.createElement('div');
+    d.innerHTML = '<div class="loc-card" id="locCard"><button type="button" class="loc-btn" id="locBtn" onclick="useMyLocation()" aria-label="আমার লোকেশন"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.1 7-11.5A7 7 0 0 0 5 9.5C5 14.9 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.6"/></svg></button><div><b>আমার বর্তমান লোকেশন দিন</b><small>চাপ দিলে জেলা, উপজেলা, ইউনিয়ন ও গ্রাম নিজে থেকে বসে যাবে। অন্য জায়গায় নিতে চাইলে নিচে নিজে বেছে নিন বা লিখুন।</small></div></div><div class="loc-steps" id="locSteps"></div><div class="loc-err" id="locErr"></div>';
+    row.parentNode.insertBefore(d, row);
+  })();
+
+  /* ---- ওটিপি পাঠান ---- */
+  let otpTimer = null;
+  window.sendOtp = async function(){
+    const btn = document.getElementById('authOtpBtn'), msg = document.getElementById('authOtpMsg');
+    const phone = normPhone(document.getElementById('authPhone').value);
+    msg.className = 'au-otpmsg'; msg.textContent = '';
+    if(!isBdPhone(phone)){ msg.className = 'au-otpmsg err'; msg.textContent = 'আগে সঠিক মোবাইল নম্বর দিন (01XXXXXXXXX)'; return; }
+    btn.disabled = true; btn.textContent = 'পাঠানো হচ্ছে…';
+    let ok = false, text = '';
+    try{
+      const api = orderApiBase();
+      if(!api) throw new Error('নেই');
+      const r = await fetch(api + '/api/otp/send', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone }) });
+      const d = await r.json().catch(() => ({}));
+      ok = !!(r.ok && d && d.ok);
+      text = ok ? 'ওটিপি পাঠানো হয়েছে' : (d && d.error) || 'ওটিপি পাঠানো যায়নি';
+    }catch(e){ text = 'ওটিপি সেবা এখনো চালু হয়নি'; }
+    if(!ok){ btn.disabled = false; btn.textContent = 'ওটিপি পাঠান'; msg.className = 'au-otpmsg err'; msg.textContent = text + ' — কোড ছাড়াই অ্যাকাউন্ট খুলতে পারেন।'; return; }
+    msg.textContent = '✓ ' + text;
+    let left = 60; clearInterval(otpTimer);
+    const tick = () => { btn.textContent = left + ' সেকেন্ড'; if(left-- <= 0){ clearInterval(otpTimer); btn.disabled = false; btn.textContent = 'আবার পাঠান'; } };
+    tick(); otpTimer = setInterval(tick, 1000);
+  };
+})();
+
 </script>
 </body>
 </html>
