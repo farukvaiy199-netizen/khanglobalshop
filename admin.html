@@ -2073,7 +2073,9 @@ renderAdminOrders = async function(){
     const uids = new Set(direct.map(o=>o.ownerUid).filter(Boolean));
     const phones = new Set(direct.map(o=>normPhone(o.phone)).filter(Boolean));
     list = ordersCache.filter(o=> direct.includes(o) || (o.ownerUid && uids.has(o.ownerUid)) || phones.has(normPhone(o.phone)));
-    const groups = new Set(list.map(o=>o.ownerUid || normPhone(o.phone)));
+    // একই মোবাইল নম্বরের সব অর্ডার একজন গ্রাহক — আলাদা অ্যাকাউন্ট/নাম/ইমেইল থেকে দিলেও
+    const personKey = o=> normPhone(o.phone) || (o.ownerEmail && /@phone\./.test(o.ownerEmail) ? normPhone(o.ownerEmail.split('@')[0]) : '') || o.ownerUid || o.id;
+    const groups = new Set(list.map(personKey));
     const delivered = list.filter(o=>o.status === 'delivered');
     const spent = delivered.reduce((s, o)=>s + (o.total || 0), 0);
     const cancelled = list.filter(o=>o.status === 'cancelled').length;
@@ -2085,7 +2087,7 @@ renderAdminOrders = async function(){
         '<div class="cc-stats"><div class="cc-stat"><b>' + list.length + '</b><span>মোট অর্ডার</span></div><div class="cc-stat"><b>' + delivered.length + '</b><span>ডেলিভারড</span></div><div class="cc-stat"><b>' + (pending) + '</b><span>চলমান</span></div><div class="cc-stat"><b>' + cancelled + '</b><span>বাতিল</span></div></div>' +
         '<div style="font-size:12px; color:var(--ink-soft); margin-top:9px;">ডেলিভারড অর্ডারের মোট টাকা: <b style="color:var(--primary);">৳' + spent.toLocaleString() + '</b></div></div>';
     }else if(list.length){
-      summary = '<div class="cust-card" style="font-size:13px;">🔎 <b>' + groups.size + ' জন</b> গ্রাহকের <b>' + list.length + 'টি</b> অর্ডার পাওয়া গেছে</div>';
+      summary = '<div class="cust-card" style="font-size:13px;">🔎 <b>' + groups.size + ' জন</b> গ্রাহকের <b>' + list.length + 'টি</b> অর্ডার পাওয়া গেছে<div style="margin-top:6px; color:var(--ink-soft); font-size:12px;">ডেলিভারড ' + delivered.length + ' · চলমান ' + pending + ' · বাতিল ' + cancelled + '</div></div>';
     }
   }
   if(filter !== 'all') list = list.filter(o=>o.status === filter);
