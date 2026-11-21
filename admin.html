@@ -1109,7 +1109,7 @@ async function renderAdminOrders(){
       <td style="font-size:11px;"><b>${paymentMethodLabel(o.payment)}</b>${o.transactionId?`<br><span style="color:var(--primary); font-weight:700;">TrxID: ${escapeHtml(o.transactionId)}</span>`:''}</td>
       <td><span class="status-pill ${o.status}">${statusLabel(o.status)}</span>${o.cancelledBy==='customer'?`<br><span style="font-size:10px; color:var(--ink-soft);">(গ্রাহক বাতিল করেছেন)</span>`:''}</td>
       <td><span class="status-pill ${o.paymentStatus}">${o.paymentStatus==='paid'?'Paid':'Unpaid'}</span></td>
-      <td style="font-size:11px;">${escapeHtml(o.courier||'নির্ধারণ করা হয়নি')}${o.steadfastTrackingId?`<br><span style="color:var(--primary); font-weight:700;">Trk: ${escapeHtml(o.steadfastTrackingId)}</span>`:''}</td>
+      <td style="font-size:11px;">${escapeHtml(o.courier||'নির্ধারণ করা হয়নি')}${o.steadfastTrackingId?`<br><span style="color:var(--primary); font-weight:700;">Trk: ${escapeHtml(o.steadfastTrackingId)}</span>`:''}${o.courierStatusText?`<br><span class="cr-chip ${courierChipClass(o.courierStatus)}">🚚 ${escapeHtml(o.courierStatusText)}</span>`:''}</td>
       <td>${o.date}</td>
       <td><button class="mini-btn primary" onclick="viewOrder('${o.id}')">দেখুন</button></td>
     </tr>`).join('')}`;
@@ -1130,6 +1130,7 @@ async function viewOrder(id){
       ${o.transactionId?`<br>ট্রানজেকশন আইডি: <b style="color:var(--primary);">${escapeHtml(o.transactionId)}</b>`:''}
       ${o.paymentPlanPercent?`<br>পেমেন্ট প্ল্যান: <b>${o.paymentPlanPercent>=100?'সম্পূর্ণ অগ্রিম':o.paymentPlanPercent+'% অগ্রিম'}</b> — এখন: ৳${o.advanceAmount}, বাকি: ৳${o.dueAmount}`:''}
       ${o.steadfastTrackingId?`<br>স্টেডফাস্ট ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.steadfastTrackingId)}</b>`:''}
+      ${(o.steadfastTrackingId||o.pathaoConsignmentId)?`<br>🚚 কুরিয়ারের অবস্থা: <b class="cr-chip ${courierChipClass(o.courierStatus)}">${escapeHtml(o.courierStatusText||'এখনো জানা নেই')}</b> <button type="button" class="mini-btn" onclick="refreshCourier('${o.id}')">🔄 দেখুন</button>${o.courierStatusAt?`<br><span style="font-size:11px;">শেষ আপডেট: ${new Date(o.courierStatusAt).toLocaleString('bn-BD')}</span>`:''}`:''}
     </div>
     <div class="table-wrap"><table class="data-table"><tr><th>পণ্য</th><th>পরিমাণ</th><th>দাম</th></tr>
       ${o.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${it.qty}</td><td>৳${it.price*it.qty}</td></tr>`).join('')}
@@ -3666,6 +3667,102 @@ async function markNotReceived(id){
   };
   wrapShip('sendOrderToSteadfast', 'steadfastTrackingId');
   wrapShip('sendOrderToPathao', 'pathaoConsignmentId');
+})();
+</script>
+<style id="courierCss">
+.cr-chip{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:20px;background:#EEF1F0;color:#4B5750;margin-top:3px}
+.cr-chip.ok{background:#E4F1EC;color:#0A4E42}.cr-chip.bad{background:#FBE7DC;color:#C1440E}.cr-chip.mid{background:#FCEED8;color:#8A5A12}
+.bk-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
+.bk-card h4{margin:0 0 4px;font-size:14px}.bk-card p{margin:0 0 10px;font-size:12px;color:var(--ink-soft);line-height:1.6}
+</style>
+<script id="courierPack">
+function courierChipClass(c){ c = String(c||'').toLowerCase(); if(/^delivered|^partial/.test(c)) return 'ok'; if(/cancel|return|hold/.test(c)) return 'bad'; return 'mid'; }
+function courierApiBase(){ return ((DB.settings && DB.settings.orderApiUrl) || '').trim().replace(/\/+$/, ''); }
+async function courierCall(body){
+  const base = courierApiBase(); if(!base) throw new Error('আগে সেটিংস → অটোমেশন API-তে সুরক্ষিত অর্ডার সার্ভারের URL দিন');
+  const tok = await fireAuth.currentUser.getIdToken();
+  const r = await fetch(base + '/api/admin/courier-status', { method:'POST', headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer ' + tok }, body: JSON.stringify(body || {}) });
+  const d = await r.json().catch(()=>({})); if(!r.ok) throw new Error(d.error || 'আনা যায়নি'); return d;
+}
+async function refreshCourier(id){
+  toast('কুরিয়ারের অবস্থা আনা হচ্ছে…');
+  try{ const d = await courierCall({ orderId:id }); toast('কুরিয়ার: ' + d.status.text); viewOrder(id); renderAdminOrders(); }
+  catch(e){ toast(e.message || 'আনা যায়নি'); }
+}
+async function refreshAllCourier(silent){
+  try{
+    const d = await courierCall({});
+    try{ sessionStorage.setItem('kgs_cour_at', String(Date.now())); }catch(e){}
+    if(!silent) toast(d.checked ? ('✓ ' + d.checked + 'টি পার্সেল দেখা হয়েছে, ' + d.updated + 'টির অবস্থা এসেছে') : 'আপডেটের মতো কোনো চলমান পার্সেল নেই');
+    if(d.updated) renderAdminOrders();
+  }catch(e){ if(!silent) toast(e.message || 'আনা যায়নি'); }
+}
+(function(){
+  const sel = document.getElementById('orderStatusFilter');
+  if(sel && !document.getElementById('courierRefreshBtn')){
+    const b = document.createElement('button'); b.id = 'courierRefreshBtn'; b.type = 'button'; b.className = 'mini-btn primary'; b.style.cssText = 'margin:8px 0; width:100%; padding:10px;';
+    b.textContent = '🚚 কুরিয়ারের অবস্থা আপডেট করুন'; b.onclick = async function(){ b.disabled = true; await refreshAllCourier(false); b.disabled = false; };
+    sel.parentNode.insertBefore(b, sel);
+  }
+  const _ro = renderAdminOrders;
+  renderAdminOrders = async function(){
+    await _ro.apply(this, arguments);
+    let t = 0; try{ t = +sessionStorage.getItem('kgs_cour_at') || 0; }catch(e){}
+    if(Date.now() - t > 10 * 60 * 1000){ try{ sessionStorage.setItem('kgs_cour_at', String(Date.now())); }catch(e){} refreshAllCourier(true); }
+  };
+})();
+
+/* ---------- ব্যাকআপ ---------- */
+function dlFile(name, text, type){
+  const blob = new Blob([text], { type: type || 'application/json' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 1500);
+}
+const bkDate = ()=>new Date(Date.now() + 6*3600e3).toISOString().slice(0,10);
+function renderBackupInfo(){
+  let t = ''; try{ t = localStorage.getItem('kgs_last_backup') || ''; }catch(e){}
+  const el = document.getElementById('bkLast'); if(!el) return;
+  const days = t ? Math.floor((Date.now() - new Date(t).getTime()) / 864e5) : null;
+  el.innerHTML = t ? ('শেষ ব্যাকআপ: <b>' + escapeHtml(t) + '</b>' + (days >= 7 ? ' — <span style="color:var(--danger);font-weight:700;">' + days + ' দিন আগে, এখন নিন</span>' : '')) : '<span style="color:var(--danger);font-weight:700;">এখনো কোনো ব্যাকআপ নেওয়া হয়নি</span>';
+}
+async function backupAll(){
+  const btn = document.getElementById('bkAllBtn'); btn.disabled = true; btn.textContent = 'ডেটা জমা হচ্ছে…';
+  try{
+    const all = async col => (await fireDb.collection(col).get()).docs.map(d=>d.data());
+    const [orders, products, reviews] = await Promise.all([all(ORDERS_COL), all(PRODUCTS_COL), all(REVIEWS_COL)]);
+    const settings = JSON.parse(JSON.stringify(DB.settings || {}));
+    const out = { backupDate: new Date().toISOString(), orders, products, reviews, settings, categories: DB.categories || [] };
+    dlFile('khanglobalshop-backup-' + bkDate() + '.json', JSON.stringify(out));
+    try{ localStorage.setItem('kgs_last_backup', bkDate()); }catch(e){}
+    toast('✓ ব্যাকআপ নামানো হয়েছে (' + orders.length + 'টি অর্ডার, ' + products.length + 'টি পণ্য)'); renderBackupInfo();
+  }catch(e){ toast('ব্যাকআপ নেওয়া যায়নি — সংযোগ যাচাই করুন'); }
+  btn.disabled = false; btn.textContent = '💾 সব ডেটার ব্যাকআপ নামান';
+}
+async function backupOrdersCsv(){
+  try{
+    const rows = (await fireDb.collection(ORDERS_COL).get()).docs.map(d=>d.data()).sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    const q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+    const head = ['অর্ডার আইডি','তারিখ','গ্রাহক','ফোন','ঠিকানা','জেলা','পণ্য','মোট','পেমেন্ট','পেমেন্ট অবস্থা','অর্ডার অবস্থা','কুরিয়ার','ট্র্যাকিং','কুরিয়ারের অবস্থা','কুপন'];
+    const lines = [head.map(q).join(',')].concat(rows.map(o=>[o.id,o.date,o.customer,o.phone,o.address,o.district,(o.items||[]).map(i=>i.name+' x'+i.qty).join('; '),o.total,o.payment,o.paymentStatus,o.status,o.courier,o.steadfastTrackingId||o.pathaoConsignmentId||'',o.courierStatusText||'',o.couponCode||''].map(q).join(',')));
+    dlFile('orders-' + bkDate() + '.csv', '\uFEFF' + lines.join('\n'), 'text/csv;charset=utf-8');
+    toast('✓ ' + rows.length + 'টি অর্ডারের Excel ফাইল নামানো হয়েছে');
+  }catch(e){ toast('ফাইল বানানো যায়নি'); }
+}
+(function(){
+  SET_PAGES.backup = { t:'ব্যাকআপ', save:false };
+  SET_PAGES.coupon.t = 'কুপন ও অফার';
+  const pg = document.createElement('div'); pg.className = 'set-page'; pg.id = 'sp_backup'; pg.style.display = 'none';
+  pg.innerHTML = '<div class="bk-card"><h4>💾 সব ডেটার ব্যাকআপ</h4><p>অর্ডার, পণ্য, রিভিউ ও সেটিংস একটি ফাইলে ফোনে নামবে। (গোপন কী/পাসওয়ার্ড এতে থাকে না।) ফাইলটি Google Drive বা নিজের ফোনে নিরাপদ জায়গায় রাখুন।</p><div id="bkLast" style="font-size:12.5px;margin-bottom:10px;"></div><button class="checkout-btn" id="bkAllBtn" style="margin:0;" onclick="backupAll()">💾 সব ডেটার ব্যাকআপ নামান</button></div>' +
+    '<div class="bk-card"><h4>📊 অর্ডারের Excel ফাইল</h4><p>সব অর্ডার Excel/Google Sheets-এ খোলার মতো CSV ফাইলে নামবে। হিসাব রাখতে সুবিধা।</p><button class="checkout-btn" style="margin:0;background:var(--accent,#E8A33D);color:#1C2321;" onclick="backupOrdersCsv()">📊 অর্ডার Excel নামান</button></div>' +
+    '<div class="bk-card"><p style="margin:0;">পরামর্শ: প্রতি সপ্তাহে একবার ব্যাকআপ নিন।</p></div>';
+  const ref = document.getElementById('sp_coupon'); ref.parentNode.insertBefore(pg, ref);
+  const grp = [...document.querySelectorAll('.set-grp')].find(g=>g.textContent.trim() === 'ব্যবসা ও টুলস');
+  if(grp){
+    const row = document.createElement('div'); row.className = 'set-row'; row.setAttribute('onclick', "openSetPage('backup')");
+    row.innerHTML = '<div class="set-ib" style="background:#E4F1EC;color:#0F6E5D;font-size:18px;display:grid;place-items:center">💾</div><div class="set-tx"><b>ব্যাকআপ</b><span>অর্ডার ও পণ্যের ডেটা ডাউনলোড</span></div><div class="set-chev"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>';
+    grp.nextElementSibling.appendChild(row);
+  }
+  const _osp = openSetPage; openSetPage = function(k){ _osp(k); if(k === 'backup') renderBackupInfo(); };
 })();
 </script>
 </body>
