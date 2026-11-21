@@ -1452,6 +1452,8 @@ function gotoHeroSlide(i){ heroSlideIndex=i; updateHeroTrackPosition(); startHer
 function handleBannerCta(productId){ if(productId){ openProduct(productId); } else { goto('shopView'); } }
 
 function getProductUrl(id){
+  /* শেয়ার লিংক সার্ভারের মাধ্যমে যায়, যাতে Facebook/WhatsApp-এ ছবি-নাম-দামসহ প্রিভিউ আসে; ক্লিক করলে সোজা এই সাইটের পণ্যে আসে */
+  try{ const api = (typeof orderApiBase === 'function') ? orderApiBase() : ''; if(api && /^https:/.test(api)) return `${api}/p/${encodeURIComponent(id)}?s=${encodeURIComponent(location.origin + location.pathname)}`; }catch(e){}
   return `${location.origin}${location.pathname}?product=${encodeURIComponent(id)}`;
 }
 function copyProductLink(id){
