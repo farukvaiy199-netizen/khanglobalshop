@@ -22,6 +22,9 @@
 {"@type":"Store","name":"Khan Global Shop","alternateName":"খান গ্লোবাল শপ","url":"https://farukvaiy199-netizen.github.io/khanglobalshop/","slogan":"Global Products, Local Trust","areaServed":"BD","founder":{"@type":"Person","name":"Md Faruk Khan","url":"https://farukvaiy199-netizen.github.io/faruk-khan-business-portfolio/"},"sameAs":["https://farukvaiy199-netizen.github.io/faruk-khan-business-portfolio/"]}
 ]}
 </script>
+<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://res.cloudinary.com" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
@@ -267,7 +270,12 @@ img{max-width:100%; display:block;}
 .hscroll::-webkit-scrollbar{display:none;}
 .hscroll .pc{flex:0 0 158px; scroll-snap-align:start;}
 .pc{position:relative; background:#fff; border-radius:20px; overflow:hidden; cursor:pointer; box-shadow:0 6px 20px rgba(16,35,30,.07); border:1px solid rgba(231,226,214,.7); transition:transform .25s cubic-bezier(.2,.8,.3,1), box-shadow .25s; opacity:0; transform:translateY(18px);}
-.pc.in{opacity:1; transform:none; transition:opacity .55s ease, transform .55s cubic-bezier(.2,.8,.3,1), box-shadow .25s;}
+.pc.in{opacity:1; transform:none; transition:opacity .35s ease, transform .4s cubic-bezier(.2,.8,.3,1), box-shadow .25s;}
+.pc-rate{display:flex; align-items:center; gap:5px; margin-top:6px; font-size:11.5px; color:#6b756f; white-space:nowrap;}
+.pc-rate .st{--p:0%; font-size:13px; letter-spacing:1px; background:linear-gradient(90deg,#F2A516 var(--p),#D5DAD6 var(--p)); -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color:transparent;}
+.pc-rate i{font-style:normal; font-weight:800; color:#2d3a34;} .pc-rate em{font-style:normal;}
+.loc-tools{display:flex; gap:8px; flex-wrap:wrap; margin:8px 0 2px;} .loc-tools button,.loc-tools a{border:1px solid #CFE6DC; background:#fff; color:#0A4E42; font-size:12px; font-weight:700; padding:7px 12px; border-radius:10px; text-decoration:none; font-family:inherit;}
+.loc-dbg{font-size:10.5px; color:#8a948e; margin-top:4px;}
 .pc:active{transform:scale(.975);}
 @media (hover:hover){.pc:hover{transform:translateY(-5px); box-shadow:0 16px 34px rgba(16,35,30,.15);} .pc:hover .pc-img img{transform:scale(1.07);}}
 .pc-img{position:relative; aspect-ratio:1/1.05; background:linear-gradient(145deg,#EAF4F0,#F8F1E0); display:flex; align-items:center; justify-content:center; font-size:46px; overflow:hidden;}
@@ -493,6 +501,17 @@ img{max-width:100%; display:block;}
 
 <script>
 const LS_KEY = 'bazaar_data_v1';
+/* গতি: পণ্য (ছবিসহ) বড় — localStorage-এর ৫ MB সীমায় আটকে সেভই হত না, আর প্রতিবার JSON.parse ধীর ছিল।
+   এখন পণ্য থাকে মেমরি + IndexedDB-তে (বড় জায়গা), localStorage-এ শুধু ছোট সেটিংস। */
+var __prodCache = null;
+const _idb = (function(){
+  let dbp = null;
+  const open = ()=> dbp || (dbp = new Promise((res, rej)=>{ try{ const r = indexedDB.open('bazaar_cache', 1); r.onupgradeneeded = ()=>r.result.createObjectStore('kv'); r.onsuccess = ()=>res(r.result); r.onerror = ()=>rej(r.error); }catch(e){ rej(e); } }));
+  return {
+    get: k=>open().then(db=>new Promise((res, rej)=>{ const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = ()=>res(q.result); q.onerror = ()=>rej(q.error); })).catch(()=>null),
+    set: (k, v)=>open().then(db=>new Promise((res, rej)=>{ const t = db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = ()=>res(true); t.onerror = ()=>rej(t.error); })).catch(()=>false)
+  };
+})();
 
 const firebaseConfig = {
   apiKey: "AIzaSyApkX4Wfi7z-cJX1Wrb9hdvc0-H1SvqMzA",
@@ -538,7 +557,11 @@ async function pullFromCloud(){
     merged.products = productsSnap.docs.map(d=>Object.assign({}, d.data(), {id:d.id}));
     const current = (function(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'null'); }catch(e){ return null; } })() || seedData();
     const combined = Object.assign({}, current, merged);
-    localStorage.setItem(LS_KEY, JSON.stringify(combined));
+    __prodCache = merged.products;
+    const idbOk = await _idb.set('products', merged.products);
+    if(idbOk){ delete combined.products; }            // পণ্য IndexedDB-তে আছে — localStorage ছোট রাখি
+    try{ localStorage.setItem(LS_KEY, JSON.stringify(combined)); }
+    catch(qe){ delete combined.products; try{ localStorage.setItem(LS_KEY, JSON.stringify(combined)); }catch(e2){} }
     showCloudTag(true);
     return true;
   }catch(e){
@@ -567,6 +590,7 @@ function seedData(){
 function loadData(){
   try{ const raw = localStorage.getItem(LS_KEY); if(raw){ const d = JSON.parse(raw);
     if(d.settings && d.settings.orderCancelWindowMinutes===undefined) d.settings.orderCancelWindowMinutes=60;
+    if(__prodCache) d.products = __prodCache; else if(!d.products) d.products = [];
     return d; } }catch(e){}
   const seeded = seedData(); saveData(seeded); return seeded;
 }
@@ -1558,6 +1582,9 @@ async function init(){
   // গতি: আগের দেখা পণ্য ফোনে জমা থাকলে সাথে সাথে দেখাই, ক্লাউড থেকে নতুন ডেটা পেছনে এনে বদলে দিই
   let hadCache = false;
   try{ const c = loadData(); hadCache = !!(c && c.products && c.products.length); }catch(e){}
+  if(!hadCache){   // IndexedDB-র জমানো পণ্য (সর্বোচ্চ ০.৪ সেকেন্ড অপেক্ষা)
+    try{ const c = await Promise.race([_idb.get('products'), new Promise(r=>setTimeout(()=>r(null), 400))]); if(c && c.length){ __prodCache = c; hadCache = true; } }catch(e){}
+  }
   const paint = ()=>{
     DB = loadData();
     applyAnnounce(true);
@@ -1574,7 +1601,20 @@ async function init(){
     paint();
     pullFromCloud().then(ok=>{ if(ok){ paint(); } checkDeepLinkProduct(); });
   }else{
-    await pullFromCloud();
+    // প্রথমবার: পুরো তালিকা নামতে সময় লাগে, তাই প্রথম ৮টি পণ্য আগে দেখাই, বাকিটা পেছনে আসে
+    let fullDone = false;
+    const fullP = pullFromCloud().then(ok=>{ fullDone = true; return ok; });
+    Promise.all([fireDb.doc(SETTINGS_DOC).get(), fireDb.collection(PRODUCTS_COL).limit(8).get()]).then(([ss, ps])=>{
+      if(fullDone || ps.empty) return;
+      try{
+        const cur = JSON.parse(localStorage.getItem(LS_KEY) || 'null') || seedData();
+        if(ss.exists){ const dd = ss.data(); if(dd && dd.json) Object.assign(cur, JSON.parse(dd.json)); }
+        delete cur.products; localStorage.setItem(LS_KEY, JSON.stringify(cur));
+        __prodCache = ps.docs.map(d=>Object.assign({}, d.data(), {id:d.id}));
+        paint();
+      }catch(e){}
+    }).catch(()=>{});
+    await fullP;
     paint();
     checkDeepLinkProduct();
   }
@@ -1592,7 +1632,7 @@ async function init(){
     if(activeId==='shopView') renderProducts();
     if(activeId==='accountView') refreshMyOrders();
   };
-  setInterval(()=>{ if(!document.hidden) heavyTick(); }, 120000);
+  setInterval(()=>{ if(!document.hidden) heavyTick(); }, 300000);
   setInterval(()=>{ if(!document.hidden) checkChatUnreadBadge(); }, 30000);
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && Date.now() - _lastPull > 60000) heavyTick(); });
 }
@@ -1852,10 +1892,10 @@ function trackEvent(fbName, gaName, params){
    আগে প্রতি ৫ সেকেন্ডে সব পণ্য নতুন করে পড়া হতো। এখন ৬০ সেকেন্ডের মধ্যে একবারের বেশি নয়,
    আর ট্যাব লুকানো থাকলে পড়া হয় না। অর্ডার দেওয়ার পর সাথে সাথে স্টক নতুন করে আসে। */
 (function(){
-  let lastPullAt = Date.now();
+  let lastPullAt = 0;   // আগে Date.now() ছিল — ফলে সাইট খোলার প্রথম ৬০ সেকেন্ড ক্লাউড থেকে পণ্য আনাই হত না (নতুন ভিজিটরের পণ্য দেরিতে আসার আসল কারণ)
   const _pull = pullFromCloud;
   pullFromCloud = async function(){
-    if(document.visibilityState === 'hidden') return true;
+    if(lastPullAt && document.visibilityState === 'hidden') return true;
     if(Date.now() - lastPullAt < 60000) return true;
     lastPullAt = Date.now();
     return _pull();
@@ -2395,12 +2435,36 @@ async function submitAuth(){
 (function(){
   /* ---- প্রিমিয়াম পণ্য কার্ড ---- */
   const CART_SVG = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11.2a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 8H6.2"/><circle cx="10" cy="20.5" r="1.3"/><circle cx="17" cy="20.5" r="1.3"/></svg>';
+  // Cloudinary ছবি হলে কার্ডের জন্য ছোট ও হালকা সংস্করণ চাই (ফোনের ডেটা ও গতি বাঁচে)
+  function thumbUrl(u, w){
+    try{ if(typeof u === 'string' && u.indexOf('res.cloudinary.com') > 0 && u.indexOf('/upload/') > 0 && !/\/upload\/[^/]*(w_|f_auto)/.test(u)) return u.replace('/upload/', '/upload/f_auto,q_auto,w_' + w + '/'); }catch(e){}
+    return u;
+  }
+  window.thumbUrl = thumbUrl;
+  const BN = '০১২৩৪৫৬৭৮৯', toBn = x => String(x).replace(/[0-9]/g, d => BN[d]);
+  window.__ratings = {};
+  function ratingHTML(pid){
+    const r = window.__ratings[pid];
+    if(!r) return '<div class="pc-rate" data-pid="' + pid + '"><span class="st" style="--p:0%">★★★★★</span><em>রিভিউ নেই</em></div>';
+    return '<div class="pc-rate" data-pid="' + pid + '"><span class="st" style="--p:' + Math.round(r.avg / 5 * 100) + '%">★★★★★</span><i>' + toBn(r.avg.toFixed(1)) + '</i><em>(' + toBn(r.n) + ')</em></div>';
+  }
+  function buildRatings(){
+    const m = {};
+    (window.siteReviews || (typeof siteReviews !== 'undefined' ? siteReviews : [])).forEach(r => { if(!r.pid) return; const o = m[r.pid] || (m[r.pid] = { sum: 0, n: 0 }); o.sum += (r.stars || 0); o.n++; });
+    const out = {}; Object.keys(m).forEach(k => out[k] = { avg: m[k].sum / m[k].n, n: m[k].n });
+    window.__ratings = out;
+    document.querySelectorAll('.pc-rate').forEach(el => { const t = document.createElement('div'); t.innerHTML = ratingHTML(el.dataset.pid); el.replaceWith(t.firstChild); });
+  }
+  const _lsr = window.loadSiteReviews;
+  window.loadSiteReviews = async function(){ const r = await _lsr.apply(this, arguments); buildRatings(); return r; };
+  // হোম খোলার সাথে সাথেই রিভিউ আনি (আগে শুধু রিভিউ-সেকশন খোলার সময় আসত)
+  setTimeout(() => { try{ window.loadSiteReviews(); }catch(e){} }, 1200);
   window.productCardHTML = function(p){
     const off = p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0;
     const sold = (p.stock || 0) <= 0;
     const act = DB.products.filter(x => x.status === 'active');
     const isNew = act.slice(-4).indexOf(p) >= 0;
-    const img = p.image ? '<img src="' + p.image + '" loading="lazy" decoding="async" alt="">' : (p.emoji || '🛍️');
+    const img = p.image ? '<img src="' + thumbUrl(p.image, 420) + '" loading="lazy" decoding="async" alt="">' : (p.emoji || '🛍️');
     return '<div class="pc" onclick="openProduct(\'' + p.id + '\')">' +
       '<div class="pc-img">' + img +
         (off > 0 ? '<span class="pc-off">-' + off + '%</span>' : '') + (isNew ? '<span class="pc-new">✨ নতুন</span>' : '') +
@@ -2408,6 +2472,7 @@ async function submitAuth(){
         (sold ? '<div class="pc-sold">স্টকে নেই</div>' : '') +
         '<button class="pc-fab" ' + (sold ? 'disabled' : '') + ' aria-label="কার্টে যোগ করুন" onclick="event.stopPropagation(); quickAdd(\'' + p.id + '\')">' + CART_SVG + '</button>' +
       '</div><div class="pc-body"><div class="pc-name">' + escapeHtml(p.name) + '</div>' +
+      ratingHTML(p.id) +
       '<div class="pc-prices"><b>৳' + p.price + '</b>' + (p.oldPrice ? '<s>৳' + p.oldPrice + '</s>' : '') + '</div>' +
       (!sold && p.stock <= 5 ? '<div class="pc-low">🔥 মাত্র ' + p.stock + 'টি বাকি</div>' : '') +
       '</div></div>';
@@ -2416,7 +2481,7 @@ async function submitAuth(){
   function reveal(){
     const cards = document.querySelectorAll('.pc:not(.in)');
     if(!('IntersectionObserver' in window)){ cards.forEach(c => c.classList.add('in')); return; }
-    if(!io) io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ const el = e.target, i = +el.dataset.i || 0; setTimeout(() => el.classList.add('in'), Math.min(i, 6) * 70); io.unobserve(el); } }), { rootMargin: '0px 0px -30px 0px' });
+    if(!io) io = new IntersectionObserver(es => es.forEach(e => { if(e.isIntersecting){ const el = e.target, i = +el.dataset.i || 0; setTimeout(() => el.classList.add('in'), Math.min(i, 6) * 40); io.unobserve(el); } }), { rootMargin: '0px 0px -30px 0px' });
     cards.forEach((c, i) => { c.dataset.i = i % 8; io.observe(c); });
   }
   const _rp = window.renderProducts;
@@ -2494,8 +2559,19 @@ async function submitAuth(){
       chip('✏️ দরকার হলে নিচে বদলে নিন');
     }catch(e){
       steps.innerHTML = '';
-      err.textContent = (e && e.code === 1) ? 'লোকেশনের অনুমতি দেওয়া হয়নি — ব্রাউজারের সেটিংসে অনুমতি দিন, অথবা নিজে ঠিকানা লিখুন।'
-        : (e && e.code === 3) ? 'লোকেশন পেতে দেরি হচ্ছে — আবার চেষ্টা করুন বা নিজে লিখুন।' : 'লোকেশন থেকে ঠিকানা আনা যায়নি — নিচে নিজে লিখুন।';
+      let st = ''; try{ st = (await navigator.permissions.query({ name: 'geolocation' })).state; }catch(x){}
+      const android = /Android/i.test(navigator.userAgent);
+      const chromeLink = android ? '<a href="intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;package=com.android.chrome;end">🌐 Chrome-এ খুলুন</a>' : '';
+      let msg;
+      if(e && e.code === 1){
+        msg = st === 'denied'
+          ? 'এই সাইটের জন্য লোকেশন ব্লক করা আছে। Chrome-এর ⋮ মেনু → সেটিংস → সাইট সেটিংস → লোকেশন → এই সাইট খুঁজে "অনুমতি দিন" করুন, তারপর পেজ রিফ্রেশ করুন।'
+          : 'ব্রাউজার লোকেশন দিতে দিচ্ছে না। আপনি যদি অন্য অ্যাপ (Messenger/Facebook ইত্যাদি) থেকে সাইট খুলে থাকেন, তবে ⋮ মেনু থেকে "Chrome-এ খুলুন" চেপে সেখানে আবার চেষ্টা করুন। আর ফোনের লোকেশন (GPS) চালু আছে কি দেখুন।';
+      } else if(e && e.code === 2) msg = 'ফোনের লোকেশন (GPS) বন্ধ বা সিগন্যাল নেই — লোকেশন চালু করে আবার চেষ্টা করুন।';
+      else if(e && e.code === 3) msg = 'লোকেশন পেতে দেরি হচ্ছে — খোলা জায়গায় গিয়ে আবার চেষ্টা করুন, অথবা নিজে লিখুন।';
+      else msg = 'লোকেশন থেকে ঠিকানা আনা যায়নি — ইন্টারনেট দেখে আবার চেষ্টা করুন, অথবা নিচে নিজে লিখুন।';
+      err.innerHTML = msg + '<div class="loc-tools"><button type="button" onclick="useMyLocation()">🔄 আবার চেষ্টা</button>' + chromeLink + '</div>' +
+        '<div class="loc-dbg">(কোড: ' + ((e && e.code) || '—') + ' · অনুমতি: ' + (st || 'অজানা') + ')</div>';
     }finally{ locBusy = false; btn.classList.remove('busy'); }
   };
   (function(){
