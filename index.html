@@ -315,6 +315,39 @@ img{max-width:100%; display:block;}
 #authModal .au-otpmsg.err{color:#C0392B;}
 
 </style>
+<script id="dealCore">
+/* ছাড়ের হিসাব (সার্ভারের pricing.js-এর সঙ্গে হুবহু একই নিয়ম): ফ্ল্যাশ সেল + বান্ডেল + কুপন */
+(function(){
+  var _n = function(v, d){ var n = parseFloat(v); return (v === undefined || v === null || v === '' || isNaN(n)) ? d : n; };
+  window.normCoupon = function(v){
+    if(v && typeof v === 'object') return { type: v.type === 'percent' ? 'percent' : 'amount', value: _n(v.value, 0), min: _n(v.min, 0), max: _n(v.max, 0), expires: String(v.expires || ''), first: !!v.first, active: v.active !== false };
+    return { type: 'amount', value: _n(v, 0), min: 0, max: 0, expires: '', first: false, active: true };
+  };
+  window.flashOn = function(){ var f = ((typeof DB !== 'undefined' && DB.settings) || {}).flash; return !!(f && f.on && _n(f.pct, 0) > 0 && _n(f.endAt, 0) > Date.now()); };
+  window.flashPct = function(pid){ if(!window.flashOn()) return 0; var f = DB.settings.flash, ids = Array.isArray(f.pids) ? f.pids : []; return (!ids.length || ids.indexOf(pid) >= 0) ? _n(f.pct, 0) : 0; };
+  window.dealDiscount = function(lines, code, ctx){
+    var st = (typeof DB !== 'undefined' && DB.settings) || {}, now = Date.now();
+    var subtotal = lines.reduce(function(s, l){ return s + l.price * l.qty; }, 0);
+    var flash = 0;
+    if(window.flashOn()){ var f = st.flash, ids = Array.isArray(f.pids) ? f.pids : [], pct = _n(f.pct, 0); lines.forEach(function(l){ if(!ids.length || ids.indexOf(l.pid) >= 0) flash += Math.round(l.price * l.qty * pct / 100); }); }
+    var bundle = 0, b = st.bundle, q = lines.reduce(function(s, l){ return s + l.qty; }, 0);
+    if(b && b.on && _n(b.pct, 0) > 0 && q >= Math.max(_n(b.minQty, 2), 2)) bundle = Math.round(Math.max(subtotal - flash, 0) * _n(b.pct, 0) / 100);
+    var coupon = 0, err = '', cc = String(code || '').trim().toUpperCase();
+    if(cc){
+      var raw = st.coupons && st.coupons[cc];
+      if(raw === undefined || raw === null || raw === '') err = 'অবৈধ কুপন কোড';
+      else{
+        var c = window.normCoupon(raw), base = Math.max(subtotal - flash - bundle, 0);
+        if(!c.active) err = 'এই কুপনটি এখন বন্ধ আছে';
+        else if(c.expires && now > Date.parse(c.expires + 'T23:59:59+06:00')) err = 'এই কুপনের মেয়াদ শেষ';
+        else if(c.min && base < c.min) err = 'এই কুপনের জন্য কমপক্ষে ৳' + c.min + ' এর কেনাকাটা লাগবে';
+        else{ coupon = c.type === 'percent' ? Math.round(base * c.value / 100) : c.value; if(c.type === 'percent' && c.max > 0) coupon = Math.min(coupon, c.max); }
+      }
+    }
+    return { flash: flash, bundle: bundle, coupon: coupon, total: Math.min(flash + bundle + coupon, subtotal), couponError: err };
+  };
+})();
+</script>
 </head>
 <body>
 <noscript><h1>Khan Global Shop — খান গ্লোবাল শপ</h1><p>Khan Global Shop (খান গ্লোবাল শপ) বাংলাদেশের অনলাইন শপ। সারা বাংলাদেশে ডেলিভারি, ক্যাশ অন ডেলিভারি। অর্ডার: https://farukvaiy199-netizen.github.io/khanglobalshop/ · হটসঅ্যাপ/কল: 01400778482</p></noscript>
@@ -421,6 +454,7 @@ img{max-width:100%; display:block;}
     <h3 style="margin-bottom:8px;">অর্ডার সফল হয়েছে!</h3>
     <p id="successOrderId" style="color:var(--ink-soft); font-size:13.5px; margin-bottom:18px;"></p>
     <button class="checkout-btn" style="max-width:220px; margin:0 auto;" onclick="goto('homeView')">হোমে ফিরুন</button>
+    <button class="checkout-btn" style="max-width:220px; margin:10px auto 0; background:transparent; color:var(--primary); border:1.5px solid var(--primary);" onclick="openTrack()">📦 অর্ডার ট্র্যাক করুন</button>
   </div>
 </div>
 
@@ -440,6 +474,7 @@ img{max-width:100%; display:block;}
   <div class="footer-info">
     <div class="frow"><span class="ficon">📍</span><span id="footerAddress"></span></div>
     <div class="frow"><span class="ficon">📞</span><span id="footerPhone"></span></div>
+    <div class="frow"><span class="ficon">📦</span><a href="javascript:void(0)" onclick="openTrack()" style="color:inherit; text-decoration:underline;">অর্ডার ট্র্যাক করুন</a></div>
     <div class="frow"><span class="ficon">✉️</span><span id="footerEmail"></span></div>
   </div>
   <div class="footer-links" id="footerLinks">
@@ -776,7 +811,7 @@ async function loadAndRenderReviews(pid){
     if(label) label.textContent = `রিভিউ (${reviews.length})`;
     const area = document.getElementById('reviewsListArea');
     if(area) area.innerHTML = reviews.length
-      ? reviews.map(r=>`<div class="review-item"><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><b>${escapeHtml(r.name)}</b><div style="color:var(--ink-soft);">${escapeHtml(r.text)}</div></div>`).join('')
+      ? reviews.map(r=>`<div class="review-item"><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div><b>${escapeHtml(r.name)}</b><div style="color:var(--ink-soft);">${escapeHtml(r.text)}</div>${r.photo?`<img class="rv-photo" src="${r.photo}" alt="গ্রাহকের ছবি" onclick="viewPhoto(this.src)">`:''}</div>`).join('')
       : '<div style="color:var(--ink-soft); font-size:13px;">এখনো কোনো রিভিউ নেই।</div>';
   }catch(e){
     if(currentReviewProductId !== pid) return;
@@ -795,6 +830,7 @@ function writeReviewFormHtml(name){
       <div id="reviewStarPicker" style="font-size:24px; letter-spacing:4px; cursor:pointer;">${[1,2,3,4,5].map(i=>`<span data-star="${i}" onclick="setReviewStars(${i})" style="color:var(--line);">★</span>`).join('')}</div>
     </div>
     <div class="form-group" style="margin-bottom:10px;"><label>মন্তব্য</label><textarea id="reviewTextInput" rows="3" placeholder="আপনার অভিজ্ঞতা লিখুন..."></textarea></div>
+    <div class="rv-photo-pick"><label for="rvPhotoInp">📷 ছবি যোগ করুন (ঐচ্ছিক)</label><input type="file" id="rvPhotoInp" accept="image/*" onchange="pickReviewPhoto(this)"><div id="rvPhotoPrev"></div></div>
     <button class="add-btn" style="background:var(--primary);" onclick="submitProductReview()">রিভিউ জমা দিন</button>
   </div>`;
 }
@@ -855,10 +891,10 @@ async function submitProductReview(){
   try{
     await fireDb.collection(REVIEWS_COL).add({
       pid: currentReviewProductId, ownerUid: currentUser.uid,
-      name, stars: selectedReviewStars, text, status:'pending',
+      name, stars: selectedReviewStars, text, status:'pending', photo: window.__rvPhoto || '',
       submittedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    selectedReviewStars = 0;
+    selectedReviewStars = 0; window.__rvPhoto = '';
     toast('আপনার রিভিউ জমা হয়েছে ✓ — অনুমোদনের পর দেখানো হবে');
     renderReviewFormArea(currentReviewProductId);
   }catch(e){
@@ -1205,6 +1241,7 @@ async function placeOrder(){
     ? `অর্ডার আইডি: ${result.orderId} — ট্রানজেকশন আইডি (${transactionId}) যাচাই করার পর অর্ডার প্রসেস হবে`
     : `অর্ডার আইডি: ${result.orderId} — শীঘ্রই কুরিয়ারে পাঠানো হবে`;
   document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  try{ localStorage.setItem('kgs_last', JSON.stringify({ id: result.orderId, phone: phone })); }catch(e){}
   document.getElementById('successView').classList.add('active');
 }
 async function runOrderTransaction(input){
@@ -1227,8 +1264,9 @@ async function runOrderTransaction(input){
       itemsSnapshot.push({ pid: itemRefs[i].pid, name: p.name, qty, price: p.price });
     });
 
-    let discount = 0;
-    if(input.couponCode && DB.settings.coupons && DB.settings.coupons[input.couponCode]) discount = DB.settings.coupons[input.couponCode];
+    const _dd = dealDiscount(itemsSnapshot, input.couponCode);
+    if(_dd.couponError) throw new Error(_dd.couponError);
+    let discount = _dd.total;
     const taxableAmount = Math.max(subtotal - discount, 0);
     const taxRate = parseFloat(DB.settings.tax) || 0;
     const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
@@ -1724,7 +1762,7 @@ function reviewCardHtml(r){
       <div class="rv-who"><b>${escapeHtml(nm)}</b><span>${r.email ? escapeHtml(maskEmail(r.email)) : 'যাচাইকৃত গ্রাহক'}</span></div>
       <span class="rv-ver">✓ যাচাইকৃত ক্রেতা</span></div>
     <div class="rv-stars">${starsText(r.stars)}</div>
-    <div class="rv-text">${escapeHtml(r.text)}</div>
+    <div class="rv-text">${escapeHtml(r.text)}</div>${r.photo ? `<img class="rv-photo" src="${r.photo}" alt="গ্রাহকের ছবি" onclick="viewPhoto(this.src)">` : ''}
     <div class="rv-foot">${p ? `<span class="rv-prod" onclick="openProduct('${p.id}')">🛍️ ${escapeHtml(p.name)}</span>` : '<span></span>'}<span>${dt ? new Date(dt).toLocaleDateString('bn-BD') : ''}</span></div>
   </div>`;
 }
@@ -2066,7 +2104,9 @@ renderCart = function(){
 };
 computeSummary = function(){
   const subtotal = cart.reduce((s, c)=>{ const info = lineInfo(c); return s + (info ? info.price * c.qty : 0); }, 0);
-  let discount = 0; if(appliedCoupon && DB.settings.coupons[appliedCoupon]) discount = DB.settings.coupons[appliedCoupon];
+  const _dd = dealDiscount(cart.map(c=>{ const i = lineInfo(c); return { pid: c.pid, qty: c.qty, price: i ? i.price : 0 }; }), appliedCoupon);
+  if(_dd.couponError && appliedCoupon){ appliedCoupon = null; const cm = document.getElementById('couponMsg'); if(cm) cm.textContent = '✗ ' + _dd.couponError; }
+  const discount = _dd.total; if(window.showDealNote) showDealNote(_dd);
   const taxableAmount = Math.max(subtotal - discount, 0);
   const taxRate = parseFloat(DB.settings.tax) || 0;
   const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
@@ -2212,8 +2252,9 @@ async function runOrderTransactionDirect(input){
         writes.push([g.ref, { stock: Math.max((p.stock || 0) - qty, 0) }]);
       }
     });
-    let discount = 0;
-    if(input.couponCode && DB.settings.coupons && DB.settings.coupons[input.couponCode]) discount = DB.settings.coupons[input.couponCode];
+    const _dd = dealDiscount(itemsSnapshot, input.couponCode);
+    if(_dd.couponError) throw new Error(_dd.couponError);
+    let discount = _dd.total;
     const taxableAmount = Math.max(subtotal - discount, 0);
     const taxRate = parseFloat(DB.settings.tax) || 0;
     const tax = taxRate > 0 ? Math.round(taxableAmount * taxRate / 100) : 0;
@@ -2476,7 +2517,7 @@ async function submitAuth(){
         '<button class="pc-fab" ' + (sold ? 'disabled' : '') + ' aria-label="কার্টে যোগ করুন" onclick="event.stopPropagation(); quickAdd(\'' + p.id + '\')">' + CART_SVG + '</button>' +
       '</div><div class="pc-body"><div class="pc-name">' + escapeHtml(p.name) + '</div>' +
       ratingHTML(p.id) +
-      '<div class="pc-prices"><b>৳' + p.price + '</b>' + (p.oldPrice ? '<s>৳' + p.oldPrice + '</s>' : '') + '</div>' +
+      (flashPct(p.id) ? '<div class="pc-prices"><b class="fl">৳' + (p.price - Math.round(p.price * flashPct(p.id) / 100)) + '</b><s>৳' + p.price + '</s></div><div class="pc-flash">⚡ ফ্ল্যাশ সেল −' + toBn(flashPct(p.id)) + '%</div>' : '<div class="pc-prices"><b>৳' + p.price + '</b>' + (p.oldPrice ? '<s>৳' + p.oldPrice + '</s>' : '') + '</div>') +
       (!sold && p.stock <= 5 ? '<div class="pc-low">🔥 মাত্র ' + p.stock + 'টি বাকি</div>' : '') +
       '</div></div>';
   };
@@ -2612,6 +2653,236 @@ async function submitAuth(){
   };
 })();
 
+</script>
+<style id="dealCss">
+.fl-banner{position:relative;overflow:hidden;border-radius:22px;margin:0 0 16px;padding:18px 16px 16px;color:#fff;background:linear-gradient(135deg,#7A1B0C 0%,#C1440E 55%,#E8A33D 130%);box-shadow:0 14px 32px rgba(193,68,14,.28)}
+.fl-banner:before{content:"";position:absolute;right:-40px;top:-40px;width:160px;height:160px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.28),transparent 70%)}
+.fl-top{display:flex;align-items:center;gap:10px;position:relative}
+.fl-ic{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.18);display:grid;place-items:center;font-size:20px;backdrop-filter:blur(4px)}
+.fl-top b{font-size:17px;letter-spacing:.2px;display:block}
+.fl-top small{font-size:12px;opacity:.9}
+.fl-off{margin-left:auto;font-weight:800;font-size:22px;background:#fff;color:#C1440E;border-radius:12px;padding:4px 10px;line-height:1.1;text-align:center}
+.fl-off i{display:block;font-style:normal;font-size:10px;font-weight:700}
+.fl-cd{display:flex;gap:8px;margin-top:14px;position:relative}
+.fl-cd div{flex:1;background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.18);border-radius:12px;padding:8px 0;text-align:center}
+.fl-cd b{display:block;font-size:22px;font-variant-numeric:tabular-nums;line-height:1.1}
+.fl-cd span{font-size:10.5px;opacity:.85}
+.fl-cta{margin-top:12px;width:100%;border:0;border-radius:12px;padding:11px;font-weight:800;font-family:inherit;font-size:14px;background:#fff;color:#7A1B0C;cursor:pointer;position:relative}
+.pc-prices b.fl{color:#C1440E}
+.pc-flash{display:inline-block;margin-top:4px;font-size:11px;font-weight:800;color:#fff;background:linear-gradient(90deg,#C1440E,#E8731D);padding:2px 8px;border-radius:20px}
+.pd-flash{margin:8px 0;padding:10px 12px;border-radius:12px;background:linear-gradient(90deg,#FBE7DC,#FCEED8);color:#7A1B0C;font-size:13px;font-weight:700;border:1px solid #F3C9AE}
+.deal-box{background:linear-gradient(135deg,#E4F1EC,#F6E7C1);border:1px solid #CFE3DA;border-radius:14px;padding:11px 13px;margin:12px 0;font-size:13px;font-weight:700;color:var(--primary-dark)}
+.deal-box .bar{height:6px;border-radius:6px;background:rgba(15,110,93,.15);margin-top:8px;overflow:hidden}.deal-box .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--primary),var(--gold,#C9962E));border-radius:6px;transition:width .4s}
+.sug-h{font-weight:800;font-size:14px;margin:16px 0 8px}
+.sug-row{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;scroll-snap-type:x mandatory}
+.sug{flex:0 0 132px;scroll-snap-align:start;background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:var(--shadow)}
+.sug .im{height:92px;background:var(--primary-tint);display:grid;place-items:center;font-size:30px;overflow:hidden}.sug .im img{width:100%;height:100%;object-fit:cover}
+.sug .tx{padding:8px}.sug .tx div{font-size:12px;font-weight:700;line-height:1.3;height:31px;overflow:hidden}.sug .tx b{display:block;color:var(--primary-dark);font-size:13px;margin:3px 0 6px}
+.sug button{width:100%;border:0;border-radius:9px;padding:7px;font-weight:800;font-size:12px;background:var(--primary);color:#fff;font-family:inherit;cursor:pointer}
+.deal-note{font-size:11.5px;color:var(--primary-dark);margin:-4px 0 8px;line-height:1.7}
+.ab-sheet{position:fixed;left:12px;right:12px;bottom:76px;z-index:9998;background:#fff;border-radius:20px;box-shadow:0 18px 50px rgba(0,0,0,.28);padding:16px;border:1px solid var(--line);transform:translateY(140%);transition:transform .45s cubic-bezier(.2,.8,.2,1)}
+.ab-sheet.show{transform:none}
+.ab-sheet h4{margin:0 0 4px;font-size:15px}.ab-sheet p{margin:0 0 12px;font-size:12.5px;color:var(--ink-soft)}
+.ab-sheet .r{display:flex;gap:8px}.ab-sheet .r a,.ab-sheet .r button{flex:1;text-align:center;border:0;border-radius:12px;padding:11px 6px;font-weight:800;font-size:13px;font-family:inherit;text-decoration:none;cursor:pointer}
+.ab-go{background:var(--primary);color:#fff}.ab-wa{background:#25D366;color:#fff}.ab-x{position:absolute;right:10px;top:8px;background:none!important;color:#999;flex:0!important;font-size:18px!important;padding:2px 8px!important}
+.rv-photo{display:block;width:96px;height:96px;object-fit:cover;border-radius:12px;margin:8px 0 2px;border:1px solid var(--line);cursor:zoom-in}
+.rv-photo-pick{margin-bottom:10px}.rv-photo-pick label{display:inline-block;font-size:12.5px;font-weight:700;color:var(--primary-dark);background:var(--primary-tint);border-radius:10px;padding:8px 12px;cursor:pointer}.rv-photo-pick input{display:none}
+#rvPhotoPrev img{width:84px;height:84px;object-fit:cover;border-radius:12px;margin-top:8px;border:1px solid var(--line)}
+.ph-lb{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:10000;display:grid;place-items:center;padding:16px}.ph-lb img{max-width:100%;max-height:90vh;border-radius:12px}
+.trk-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.trk-card input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;font-family:inherit;font-size:14px;margin-bottom:10px}
+.trk-steps{position:relative;margin:14px 0 4px;padding-left:34px}
+.trk-steps:before{content:"";position:absolute;left:13px;top:6px;bottom:18px;width:3px;background:var(--line);border-radius:3px}
+.trk-s{position:relative;padding:0 0 18px;font-size:13.5px;color:var(--ink-soft)}
+.trk-s:before{content:"";position:absolute;left:-30px;top:1px;width:20px;height:20px;border-radius:50%;background:#fff;border:3px solid var(--line)}
+.trk-s.on{color:var(--ink);font-weight:800}.trk-s.on:before{background:var(--primary);border-color:var(--primary-tint);box-shadow:0 0 0 3px var(--primary)}
+.trk-s small{display:block;font-weight:500;color:var(--ink-soft);font-size:11.5px}
+.trk-bad{background:var(--danger-tint);color:var(--danger);border-radius:12px;padding:12px;font-weight:700;font-size:13px}
+</style>
+<script id="dealPack">
+(function(){
+  var BN = '০১২৩৪৫৬৭৮৯', bn = function(x){ return String(x).replace(/[0-9]/g, function(d){ return BN[d]; }); };
+  var esc = function(t){ return (typeof escapeHtml === 'function') ? escapeHtml(t) : String(t == null ? '' : t); };
+  var S = function(){ return (typeof DB !== 'undefined' && DB.settings) || {}; };
+
+  /* ---------- ফ্ল্যাশ সেল ব্যানার + কাউন্টডাউন ---------- */
+  var flKey = '';
+  function flHtml(f){
+    var all = !(f.pids && f.pids.length);
+    return '<div class="fl-top"><div class="fl-ic">⚡</div><div><b>' + esc(f.title || 'ফ্ল্যাশ সেল') + '</b><small>' + (all ? 'সব পণ্যে' : 'নির্বাচিত পণ্যে') + ' অটো ছাড় — কোড লাগবে না</small></div><div class="fl-off">' + bn(f.pct) + '%<i>ছাড়</i></div></div>' +
+      '<div class="fl-cd"><div><b id="flD">০০</b><span>দিন</span></div><div><b id="flH">০০</b><span>ঘণ্টা</span></div><div><b id="flM">০০</b><span>মিনিট</span></div><div><b id="flS">০০</b><span>সেকেন্ড</span></div></div>' +
+      '<button class="fl-cta" onclick="goto(\'shopView\')">এখনই কিনুন →</button>';
+  }
+  function tick(){
+    var host = document.getElementById('flashBanner'), home = document.getElementById('homeView');
+    var on = window.flashOn(), f = S().flash || {};
+    var key = on ? [f.endAt, f.pct, f.title, (f.pids || []).join(',')].join('|') : 'off';
+    if(key !== flKey){
+      flKey = key;
+      if(host){ host.remove(); host = null; }
+      if(on && home){
+        host = document.createElement('div'); host.id = 'flashBanner'; host.className = 'fl-banner'; host.innerHTML = flHtml(f);
+        var hs = document.getElementById('heroSlider'); hs && hs.parentNode ? hs.parentNode.insertBefore(host, hs.nextSibling) : home.prepend(host);
+      }
+      try{ renderProducts(); }catch(e){}
+    }
+    if(on){
+      var left = Math.max(0, Math.floor((f.endAt - Date.now()) / 1000)), set = function(id, v){ var e = document.getElementById(id); if(e) e.textContent = bn(String(v).padStart(2, '0')); };
+      set('flD', Math.floor(left / 86400)); set('flH', Math.floor(left % 86400 / 3600)); set('flM', Math.floor(left % 3600 / 60)); set('flS', left % 60);
+    }
+  }
+  setInterval(tick, 1000); setTimeout(tick, 300);
+
+  /* ---------- পণ্যের পাতা: ফ্ল্যাশ নোট + সাথে এটাও নিন ---------- */
+  function sugList(excludeIds, catHint){
+    var ex = {}; excludeIds.forEach(function(i){ ex[i] = 1; });
+    var pool = (DB.products || []).filter(function(p){ return p.status === 'active' && (p.stock || 0) > 0 && !ex[p.id]; });
+    pool.sort(function(a, b){ return (b.category === catHint) - (a.category === catHint); });
+    return pool.slice(0, 6);
+  }
+  function sugHtml(list, title){
+    if(!list.length) return '';
+    return '<div class="sug-h">' + title + '</div><div class="sug-row">' + list.map(function(p){
+      var fp = window.flashPct(p.id), price = fp ? p.price - Math.round(p.price * fp / 100) : p.price;
+      return '<div class="sug"><div class="im" onclick="openProduct(\'' + p.id + '\')">' + (p.image ? '<img loading="lazy" src="' + (typeof thumbUrl === 'function' ? thumbUrl(p.image, 260) : p.image) + '" alt="">' : (p.emoji || '🛍️')) + '</div><div class="tx"><div>' + esc(p.name) + '</div><b>৳' + price + '</b><button onclick="sugAdd(\'' + p.id + '\')">+ যোগ করুন</button></div></div>';
+    }).join('') + '</div>';
+  }
+  window.sugAdd = function(id){ quickAdd(id); if(document.getElementById('cartView').classList.contains('active')) renderCart(); };
+  var _op = window.openProduct;
+  window.openProduct = function(id){
+    _op.apply(this, arguments);
+    try{
+      var p = DB.products.find(function(x){ return x.id === id; }); if(!p) return;
+      var fp = window.flashPct(id), pr = document.querySelector('#productView .pd-price');
+      if(fp && pr){ var d = document.createElement('div'); d.className = 'pd-flash'; d.textContent = '⚡ ফ্ল্যাশ সেল: কার্টে ৳' + (p.price - Math.round(p.price * fp / 100)) + ' (−' + bn(fp) + '%) — সময় শেষ হওয়ার আগে নিন!'; pr.parentNode.insertBefore(d, pr.nextSibling); }
+      var b = S().bundle, rv = document.querySelector('#productView .reviews');
+      if(rv){
+        var html = '';
+        if(b && b.on && +b.pct > 0) html += '<div class="deal-box">🎁 ' + bn(Math.max(+b.minQty || 2, 2)) + 'টি বা তার বেশি পণ্য কিনলে অটো ' + bn(b.pct) + '% বান্ডেল ছাড়!</div>';
+        html += sugHtml(sugList([id], p.category), '🧩 সাথে এটাও নিন');
+        if(html){ var w = document.createElement('div'); w.id = 'pdSug'; w.innerHTML = html; rv.parentNode.insertBefore(w, rv); }
+      }
+    }catch(e){}
+  };
+
+  /* ---------- কার্ট: বান্ডেল অগ্রগতি + সাজেশন + ছাড়ের বিবরণ ---------- */
+  function renderCartDeals(){
+    var list = document.getElementById('cartList'); if(!list) return;
+    var old = document.getElementById('cartDeals'); if(old) old.remove();
+    if(!cart.length) return;
+    var b = S().bundle, qty = cart.reduce(function(s, c){ return s + c.qty; }, 0), html = '';
+    if(b && b.on && +b.pct > 0){
+      var need = Math.max(+b.minQty || 2, 2);
+      html += qty >= need
+        ? '<div class="deal-box">🎉 বান্ডেল ছাড় পাচ্ছেন — ' + bn(b.pct) + '% অটো বাদ গেছে!<div class="bar"><i style="width:100%"></i></div></div>'
+        : '<div class="deal-box">🎁 আর ' + bn(need - qty) + 'টি পণ্য নিলেই ' + bn(b.pct) + '% বান্ডেল ছাড়!<div class="bar"><i style="width:' + Math.round(qty / need * 100) + '%"></i></div></div>';
+    }
+    var cats = cart.map(function(c){ var p = DB.products.find(function(x){ return x.id === c.pid; }); return p && p.category; });
+    html += sugHtml(sugList(cart.map(function(c){ return c.pid; }), cats[0]), '🧩 সাথে এটাও নিন');
+    var w = document.createElement('div'); w.id = 'cartDeals'; w.innerHTML = html; list.parentNode.insertBefore(w, list.nextSibling);
+  }
+  var _rc = window.renderCart;
+  window.renderCart = function(){ _rc.apply(this, arguments); try{ renderCartDeals(); }catch(e){} };
+  window.showDealNote = function(d){
+    var row = document.getElementById('sumDiscount'); if(!row) return;
+    row = row.parentNode; var n = document.getElementById('sumDealNote');
+    if(!n){ n = document.createElement('div'); n.id = 'sumDealNote'; n.className = 'deal-note'; row.parentNode.insertBefore(n, row.nextSibling); }
+    var parts = []; if(d.flash) parts.push('⚡ ফ্ল্যাশ −৳' + d.flash); if(d.bundle) parts.push('🎁 বান্ডেল −৳' + d.bundle); if(d.coupon) parts.push('🏷️ কুপন −৳' + d.coupon);
+    n.innerHTML = parts.join(' &nbsp;·&nbsp; ');
+  };
+  window.applyCoupon = function(){
+    var code = document.getElementById('couponInput').value.trim().toUpperCase(), msg = document.getElementById('couponMsg');
+    var d = window.dealDiscount(cart.map(function(c){ var i = lineInfo(c); return { pid: c.pid, qty: c.qty, price: i ? i.price : 0 }; }), code);
+    if(!code){ msg.textContent = ''; appliedCoupon = null; }
+    else if(d.couponError){ appliedCoupon = null; msg.style.color = 'var(--danger)'; msg.textContent = '✗ ' + d.couponError; }
+    else{
+      appliedCoupon = code; msg.style.color = ''; var c = window.normCoupon(S().coupons[code]);
+      msg.textContent = '✓ কুপন প্রয়োগ হয়েছে — ' + (c.type === 'percent' ? bn(c.value) + '% ছাড়' : '৳' + c.value + ' ছাড়') + (c.first ? ' (প্রথম অর্ডারে)' : '');
+    }
+    computeSummary();
+  };
+
+  /* ---------- কার্ট রিমাইন্ডার (পরিত্যক্ত কার্ট) ---------- */
+  var KEY = 'kgs_aband', shown = false;
+  function wa(){ var n = String(S().whatsapp || S().phone || '').replace(/[^0-9]/g, ''); if(n.length === 11 && n[0] === '0') n = '88' + n; return n; }
+  function cartText(){
+    return 'আসসালামু আলাইকুম, আমি ' + (S().storeName || 'আপনাদের শপ') + ' থেকে অর্ডার করতে চাই:\n' + cart.map(function(c){ var p = DB.products.find(function(x){ return x.id === c.pid; }); return '• ' + (p ? p.name : c.pid) + ' × ' + c.qty; }).join('\n');
+  }
+  function showAb(){
+    if(shown || !cart.length) return;
+    var v = document.querySelector('.view.active'); if(v && (v.id === 'cartView' || v.id === 'checkoutView' || v.id === 'successView')) return;
+    shown = true; try{ sessionStorage.setItem('kgs_ab_shown', '1'); }catch(e){}
+    var el = document.createElement('div'); el.className = 'ab-sheet';
+    var n = wa();
+    el.innerHTML = '<button class="ab-x" aria-label="বন্ধ">×</button><h4>🛒 আপনার কার্টে ' + bn(cart.reduce(function(s, c){ return s + c.qty; }, 0)) + 'টি পণ্য অপেক্ষা করছে</h4><p>অর্ডারটা শেষ করে ফেলুন — অথবা সরাসরি আমাদের WhatsApp-এ জানান, আমরা সাহায্য করব।</p><div class="r"><button class="ab-go" id="abGo">কার্টে যান</button>' + (n ? '<a class="ab-wa" target="_blank" rel="noopener" href="https://wa.me/' + n + '?text=' + encodeURIComponent(cartText()) + '">💬 WhatsApp-এ অর্ডার</a>' : '') + '</div>';
+    document.body.appendChild(el); setTimeout(function(){ el.classList.add('show'); }, 50);
+    var close = function(){ el.classList.remove('show'); setTimeout(function(){ el.remove(); }, 500); };
+    el.querySelector('.ab-x').onclick = close; el.querySelector('#abGo').onclick = function(){ close(); goto('cartView'); };
+  }
+  document.addEventListener('visibilitychange', function(){ if(document.hidden && cart.length){ try{ localStorage.setItem(KEY, String(Date.now())); }catch(e){} } });
+  setTimeout(function(){
+    var seen = false; try{ seen = sessionStorage.getItem('kgs_ab_shown') === '1'; }catch(e){}
+    if(seen || !cart.length) return;
+    var t = 0; try{ t = +localStorage.getItem(KEY) || 0; }catch(e){}
+    if(t && Date.now() - t > 10 * 60 * 1000) showAb();
+  }, 3500);
+  setTimeout(function(){ var seen = false; try{ seen = sessionStorage.getItem('kgs_ab_shown') === '1'; }catch(e){} if(!seen) showAb(); }, 150000);
+
+  /* ---------- রিভিউয়ে ছবি ---------- */
+  window.pickReviewPhoto = function(inp){
+    var f = inp.files && inp.files[0], prev = document.getElementById('rvPhotoPrev'); window.__rvPhoto = '';
+    if(!f){ prev.innerHTML = ''; return; }
+    if(!/^image\//.test(f.type)){ toast('শুধু ছবি দিন'); inp.value = ''; return; }
+    var img = new Image(), url = URL.createObjectURL(f);
+    img.onload = function(){
+      var m = 560, r = Math.min(1, m / Math.max(img.width, img.height)), c = document.createElement('canvas');
+      c.width = Math.round(img.width * r); c.height = Math.round(img.height * r); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      var q = .7, out = c.toDataURL('image/jpeg', q);
+      while(out.length > 60000 && q > .3){ q -= .1; out = c.toDataURL('image/jpeg', q); }
+      URL.revokeObjectURL(url);
+      if(out.length > 60000){ toast('ছবিটি বেশি বড় — অন্য ছবি দিন'); inp.value = ''; return; }
+      window.__rvPhoto = out; prev.innerHTML = '<img src="' + out + '" alt="">';
+    };
+    img.onerror = function(){ toast('ছবি পড়া যায়নি'); };
+    img.src = url;
+  };
+  window.viewPhoto = function(src){ var d = document.createElement('div'); d.className = 'ph-lb'; d.innerHTML = '<img src="' + src + '" alt="">'; d.onclick = function(){ d.remove(); }; document.body.appendChild(d); };
+
+  /* ---------- অর্ডার ট্র্যাকিং ---------- */
+  var tv = document.createElement('div'); tv.className = 'view'; tv.id = 'trackView';
+  tv.innerHTML = '<h3 style="margin-bottom:12px;">📦 অর্ডার ট্র্যাক করুন</h3><div class="trk-card"><input id="trkId" placeholder="অর্ডার নম্বর (যেমন ORD1001)" autocomplete="off"><input id="trkPhone" type="tel" inputmode="numeric" placeholder="অর্ডারে দেওয়া মোবাইল নম্বর"><button class="checkout-btn" id="trkBtn" onclick="doTrack()">অবস্থা দেখুন</button></div><div id="trkOut"></div>';
+  document.querySelector('.app, #app, body').appendChild(tv);
+  var main = document.getElementById('homeView'); if(main && main.parentNode && tv.parentNode !== main.parentNode) main.parentNode.insertBefore(tv, document.getElementById('successView') || null);
+  window.openTrack = function(id){
+    goto('trackView');
+    var last = {}; try{ last = JSON.parse(localStorage.getItem('kgs_last') || '{}'); }catch(e){}
+    var a = document.getElementById('trkId'), b = document.getElementById('trkPhone');
+    if(typeof id === 'string' && id) a.value = id; else if(!a.value && last.id) a.value = last.id;
+    if(!b.value && last.phone) b.value = last.phone;
+  };
+  var STEPS = [['অর্ডার গ্রহণ করা হয়েছে', 'আপনার অর্ডার আমরা পেয়েছি'], ['প্রসেসিং চলছে', 'পণ্য প্যাক করা হচ্ছে'], ['কুরিয়ারে পাঠানো হয়েছে', 'ডেলিভারির পথে আছে'], ['ডেলিভারি সম্পন্ন', 'পণ্য পৌঁছে গেছে']];
+  window.doTrack = async function(){
+    var id = document.getElementById('trkId').value.trim(), phone = document.getElementById('trkPhone').value.replace(/[\s-]/g, ''), out = document.getElementById('trkOut'), btn = document.getElementById('trkBtn');
+    phone = phone.replace(/[০-৯]/g, function(d){ return BN.indexOf(d); }); id = id.replace(/[০-৯]/g, function(d){ return BN.indexOf(d); });
+    if(!id || !/^01[3-9]\d{8}$/.test(phone)){ out.innerHTML = '<div class="trk-bad">সঠিক অর্ডার নম্বর ও মোবাইল নম্বর দিন</div>'; return; }
+    var api = (typeof orderApiBase === 'function') ? orderApiBase() : '';
+    if(!api){ out.innerHTML = '<div class="trk-bad">ট্র্যাকিং এখন চালু নেই — অনুগ্রহ করে আমাদের সাথে যোগাযোগ করুন</div>'; return; }
+    btn.disabled = true; btn.textContent = 'খোঁজা হচ্ছে…'; out.innerHTML = '';
+    try{
+      var r = await fetch(api + '/api/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orderId: id, phone: phone }) });
+      var d = await r.json().catch(function(){ return {}; });
+      if(!r.ok) throw new Error(d.error || 'অর্ডার পাওয়া যায়নি');
+      var st = d.status, step = st === 'delivered' ? 3 : (st === 'processing' ? (d.tracking ? 2 : 1) : (/ship|courier|transit/i.test(st) ? 2 : 0));
+      var html = '<div class="trk-card"><div style="display:flex;justify-content:space-between;align-items:center"><b>' + esc(d.id) + '</b><span style="font-size:12px;color:var(--ink-soft)">' + esc(d.date) + '</span></div>';
+      if(st === 'cancelled') html += '<div class="trk-bad" style="margin-top:12px">এই অর্ডারটি বাতিল করা হয়েছে। প্রয়োজনে আমাদের সাথে যোগাযোগ করুন।</div>';
+      else html += '<div class="trk-steps">' + STEPS.map(function(s, i){ return '<div class="trk-s ' + (i <= step ? 'on' : '') + '">' + s[0] + (i === step ? '<small>' + s[1] + '</small>' : '') + '</div>'; }).join('') + '</div>';
+      html += '<div style="font-size:12.5px;color:var(--ink-soft);border-top:1px dashed var(--line);padding-top:10px;line-height:1.8">' + (d.items || []).map(function(i){ return '• ' + esc(i.name) + ' × ' + bn(i.qty); }).join('<br>') + '<br><b style="color:var(--ink)">মোট: ৳' + d.total + '</b>' + (d.tracking ? '<br>🚚 ' + esc(d.courier || 'কুরিয়ার') + ' ট্র্যাকিং কোড: <b>' + esc(d.tracking) + '</b>' : '') + '</div></div>';
+      out.innerHTML = html;
+    }catch(e){ out.innerHTML = '<div class="trk-bad">' + esc(e.message || 'অর্ডার পাওয়া যায়নি') + '</div>'; }
+    btn.disabled = false; btn.textContent = 'অবস্থা দেখুন';
+  };
+  var tp = new URLSearchParams(location.search).get('track'); if(tp) setTimeout(function(){ openTrack(tp); }, 600);
+})();
 </script>
 </body>
 </html>
