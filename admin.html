@@ -1126,7 +1126,7 @@ async function viewOrder(id){
   body.innerHTML = `
     <div style="margin-bottom:10px;"><b>${o.id}</b> <span class="status-pill ${o.status}">${statusLabel(o.status)}</span>${o.cancelledBy==='customer'?` <span style="font-size:11px; color:var(--ink-soft);">(গ্রাহক নিজে বাতিল করেছেন)</span>`:''}</div>
     <div style="font-size:13px; color:var(--ink-soft); margin-bottom:10px; line-height:1.7;">
-      গ্রাহক: <b>${escapeHtml(o.customer)}</b><br>ফোন: ${escapeHtml(o.phone)}<br>ঠিকানা: ${escapeHtml(o.address)}${o.ownerEmail?`<br>Google অ্যাকাউন্ট: ${escapeHtml(o.ownerEmail)}`:''}<br>পেমেন্ট পদ্ধতি: <b>${paymentMethodLabel(o.payment)}</b> (${o.paymentStatus==='paid'?'Paid':'Unpaid'})
+      গ্রাহক: <b>${escapeHtml(o.customer)}</b><br>ফোন: ${escapeHtml(o.phone)}<br>ঠিকানা: ${escapeHtml(o.address)}${o.ownerEmail?`<br>Google অ্যাকাউন্ট: ${escapeHtml(o.ownerEmail)}`:''}<br>পেমেন্ট পদ্ধতি: <b>${paymentMethodLabel(o.payment)}</b> (${o.paymentStatus==='paid'?'Paid':'Unpaid'})${o.paymentVerified===true?` <span style="color:#0b7a4b;font-weight:700">✅ SMS-এ মিলেছে (৳${o.paidAmount})</span>`:o.paymentVerified===false?` <span style="color:#c0392b;font-weight:700">⚠️ TrxID SMS-এ পাওয়া যায়নি — নিজে মিলিয়ে নিন</span>`:''}
       ${o.transactionId?`<br>ট্রানজেকশন আইডি: <b style="color:var(--primary);">${escapeHtml(o.transactionId)}</b>`:''}
       ${o.paymentPlanPercent?`<br>পেমেন্ট প্ল্যান: <b>${o.paymentPlanPercent>=100?'সম্পূর্ণ অগ্রিম':o.paymentPlanPercent+'% অগ্রিম'}</b> — এখন: ৳${o.advanceAmount}, বাকি: ৳${o.dueAmount}`:''}
       ${o.steadfastTrackingId?`<br>স্টেডফাস্ট ট্র্যাকিং কোড: <b style="color:var(--primary);">${escapeHtml(o.steadfastTrackingId)}</b>`:''}
