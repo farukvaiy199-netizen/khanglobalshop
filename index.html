@@ -2991,5 +2991,272 @@ async function submitAuth(){
   var tp = new URLSearchParams(location.search).get('track'); if(tp) setTimeout(function(){ openTrack(tp); }, 600);
 })();
 </script>
+<!-- ============ ভিডিও গাইড (সব স্ক্রিন) + পিসি/ল্যাপটপ ডিজাইন (শুধু ১০২৪px+) ============ -->
+<style id="deskCss">
+/* ---- পণ্যের ভিডিও গাইড ---- */
+#pdVideos{margin:18px 0 6px;}
+#pdVideos .pv-head{display:flex; align-items:center; gap:10px; margin-bottom:4px;}
+#pdVideos .pv-head h4{font-size:16px;}
+#pdVideos .pv-head::before{content:""; width:5px; height:20px; border-radius:4px; background:linear-gradient(180deg,#E8A33D,#0F6E5D);}
+#pdVideos .pv-sub{font-size:12.5px; color:var(--ink-soft); margin:0 0 12px 15px;}
+.pv-row{display:flex; gap:12px; overflow-x:auto; padding:2px 2px 10px; scroll-snap-type:x mandatory;}
+.vcard{flex:0 0 74%; max-width:300px; scroll-snap-align:start; background:#fff; border:1px solid var(--line); border-radius:16px; overflow:hidden; box-shadow:0 6px 18px rgba(16,35,30,.07); display:block; transition:transform .22s, box-shadow .22s;}
+.vthumb{position:relative; aspect-ratio:16/9; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; color:#fff;}
+.vthumb::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.38)); pointer-events:none;}
+.vcard[data-plat="yt"] .vthumb{background-color:#c4302b; background-image:linear-gradient(135deg,#ff3b30,#a30f0f);}
+.vcard[data-plat="fb"] .vthumb{background-image:linear-gradient(135deg,#2d8cff,#0b4fc4);}
+.vcard[data-plat="tt"] .vthumb{background-image:linear-gradient(135deg,#1b1b1f,#3a1a2e 60%,#0e3f43);}
+.vcard[data-plat="ig"] .vthumb{background-image:linear-gradient(135deg,#f9a03f,#e1306c 55%,#833ab4);}
+.vcard[data-plat="web"] .vthumb{background-image:linear-gradient(135deg,#138A73,#0A4E42);}
+.vplay{position:relative; z-index:1; width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,.94); color:#111; display:flex; align-items:center; justify-content:center; font-size:18px; padding-left:4px; box-shadow:0 6px 18px rgba(0,0,0,.3); transition:transform .2s;}
+.vplat{position:absolute; z-index:1; left:10px; top:10px; background:rgba(0,0,0,.55); backdrop-filter:blur(4px); color:#fff; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; letter-spacing:.2px;}
+.vinfo{padding:11px 13px 13px;}
+.vtitle{font-size:13.5px; font-weight:700; line-height:1.45; color:var(--ink); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:39px;}
+.vgo{margin-top:6px; font-size:12px; font-weight:700; color:var(--primary);}
+@media (hover:hover){.vcard:hover{transform:translateY(-4px); box-shadow:0 16px 32px rgba(16,35,30,.15);} .vcard:hover .vplay{transform:scale(1.1);}}
+
+.dnav{display:none;}
+.ck-left,.ck-right{display:contents;}
+.ck-sum-title,#ckItems{display:none;}
+
+@media (min-width:1024px){
+  :root{--wrap:1280px; --gut:max(32px, calc((100vw - var(--wrap)) / 2 + 32px));}
+  body{padding-bottom:0; font-size:16px;}
+  .bottom-nav{display:none;}
+  .announce{font-size:13.5px; padding:8px 12px; letter-spacing:.2px;}
+
+  /* উপরের বার: লোগো | সার্চ | মেনু | কার্ট */
+  .topbar{padding:14px var(--gut); gap:30px; box-shadow:0 6px 24px rgba(10,78,66,.18);}
+  .topbar .brand{font-size:26px; letter-spacing:.2px;}
+  .topbar .brand img{height:40px;}
+  .topbar .search{max-width:560px; padding:11px 20px; background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.18); transition:background .2s, box-shadow .2s;}
+  .topbar .search:focus-within{background:rgba(255,255,255,.24); box-shadow:0 0 0 3px rgba(232,163,61,.45);}
+  .topbar .search input{font-size:15px;}
+  .dnav{display:flex; gap:6px; margin-left:auto; align-items:center;}
+  .dnav button{background:transparent; border:none; color:rgba(255,255,255,.82); font-weight:700; font-size:15px; padding:9px 16px; border-radius:999px; display:flex; align-items:center; gap:7px; transition:background .2s,color .2s;}
+  .dnav button:hover{background:rgba(255,255,255,.12); color:#fff;}
+  .dnav button.active{background:rgba(255,255,255,.2); color:#fff; box-shadow:inset 0 -2px 0 var(--accent);}
+  .topbar .icon-btn{width:46px; height:46px; font-size:18px; transition:background .2s, transform .2s;}
+  .topbar .icon-btn:hover{background:rgba(255,255,255,.28); transform:translateY(-1px);}
+
+  /* পাতার মাঝখানে চওড়া ফ্রেম */
+  .view{max-width:calc(var(--wrap) + 64px); margin:0 auto; padding:34px 32px 64px;}
+  .hero-slider{border-radius:28px; box-shadow:0 24px 54px rgba(15,110,93,.25); margin-bottom:26px;}
+  .hero-track .hero-banner{min-height:360px; padding:64px 76px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start;}
+  .hero-banner h2{font-size:44px; line-height:1.2; max-width:640px; margin-bottom:12px;}
+  .hero-banner p{font-size:18px; max-width:560px; margin-bottom:22px;}
+  .hero-banner::after{width:340px; height:340px; right:-90px; top:-90px;}
+  .hero-banner button, .hero-banner .hero-cta{font-size:16px; padding:14px 30px;}
+  .hero-dots{bottom:18px;} .hero-dots *{cursor:pointer;}
+
+  .sec-head{margin:44px 0 20px;}
+  .sec-head h3{font-size:25px;}
+  .sec-head h3::before{height:28px;}
+  .sec-head .see-all{font-size:13.5px; padding:8px 18px; cursor:pointer;}
+  .sec-head .see-all:hover{background:var(--primary); color:#fff;}
+  .cat-scroll{flex-wrap:wrap; overflow:visible; gap:12px;}
+  .cat-chip{font-size:15px; padding:12px 24px; cursor:pointer; border-radius:18px;}
+  .cat-chip:hover{background:var(--primary-tint); color:var(--primary-dark); transform:translateY(-2px);}
+  .filter-bar{flex-wrap:wrap; overflow:visible;}
+  .filter-pill{cursor:pointer;}
+
+  .grid{grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:22px;}
+  .pc-img{aspect-ratio:1/1;}
+  .hscroll{display:grid !important; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); overflow:visible; gap:22px; margin:0; padding:0; scroll-snap-type:none;}
+  .hscroll .pc{flex:none;}
+
+  /* পণ্যের পাতা: বাঁয়ে ছবি, ডানে তথ্য */
+  #productView.pd-desk.active{display:grid; grid-template-columns:minmax(0,1.02fr) minmax(0,1fr); gap:0 56px; align-items:start; padding-top:40px;}
+  .pd-left{min-width:0;}
+  .pd-left .pd-thumb{height:auto; aspect-ratio:1/1; max-height:600px; border-radius:26px; box-shadow:0 20px 48px rgba(16,35,30,.14); font-size:140px; margin-bottom:14px;}
+  .pd-left .pd-thumbs{gap:12px;} .pd-left .pd-th{width:84px; height:84px; border-radius:14px; cursor:pointer;}
+  .pd-right{min-width:0; padding-top:4px;}
+  .pd-title{font-size:34px; line-height:1.25; margin-bottom:10px;}
+  .pd-meta{font-size:14px;}
+  .pd-price .now{font-size:38px;} .pd-price .old{font-size:19px;}
+  .pd-desc{font-size:16px; line-height:1.9; color:var(--ink-soft); margin:14px 0 18px;}
+  .share-link-btn{cursor:pointer;}
+  #productView.pd-desk > #pdVideos, #productView.pd-desk > #pdSug, #productView.pd-desk > .reviews, #productView.pd-desk > div:last-child{grid-column:1 / -1;}
+  #pdVideos{margin-top:46px;}
+  #pdVideos .pv-head h4{font-size:24px;} #pdVideos .pv-sub{font-size:14px; margin-bottom:18px;}
+  .pv-row{display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:22px; overflow:visible; padding:0;}
+  .vcard{flex:none; max-width:none;}
+  .vtitle{font-size:15px; min-height:44px;}
+  .reviews{margin-top:34px; padding-top:26px;}
+  .sticky-cta{left:50%; right:auto; transform:translateX(-50%); bottom:26px; width:min(660px, calc(100vw - 48px)); border:1px solid var(--line); border-radius:20px; box-shadow:0 18px 44px rgba(16,35,30,.22); padding:12px;}
+  .sticky-cta button{padding:15px; font-size:16px; border-radius:14px; transition:transform .15s, filter .2s;}
+  .sticky-cta button:hover:not(:disabled){filter:brightness(1.06); transform:translateY(-1px);}
+  .qty-row{margin:14px 0;}
+
+  /* কার্ট: বাঁয়ে তালিকা, ডানে সারাংশ */
+  #cartView.active{display:grid; grid-template-columns:minmax(0,1fr) 400px; column-gap:40px; align-items:start; max-width:1100px;}
+  #cartView > h3{grid-column:1 / -1; font-size:28px; margin-bottom:18px;}
+  #cartView > #cartList, #cartView > #cartDeals{grid-column:1;}
+  #cartView > #cartEmpty{grid-column:1 / -1;}
+  #cartView > #cartSummaryBlock{grid-column:2; grid-row:2 / span 6; position:sticky; top:104px; background:#fff; border:1px solid var(--line); border-radius:22px; padding:24px; box-shadow:0 18px 44px rgba(16,35,30,.10);}
+  .cart-item{background:#fff; border:1px solid var(--line); border-radius:18px; padding:16px; margin-bottom:12px; border-bottom:1px solid var(--line); gap:16px;}
+  .cart-item .thumb{width:84px; height:84px; border-radius:14px; font-size:30px; overflow:hidden;}
+  .cart-item .name{font-size:16px;} .cart-item .price{font-size:17px;}
+
+  /* চেকআউট: বাঁয়ে ফর্ম, ডানে অর্ডার সারাংশ */
+  #checkoutView.active{display:grid; grid-template-columns:minmax(0,1fr) 410px; column-gap:44px; align-items:start; max-width:1180px;}
+  #checkoutView > h3{grid-column:1 / -1; font-size:28px; margin-bottom:18px;}
+  .ck-left{display:block; min-width:0; background:#fff; border:1px solid var(--line); border-radius:24px; padding:30px 32px 22px; box-shadow:0 10px 30px rgba(16,35,30,.06);}
+  .ck-left .form-group input, .ck-left .form-group select, .ck-left .form-group textarea{padding:13px 15px; font-size:15px; border-radius:12px; transition:border-color .2s, box-shadow .2s;}
+  .ck-left .form-group input:focus, .ck-left .form-group select:focus, .ck-left .form-group textarea:focus{outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(15,110,93,.14);}
+  .ck-left .form-group label{font-size:13.5px;}
+  .ck-left .pay-option{cursor:pointer; transition:transform .15s, box-shadow .2s;} .ck-left .pay-option:hover{transform:translateY(-1px); box-shadow:0 8px 20px rgba(16,35,30,.08);}
+  .ck-right{display:block; position:sticky; top:104px; background:#fff; border:1px solid var(--line); border-radius:24px; padding:26px; box-shadow:0 18px 44px rgba(16,35,30,.10);}
+  .ck-right .ck-sum-title{display:block; font-size:19px; margin-bottom:14px;}
+  #ckItems{display:block; margin-bottom:12px; max-height:300px; overflow:auto;}
+  #ckItems .ci{display:flex; gap:12px; align-items:center; padding:10px 0; border-bottom:1px dashed var(--line);}
+  #ckItems .ci .t{width:54px; height:54px; border-radius:12px; background:var(--primary-tint); overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:22px;}
+  #ckItems .ci .t img{width:100%; height:100%; object-fit:cover;}
+  #ckItems .ci .n{flex:1; font-size:14px; font-weight:600; line-height:1.4;} #ckItems .ci .n small{display:block; color:var(--ink-soft); font-weight:500;}
+  #ckItems .ci .p{font-weight:800; color:var(--primary); font-size:14px;}
+  .ck-right #ckShipBox{margin-top:6px !important; border:none !important; padding:0 !important; background:transparent !important;}
+  .ck-right .checkout-btn{font-size:17px; padding:16px; border-radius:14px; box-shadow:0 12px 26px rgba(15,110,93,.3); transition:transform .15s, filter .2s;}
+  .ck-right .checkout-btn:hover{transform:translateY(-1px); filter:brightness(1.06);}
+  #cartSummaryBlock .checkout-btn{font-size:17px; padding:16px; border-radius:14px; box-shadow:0 12px 26px rgba(15,110,93,.3);}
+
+  #successView .empty-state{padding:110px 20px;} #successView .emoji{font-size:72px;}
+  #accountView{max-width:960px;}
+
+  /* ফুটার */
+  .site-footer{margin-top:20px; padding:56px var(--gut) 26px; display:grid; grid-template-columns:1.35fr 1fr 1fr; column-gap:64px; align-items:start; background:linear-gradient(180deg,#fff,#F6F1E4);}
+  .site-footer .footer-brand{grid-column:1; grid-row:1;} .site-footer .footer-tagline{grid-column:1; grid-row:2; max-width:420px;} .site-footer .footer-socials{grid-column:1; grid-row:3; margin-bottom:0;}
+  .site-footer .footer-info{grid-column:2; grid-row:1 / span 3;} .site-footer .footer-links{grid-column:3; grid-row:1 / span 3; flex-direction:column; gap:12px;}
+  .site-footer .footer-links a{font-size:14.5px; cursor:pointer;} .site-footer .footer-links a:hover{text-decoration:underline;}
+  .site-footer .footer-bottom{grid-column:1 / -1; grid-row:4; margin-top:34px; font-size:12.5px;}
+  .footer-info .frow{font-size:14.5px;}
+
+  .contact-float{right:28px; bottom:28px;} .contact-btn{width:54px; height:54px; transition:transform .2s;} .contact-btn:hover{transform:scale(1.08);}
+  .toast{bottom:36px;} .toast.show{bottom:44px;}
+}
+@media (min-width:1500px){ :root{--wrap:1360px;} }
+</style>
+<script id="deskJs">
+(function(){
+  var mq = window.matchMedia('(min-width:1024px)');
+
+  /* ===== উপরের মেনু (শুধু পিসিতে দেখা যায়; নিচের নেভের সাথে সক্রিয় চিহ্ন মেলানো) ===== */
+  function buildNav(){
+    var top = document.querySelector('.topbar'); if(!top || document.getElementById('dnav')) return;
+    var nav = document.createElement('nav'); nav.className = 'dnav'; nav.id = 'dnav';
+    [['homeView','🏠 হোম'],['shopView','🛍️ শপ'],['accountView','👤 অ্যাকাউন্ট']].forEach(function(x){
+      var b = document.createElement('button'); b.type = 'button'; b.setAttribute('data-dn', x[0]); b.textContent = x[1];
+      b.onclick = function(){ goto(x[0]); }; nav.appendChild(b);
+    });
+    var cart = top.querySelector('.icon-btn'); top.insertBefore(nav, cart || null);
+    function sync(){
+      var act = document.querySelector('.bottom-nav .nav-item.active'), v = act ? act.getAttribute('data-nav') : '';
+      nav.querySelectorAll('button').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-dn') === v); });
+    }
+    var bn = document.querySelector('.bottom-nav');
+    if(bn && window.MutationObserver) new MutationObserver(sync).observe(bn, { subtree:true, attributes:true, attributeFilter:['class'] });
+    sync();
+  }
+
+  /* ===== চেকআউট: দুই কলামের জন্য ডান-বাম মোড়ক (ফোনে display:contents — চেহারা বদলায় না) ===== */
+  function wrapCheckout(){
+    var v = document.getElementById('checkoutView'); if(!v || v.querySelector('.ck-left')) return;
+    var L = document.createElement('div'); L.className = 'ck-left';
+    var R = document.createElement('div'); R.className = 'ck-right';
+    var title = document.createElement('h3'); title.className = 'ck-sum-title'; title.textContent = 'অর্ডার সারাংশ';
+    var items = document.createElement('div'); items.id = 'ckItems';
+    R.appendChild(title); R.appendChild(items);
+    var kids = Array.prototype.slice.call(v.children), h = kids[0];
+    kids.forEach(function(k, i){
+      if(i === 0 && k.tagName === 'H3') return;
+      var isRight = k.id === 'ckShipBox' || k.classList.contains('checkout-btn') || (k.classList.contains('summary-row') && k.classList.contains('total'));
+      (isRight ? R : L).appendChild(k);
+    });
+    v.appendChild(L); v.appendChild(R);
+  }
+  function renderCkItems(){
+    var box = document.getElementById('ckItems'); if(!box || typeof cart === 'undefined') return;
+    try{
+      box.innerHTML = cart.map(function(c){
+        var li = (typeof lineInfo === 'function') ? lineInfo(c) : null; if(!li) return '';
+        var img = li.p && li.p.image ? '<img src="' + escapeHtml(li.p.image) + '" alt="">' : (li.p && li.p.emoji || '🛍️');
+        return '<div class="ci"><div class="t">' + img + '</div><div class="n">' + escapeHtml(li.label) + '<small>পরিমাণ: ' + c.qty + '</small></div><div class="p">৳' + (li.price * c.qty) + '</div></div>';
+      }).join('');
+    }catch(e){}
+  }
+  var _rc = window.refreshCheckout;
+  if(typeof _rc === 'function') window.refreshCheckout = refreshCheckout = function(){ var r = _rc.apply(this, arguments); renderCkItems(); return r; };
+  var _rco = window.renderCheckout;
+  if(typeof _rco === 'function') window.renderCheckout = renderCheckout = function(){ var r = _rco.apply(this, arguments); renderCkItems(); return r; };
+
+  /* ===== পণ্যের ভিডিও গাইড ===== */
+  function plat(u){
+    var h = ''; try{ h = new URL(u).hostname.replace(/^www\.|^m\./, '').toLowerCase(); }catch(e){ return null; }
+    if(/(^|\.)youtube\.com$|(^|\.)youtu\.be$|(^|\.)youtube-nocookie\.com$/.test(h)) return { k:'yt', n:'YouTube', d:'ভিডিও' };
+    if(/(^|\.)facebook\.com$|(^|\.)fb\.watch$|(^|\.)fb\.com$/.test(h)) return { k:'fb', n:'Facebook', d:'ভিডিও' };
+    if(/(^|\.)tiktok\.com$/.test(h)) return { k:'tt', n:'TikTok', d:'ভিডিও' };
+    if(/(^|\.)instagram\.com$/.test(h)) return { k:'ig', n:'Instagram', d:'রিল/ভিডিও' };
+    return { k:'web', n:'ভিডিও', d:'ভিডিও' };
+  }
+  function ytThumb(u){
+    try{
+      var x = new URL(u), id = '';
+      if(/youtu\.be$/.test(x.hostname)) id = x.pathname.slice(1);
+      else if(x.searchParams.get('v')) id = x.searchParams.get('v');
+      else { var m = x.pathname.match(/\/(?:embed|shorts|live)\/([^/?]+)/); if(m) id = m[1]; }
+      return /^[\w-]{6,20}$/.test(id) ? 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' : '';
+    }catch(e){ return ''; }
+  }
+  function videosHtml(p){
+    var list = Array.isArray(p.videos) ? p.videos : [];
+    var cards = list.slice(0, 8).map(function(v){
+      var url = String(v && v.url || '').trim(); if(!/^https?:\/\//i.test(url)) return '';
+      var pl = plat(url); if(!pl) return '';
+      var th = pl.k === 'yt' ? ytThumb(url) : '';
+      var title = String(v.title || '').trim() || (pl.n === 'ভিডিও' ? 'ভিডিও দেখুন' : pl.n + '-এ ভিডিও দেখুন');
+      return '<a class="vcard" data-plat="' + pl.k + '" href="' + escapeHtml(url) + '" target="_blank" rel="noopener noreferrer">' +
+        '<div class="vthumb"' + (th ? ' style="background-image:url(\'' + th + '\')"' : '') + '><span class="vplat">' + escapeHtml(pl.n) + '</span><span class="vplay">▶</span></div>' +
+        '<div class="vinfo"><div class="vtitle">' + escapeHtml(title) + '</div><div class="vgo">দেখুন ↗</div></div></a>';
+    }).join('');
+    if(!cards) return '';
+    return '<div class="pv-head"><h4>🎬 ভিডিও গাইড</h4></div><p class="pv-sub">কীভাবে ব্যবহার করবেন, কীভাবে খুলবেন, কীভাবে খাবেন, কী কী উপকার — ভিডিওতে দেখে নিন</p><div class="pv-row">' + cards + '</div>';
+  }
+  function decorateProduct(id){
+    var view = document.getElementById('productView'); if(!view) return;
+    var p = ((typeof DB !== 'undefined' && DB.products) || []).find(function(x){ return x.id === id; }); if(!p) return;
+    var old = document.getElementById('pdVideos'); if(old) old.remove();
+    var html = videosHtml(p);
+    if(html){
+      var d = document.createElement('div'); d.id = 'pdVideos'; d.innerHTML = html;
+      var ref = document.getElementById('pdSug') || view.querySelector('.reviews');
+      if(ref) ref.parentNode.insertBefore(d, ref); else view.appendChild(d);
+    }
+    // পিসিতে দুই কলাম
+    view.classList.remove('pd-desk');
+    var oldL = view.querySelector('.pd-left'); if(oldL) return;
+    if(!mq.matches) return;
+    var kids = Array.prototype.slice.call(view.children);
+    var L = document.createElement('div'); L.className = 'pd-left';
+    var R = document.createElement('div'); R.className = 'pd-right';
+    var stop = false;
+    kids.forEach(function(k){
+      if(k.id === 'pdVideos' || k.id === 'pdSug' || k.classList.contains('reviews')) stop = true;
+      if(stop) return;
+      (k.classList.contains('pd-thumb') || k.classList.contains('pd-caption') || k.classList.contains('pd-thumbs') ? L : R).appendChild(k);
+    });
+    view.insertBefore(R, view.firstChild); view.insertBefore(L, view.firstChild);
+    view.classList.add('pd-desk');
+  }
+  var _op = window.openProduct;
+  window.openProduct = openProduct = function(id){
+    var r = _op.apply(this, arguments);
+    try{ decorateProduct(id); }catch(e){}
+    return r;
+  };
+
+  function init(){ buildNav(); wrapCheckout(); }
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+
 </body>
 </html>
