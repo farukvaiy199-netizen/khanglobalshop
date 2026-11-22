@@ -136,6 +136,39 @@ img{max-width:100%; display:block;}
 .pay-option{border:1px solid var(--line); border-radius:10px; padding:12px 14px; display:flex; align-items:center; gap:12px; margin-bottom:10px;}
 .pay-option.active{border-color:var(--primary); background:var(--primary-tint);}
 .pay-option .icon{width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; color:#fff; flex-shrink:0;}
+
+/* ---- বিকাশ/নগদ পেমেন্ট নির্দেশিকা ---- */
+.pg{border-radius:16px; overflow:hidden; border:1px solid var(--line); background:#fff; margin:4px 0 14px; box-shadow:0 10px 28px -18px rgba(0,0,0,.35);}
+.pg-head{padding:14px 16px; color:#fff; display:flex; align-items:center; gap:12px;}
+.pg-head .pg-logo{width:40px; height:40px; border-radius:11px; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px;}
+.pg-head b{display:block; font-size:15px;} .pg-head span{font-size:11.5px; opacity:.92;}
+.pg-body{padding:14px 16px 16px;}
+.pg-badge{display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; padding:4px 10px; border-radius:20px; background:#fff4e0; color:#8a5200; border:1px solid #f2d9a6; margin-bottom:12px;}
+.pg-num{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#f7f8fa; border:1.5px dashed var(--pc); border-radius:14px; padding:12px 14px; margin-bottom:10px;}
+.pg-num small{display:block; font-size:10.5px; color:#6b7280; font-weight:600; margin-bottom:2px;}
+.pg-num .n{font-size:21px; font-weight:800; letter-spacing:1.2px; color:#111; font-variant-numeric:tabular-nums;}
+.pg-copy{border:none; cursor:pointer; background:var(--pc); color:#fff; font-weight:700; font-size:12.5px; padding:10px 14px; border-radius:11px; display:flex; align-items:center; gap:6px; flex-shrink:0;}
+.pg-copy:active{transform:scale(.96);} .pg-copy.done{background:#16a34a;}
+.pg-amt{display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--pc-tint); border-radius:12px; padding:10px 14px; margin-bottom:14px; font-size:13px;}
+.pg-amt b{font-size:18px; color:var(--pc);}
+.pg-copy.sm{padding:7px 11px; font-size:11.5px; background:#fff; color:var(--pc); border:1px solid var(--pc);} .pg-copy.sm.done{background:#16a34a; color:#fff; border-color:#16a34a;}
+.pg-tabs{display:flex; gap:6px; background:#f1f3f5; border-radius:12px; padding:4px; margin-bottom:12px;}
+.pg-tab{flex:1; text-align:center; padding:9px 6px; font-size:12.5px; font-weight:700; border-radius:9px; cursor:pointer; color:#6b7280;}
+.pg-tab.on{background:#fff; color:var(--pc); box-shadow:0 2px 8px rgba(0,0,0,.1);}
+.pg-steps{list-style:none; padding:0; margin:0 0 12px; counter-reset:st;}
+.pg-steps li{position:relative; padding:7px 0 7px 38px; font-size:13px; line-height:1.55; counter-increment:st; color:#1f2937;}
+.pg-steps li::before{content:counter(st, bengali); position:absolute; left:0; top:6px; width:27px; height:27px; border-radius:50%; background:var(--pc); color:#fff; font-weight:800; font-size:12.5px; display:flex; align-items:center; justify-content:center;}
+.pg-steps li code{background:#f1f3f5; padding:1px 7px; border-radius:6px; font-weight:700; font-size:12.5px; color:#111;}
+.pg-warn{border-radius:12px; padding:11px 13px; font-size:12.5px; line-height:1.6; margin-top:8px;}
+.pg-warn.shot{background:#ecfdf3; border:1px solid #b6ebcb; color:#14532d;}
+.pg-warn.careful{background:#fff1f0; border:1px solid #ffc9c4; color:#8a1f17;}
+.pg-warn b{display:block; margin-bottom:2px;}
+.trx-card{background:#fff; border:1px solid var(--line); border-radius:14px; padding:14px; margin:0 0 16px;}
+.trx-card label{display:block; font-size:12.5px; font-weight:700; color:var(--ink-soft); margin-bottom:6px;}
+.trx-card input{width:100%; box-sizing:border-box; padding:12px 14px; border:1.5px solid var(--line); border-radius:11px; font-size:15px; font-weight:700; letter-spacing:.8px; text-transform:uppercase;}
+.trx-card input:focus{outline:none; border-color:var(--primary);}
+.trx-hint{font-size:11.5px; color:var(--ink-soft); margin-top:7px; line-height:1.55;}
+@counter-style bengali{system:numeric; symbols:"০" "১" "২" "৩" "৪" "৫" "৬" "৭" "৮" "৯";}
 .plan-option{display:flex; gap:10px; align-items:flex-start; padding:11px 0; border-bottom:1px solid var(--line); font-size:13px; cursor:pointer;}
 .plan-option:last-child{border-bottom:none;}
 .plan-option input[type="radio"]{margin-top:3px; accent-color:var(--primary); width:16px; height:16px; flex-shrink:0;}
@@ -428,16 +461,20 @@ img{max-width:100%; display:block;}
     <div class="icon" style="background:#f6871f;">N</div><div><b>Nagad</b></div>
   </div>
   <!-- Card / SSLCommerz এখন বন্ধ (চালু করতে চাইলে এই লাইনের নিচের অংশ ফিরিয়ে আনুন) -->
-  <div id="manualPayBox" style="display:none; background:var(--accent-tint); border-radius:10px; padding:14px; margin:4px 0 16px;">
-    <div style="font-size:13px; margin-bottom:10px;">এই নাম্বারে <b id="manualPayMethodLabel">bKash</b> করে পাঠান: <b id="manualPayNumber" style="color:var(--primary); font-size:15px;">—</b></div>
-    <div class="form-group" style="margin-bottom:0;"><label>ট্রানজেকশন আইডি দিন</label><input id="ckTransactionId" placeholder="যেমন 8N7A2K9X1B"></div>
-  </div>
   <div id="paymentPlanBox" style="display:none; background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px; margin:-6px 0 16px;">
     <label style="font-size:12.5px; font-weight:700; color:var(--ink-soft); display:block; margin-bottom:6px;">পেমেন্ট প্ল্যান বেছে নিন</label>
     <div id="paymentPlanList"></div>
     <div id="paymentPlanCalc" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--line);">
       <div class="summary-row"><span>এখন পরিশোধ করতে হবে</span><span id="planPayNow" style="font-weight:800; color:var(--primary);">৳0</span></div>
       <div class="summary-row"><span>ডেলিভারিতে বাকি থাকবে</span><span id="planDueLater" style="font-weight:700;">৳0</span></div>
+    </div>
+  </div>
+  <div id="manualPayBox" style="display:none;">
+    <div id="payGuide"></div>
+    <div class="trx-card">
+      <label for="ckTransactionId">ট্রানজেকশন আইডি (TrxID)</label>
+      <input id="ckTransactionId" placeholder="যেমন 8N7A2K9X1B" autocomplete="off" autocapitalize="characters">
+      <div class="trx-hint">টাকা পাঠানোর পর অ্যাপের সফল-পেজে বা SMS-এ যে TrxID/TxnID আসে সেটা হুবহু এখানে দিন। আইডি না মিললে অর্ডার কনফার্ম হবে না।</div>
     </div>
   </div>
   <div id="ckShipBox" style="background:#fff; border:1px solid var(--line); border-radius:10px; padding:10px 14px; margin-top:16px;">
@@ -1114,7 +1151,7 @@ function updateShipBox(s){
 }
 let selectedPaymentPlanPercent = null;
 function renderCheckout(){ initDistrictSelect(); applyCodAvailability(); refreshCheckout(); updateManualPayBox(); updateCheckoutAuthBanner(); }
-function refreshCheckout(){ const s=computeSummary(); document.getElementById('ckTotal').textContent=`৳${s.total}`; updateShipBox(s); renderPaymentPlanOptions(s.total); }
+function refreshCheckout(){ const s=computeSummary(); document.getElementById('ckTotal').textContent=`৳${s.total}`; updateShipBox(s); renderPaymentPlanOptions(s.total); if(selectedPayment==='bkash'||selectedPayment==='nagad') updateManualPayBox(); }
 function selectPay(el, val){ selectedPayment=val; document.querySelectorAll('.pay-option').forEach(p=>p.classList.remove('active')); el.classList.add('active'); selectedPaymentPlanPercent=null; updateManualPayBox(); refreshCheckout(); }
 function renderPaymentPlanOptions(total){
   const box = document.getElementById('paymentPlanBox');
@@ -1136,6 +1173,7 @@ function selectPaymentPlan(percent){
   selectedPaymentPlanPercent = percent;
   const s = computeSummary();
   updatePaymentPlanCalc(s.total);
+  updateManualPayBox();
 }
 function updatePaymentPlanCalc(total){
   const calc = document.getElementById('paymentPlanCalc');
@@ -1146,16 +1184,83 @@ function updatePaymentPlanCalc(total){
   document.getElementById('planPayNow').textContent = `৳${payNow}`;
   document.getElementById('planDueLater').textContent = due>0 ? `৳${due}` : 'নেই (সম্পূর্ণ পরিশোধিত)';
 }
+let payTab = 'app';
+function setPayTab(t){ payTab = t; updateManualPayBox(); }
+function copyTxt(text, btn){
+  const done = () => { toast('কপি হয়েছে ✓'); if(btn){ const old = btn.innerHTML; btn.classList.add('done'); btn.innerHTML = '✓ কপি হয়েছে'; setTimeout(()=>{ btn.classList.remove('done'); btn.innerHTML = old; }, 1600); } };
+  const fb = () => { try{ const t=document.createElement('textarea'); t.value=text; t.style.position='fixed'; t.style.opacity='0'; document.body.appendChild(t); t.select(); document.execCommand('copy'); document.body.removeChild(t); done(); }catch(e){ toast('কপি হয়নি — নম্বরটা চেপে ধরে কপি করুন'); } };
+  if(navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fb); else fb();
+}
+function payAmountNow(){
+  const total = computeSummary().total;
+  const plans = (DB.settings.paymentPlans||[]).filter(p=>Number(p)>0);
+  if(plans.length && !selectedPaymentPlanPercent) return null;
+  const pct = plans.length ? selectedPaymentPlanPercent : 100;
+  return Math.round(total * pct / 100);
+}
 function updateManualPayBox(){
   const box = document.getElementById('manualPayBox');
-  if(selectedPayment==='bkash' || selectedPayment==='nagad'){
-    const num = selectedPayment==='bkash' ? DB.settings.bkashNumber : DB.settings.nagadNumber;
-    document.getElementById('manualPayMethodLabel').textContent = selectedPayment==='bkash' ? 'bKash' : 'Nagad';
-    document.getElementById('manualPayNumber').textContent = num ? num : 'নাম্বার এখনো যোগ করা হয়নি — বিক্রেতার সাথে যোগাযোগ করুন';
-    box.style.display = 'block';
-  }else{
-    box.style.display = 'none';
-  }
+  if(selectedPayment!=='bkash' && selectedPayment!=='nagad'){ box.style.display = 'none'; return; }
+  const bk = selectedPayment==='bkash';
+  const num = String((bk ? DB.settings.bkashNumber : DB.settings.nagadNumber) || '').replace(/[^0-9]/g,'');
+  const name = bk ? 'bKash' : 'Nagad';
+  const color = bk ? '#e2136e' : '#f6871f';
+  const tint = bk ? '#fde8f1' : '#fff0df';
+  const ussd = bk ? '*247#' : '*167#';
+  const amt = payAmountNow();
+  const pretty = num.length===11 ? num.slice(0,5)+' '+num.slice(5) : num;
+  const amtRow = amt===null
+    ? `<div class="pg-amt"><span>কত টাকা পাঠাবেন?</span><b style="font-size:13px;">↑ উপরের প্ল্যান বেছে নিন</b></div>`
+    : `<div class="pg-amt"><span>এখন পাঠাতে হবে<br><b>৳${amt}</b></span><button class="pg-copy sm" onclick="copyTxt('${amt}', this)">কপি</button></div>`;
+  const appSteps = bk ? [
+    'bKash অ্যাপ খুলুন, <code>Send Money</code> চাপুন',
+    'উপরের নম্বরটি পেস্ট করুন (হাতে টাইপ না করে কপি-পেস্ট করলে ভুল হয় না)',
+    `টাকার পরিমাণ লিখুন${amt===null?'':': <code>৳'+amt+'</code>'}`,
+    'রেফারেন্সে আপনার নাম বা ফোন নম্বরের শেষ ৪ সংখ্যা লিখুন (ঐচ্ছিক)',
+    'PIN দিয়ে নিশ্চিত করুন — সফল হলে <code>TrxID</code> দেখাবে',
+    '<b>স্ক্রিনশট নিয়ে রাখুন</b>, TrxID কপি করে নিচের ঘরে দিন'
+  ] : [
+    'Nagad অ্যাপ খুলুন, <code>Send Money</code> চাপুন',
+    'উপরের নম্বরটি পেস্ট করুন (কপি-পেস্ট করলে ভুল হয় না)',
+    `টাকার পরিমাণ লিখুন${amt===null?'':': <code>৳'+amt+'</code>'}`,
+    'রেফারেন্সে আপনার নাম বা ফোন নম্বরের শেষ ৪ সংখ্যা লিখুন (ঐচ্ছিক)',
+    'PIN দিয়ে নিশ্চিত করুন — সফল হলে <code>TxnID</code> (ট্রানজেকশন আইডি) দেখাবে',
+    '<b>স্ক্রিনশট নিয়ে রাখুন</b>, আইডি কপি করে নিচের ঘরে দিন'
+  ];
+  const ussdSteps = [
+    `ফোনের ডায়াল-প্যাডে <code>${ussd}</code> ডায়াল করুন`,
+    'মেনু থেকে <code>Send Money</code> বেছে নিন (সাধারণত ১ নম্বর)',
+    `উপরের নম্বরটি লিখুন: <code>${pretty||'—'}</code>`,
+    `টাকার পরিমাণ লিখুন${amt===null?'':': <code>'+amt+'</code>'}`,
+    'রেফারেন্সে <code>1</code> বা আপনার নাম লিখুন',
+    `${name}-এর গোপন PIN দিয়ে নিশ্চিত করুন`,
+    `কিছুক্ষণের মধ্যে ${name}-এর একটি <b>SMS</b> আসবে, তাতে <code>${bk?'TrxID':'TxnID'}</code> থাকবে — এই SMS-টা <b>ডিলিট করবেন না</b>`,
+    'SMS থেকে আইডি দেখে নিচের ঘরে হুবহু লিখুন'
+  ];
+  const steps = (payTab==='app' ? appSteps : ussdSteps).map(t=>`<li>${t}</li>`).join('');
+  const numBlock = num
+    ? `<div class="pg-num"><div><small>${name} Personal নম্বর</small><div class="n">${pretty}</div></div><button class="pg-copy" onclick="copyTxt('${num}', this)">📋 কপি</button></div>`
+    : `<div class="pg-warn careful">এই পেমেন্টের নম্বর এখনো যোগ করা হয়নি — বিক্রেতার সাথে যোগাযোগ করুন অথবা ক্যাশ অন ডেলিভারি বেছে নিন।</div>`;
+  document.getElementById('payGuide').innerHTML = `
+    <div class="pg" style="--pc:${color}; --pc-tint:${tint};">
+      <div class="pg-head" style="background:linear-gradient(135deg,${color},${bk?'#b0105a':'#d96d0a'});">
+        <div class="pg-logo">${bk?'bK':'N'}</div>
+        <div><b>${name}-এ টাকা পাঠানোর নির্দেশনা</b><span>মাত্র ১ মিনিটের কাজ — ধাপে ধাপে অনুসরণ করুন</span></div>
+      </div>
+      <div class="pg-body">
+        <div class="pg-badge">ℹ️ এটি একটি Personal নম্বর — শুধু <u>Send Money</u> করবেন</div>
+        ${numBlock}
+        ${amtRow}
+        <div class="pg-tabs">
+          <div class="pg-tab ${payTab==='app'?'on':''}" onclick="setPayTab('app')">📱 স্মার্টফোন (অ্যাপ)</div>
+          <div class="pg-tab ${payTab==='ussd'?'on':''}" onclick="setPayTab('ussd')">☎️ বাটন ফোন (${ussd})</div>
+        </div>
+        <ol class="pg-steps">${steps}</ol>
+        <div class="pg-warn shot"><b>📸 স্ক্রিনশট/SMS সংরক্ষণ করুন</b>টাকা পাঠানোর পর সফল-পেজের একটি স্ক্রিনশট নিয়ে রাখুন (বাটন ফোনে ${name}-এর SMS-টা রেখে দিন)। কোনো সমস্যা হলে এটাই আপনার পেমেন্টের প্রমাণ।</div>
+        <div class="pg-warn careful"><b>⚠️ সতর্কতা</b><u>Send Money</u>-ই করুন, <u>Cash Out</u> বা <u>Payment</u> নয়। নম্বর কপি-পেস্ট করুন, ভুল নম্বরে গেলে টাকা ফেরত পাওয়া কঠিন। অর্ডারের জন্য নির্ধারিত পরিমাণের কম পাঠালে অর্ডার কনফার্ম হবে না।</div>
+      </div>
+    </div>`;
+  box.style.display = 'block';
 }
 
 function isValidCheckoutName(name){
