@@ -703,8 +703,8 @@ function updateAccountAuthArea(){
     </div>`;
   }else{
     el.innerHTML = `<div style="text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:18px;">
-      <div style="font-size:13px; color:var(--ink-soft); margin-bottom:12px;">অর্ডার করতে, অর্ডার দেখতে ও চ্যাট করতে Google দিয়ে সাইন-ইন করুন</div>
-      <button class="checkout-btn" style="margin-top:0; max-width:260px; margin-left:auto; margin-right:auto;" onclick="signInWithGoogle()">🔵 Google দিয়ে সাইন-ইন করুন</button>
+      <div style="font-size:13px; color:var(--ink-soft); margin-bottom:12px;">অর্ডার করতে, অর্ডার দেখতে ও চ্যাট করতে সাইন-ইন করুন</div>
+      <button class="checkout-btn" style="margin-top:0; max-width:260px; margin-left:auto; margin-right:auto;" onclick="signInWithGoogle()">💡 সাইন-ইন / রেজিস্ট্রেশন</button>
     </div>`;
   }
 }
@@ -716,7 +716,7 @@ function updateCheckoutAuthBanner(){
     const nameInput = document.getElementById('ckName');
     if(nameInput && !nameInput.value && currentUser.displayName) nameInput.value = currentUser.displayName;
   }else{
-    el.innerHTML = `<div style="font-size:12px; background:var(--accent-tint); padding:10px 12px; border-radius:8px; margin-bottom:14px;">অর্ডার করতে Google দিয়ে সাইন-ইন করা লাগবে — "অর্ডার নিশ্চিত করুন" চাপলে সাইন-ইন পপআপ আসবে।</div>`;
+    el.innerHTML = `<div style="font-size:12px; background:var(--accent-tint); padding:10px 12px; border-radius:8px; margin-bottom:14px;">অর্ডার করতে সাইন-ইন করা লাগবে — "অর্ডার নিশ্চিত করুন" চাপলে সাইন-ইন পপআপ আসবে।</div>`;
   }
 }
 
@@ -886,8 +886,8 @@ async function renderReviewFormArea(pid){
   if(!area) return;
   if(!currentUser){
     area.innerHTML = `<div style="background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:14px; text-align:center;">
-      <div style="font-size:12.5px; margin-bottom:10px; color:var(--ink-soft);">যাচাইকৃত ক্রেতা হয়ে রিভিউ লিখতে Google দিয়ে সাইন-ইন করুন</div>
-      <button class="lookup-btn" onclick="signInThenRenderReview('${pid}')">🔵 Google দিয়ে সাইন-ইন</button>
+      <div style="font-size:12.5px; margin-bottom:10px; color:var(--ink-soft);">যাচাইকৃত ক্রেতা হয়ে রিভিউ লিখতে সাইন-ইন করুন</div>
+      <button class="lookup-btn" onclick="signInThenRenderReview('${pid}')">💡 সাইন-ইন করুন</button>
     </div>`;
     return;
   }
@@ -1296,7 +1296,7 @@ async function placeOrder(){
   if(cart.length===0){ toast('কার্ট খালি'); return; }
   if(!currentUser){
     await signInWithGoogle();
-    if(!currentUser){ toast('অর্ডার করতে Google দিয়ে সাইন-ইন করা প্রয়োজন'); return; }
+    if(!currentUser){ toast('অর্ডার করতে সাইন-ইন করা প্রয়োজন'); return; }
   }
   const name=document.getElementById('ckName').value.trim();
   const phone=document.getElementById('ckPhone').value.trim();
@@ -1539,7 +1539,7 @@ function renderHeroSlider(){
   heroSignature = sig;
   heroSlideCount = banners.length;
   track.innerHTML = banners.map(b=>`
-    <div class="hero-banner" ${b.image?`style="background-image:linear-gradient(135deg, rgba(15,110,93,.55), rgba(10,78,66,.65)), url('${b.image}');"`:''}>
+    <div class="hero-banner" ${b.image?`style="background-image:linear-gradient(100deg, rgba(8,14,12,.82) 0%, rgba(8,14,12,.45) 55%, rgba(8,14,12,.18) 100%), url('${b.image}');"`:''}>
       <h2>${escapeHtml(b.title||'')}</h2>
       <p>${escapeHtml(b.subtitle||'')}</p>
       <span class="cta" onclick="handleBannerCta('${b.productId||''}')">${escapeHtml(b.buttonText||'এখনই কিনুন')} →</span>
@@ -1589,8 +1589,8 @@ async function openChatWidget(){
     document.getElementById('chatRegBox').innerHTML = `
       <div class="cricon">💬</div>
       <h3>চ্যাট শুরু করুন</h3>
-      <p>আমাদের সাথে সরাসরি চ্যাট করতে Google দিয়ে সাইন-ইন করুন</p>
-      <button onclick="startChatAfterSignIn()">🔵 Google দিয়ে সাইন-ইন করুন</button>
+      <p>আমাদের সাথে সরাসরি চ্যাট করতে সাইন-ইন করুন</p>
+      <button onclick="startChatAfterSignIn()">💡 সাইন-ইন / রেজিস্ট্রেশন</button>
     `;
     document.getElementById('chatRegBox').style.display='flex';
     document.getElementById('chatBody').style.display='none';
@@ -1899,7 +1899,7 @@ async function openReviewWriter(){
   document.getElementById('rvOverlay').classList.add('active');
   const box = document.getElementById('rvBody');
   if(!currentUser){
-    box.innerHTML = `<div style="text-align:center; padding:10px 4px;"><div style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;">রিভিউ দিতে Google দিয়ে সাইন-ইন করুন। শুধু যারা আমাদের কাছ থেকে পণ্য কিনেছেন, তারাই রিভিউ দিতে পারবেন।</div><button class="checkout-btn" style="margin-top:0;" onclick="rvSignIn()">🔵 Google দিয়ে সাইন-ইন করুন</button></div>`;
+    box.innerHTML = `<div style="text-align:center; padding:10px 4px;"><div style="font-size:13px; color:var(--ink-soft); margin-bottom:14px;">রিভিউ দিতে সাইন-ইন করুন। শুধু যারা আমাদের কাছ থেকে পণ্য কিনেছেন, তারাই রিভিউ দিতে পারবেন।</div><button class="checkout-btn" style="margin-top:0;" onclick="rvSignIn()">💡 সাইন-ইন / রেজিস্ট্রেশন</button></div>`;
     return;
   }
   box.innerHTML = '<div style="text-align:center; padding:20px; color:var(--ink-soft); font-size:13px;">যাচাই করা হচ্ছে...</div>';
@@ -2053,7 +2053,7 @@ function trackEvent(fbName, gaName, params){
 })();
 
 /* =====================================================================
-   📱 ফেসবুক/মেসেঞ্জারের ভেতরের ব্রাউজার + Google ছাড়া (গেস্ট) অর্ডার
+   📱 ফেসবুক/মেসেঞ্জারের ভেতরের ব্রাউজারে Chrome-এ খোলার পরামর্শ
    ===================================================================== */
 function isInAppBrowser(){ return /FBAN|FBAV|FB_IAB|FBIOS|Messenger|Instagram|Line\/|Snapchat|MicroMessenger|TikTok|musical_ly/i.test(navigator.userAgent || ''); }
 function openInChrome(){
@@ -2074,42 +2074,8 @@ function showInAppBanner(){
   d.innerHTML = '<div style="flex:1;">📱 আপনি অ্যাপের ভেতরের ব্রাউজারে আছেন। ভালো অভিজ্ঞতার জন্য <b>Chrome-এ খুলুন</b>।</div><button style="background:var(--primary); color:#fff; border:none; border-radius:8px; padding:8px 10px; font-weight:700; font-size:12px;" onclick="openInChrome()">খুলুন</button><button style="background:none; border:none; font-size:16px; color:var(--ink-soft);" onclick="this.parentNode.remove(); try{sessionStorage.setItem(\'bz_inapp_closed\',\'1\')}catch(e){}">✕</button>';
   document.body.appendChild(d);
 }
-async function guestSignIn(){
-  if(currentUser) return true;
-  try{
-    await fireAuth.signInAnonymously();
-    for(let i = 0; i < 25 && !currentUser; i++) await new Promise(r=>setTimeout(r, 100));
-    if(!currentUser && fireAuth.currentUser){ currentUser = fireAuth.currentUser; updateAccountAuthArea(); updateCheckoutAuthBanner(); }
-    return !!currentUser;
-  }catch(e){
-    toast('গেস্ট অর্ডার এখন চালু নেই — Google দিয়ে সাইন-ইন করুন');
-    return false;
-  }
-}
-async function startGuestOrder(){ if(await guestSignIn()) toast('গেস্ট হিসেবে চালিয়ে যাচ্ছেন ✓'); }
-(function(){
-  const _sg = signInWithGoogle;
-  signInWithGoogle = async function(){
-    if(isInAppBrowser()){ await guestSignIn(); return; }
-    return _sg();
-  };
-  const _ub = updateCheckoutAuthBanner;
-  updateCheckoutAuthBanner = function(){
-    _ub();
-    const el = document.getElementById('checkoutAuthBanner'); if(!el) return;
-    if(!currentUser){
-      el.insertAdjacentHTML('beforeend', '<button type="button" onclick="startGuestOrder()" style="width:100%; margin:-6px 0 14px; background:#fff; border:1px solid var(--primary); color:var(--primary); border-radius:10px; padding:11px; font-weight:700; font-size:13px;">👤 Google ছাড়া অর্ডার করুন (গেস্ট)</button>');
-    }else if(currentUser.isAnonymous){
-      el.innerHTML = '<div style="font-size:11.5px; color:var(--primary-dark); background:var(--primary-tint); padding:8px 12px; border-radius:8px; margin-bottom:14px;">👤 গেস্ট হিসেবে অর্ডার করছেন। অর্ডারের তথ্য শুধু এই ব্রাউজারে দেখা যাবে।</div>';
-    }
-  };
-  const _ua = updateAccountAuthArea;
-  updateAccountAuthArea = function(){
-    _ua();
-    const el = document.getElementById('accountAuthArea'); if(!el || !currentUser || !currentUser.isAnonymous) return;
-    el.innerHTML = '<div style="text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:10px; padding:16px;"><div style="font-weight:700; font-size:13.5px; margin-bottom:6px;">👤 আপনি গেস্ট হিসেবে আছেন</div><div style="font-size:12px; color:var(--ink-soft); margin-bottom:12px; line-height:1.7;">অর্ডার শুধু এই ব্রাউজারে দেখা যাবে। স্থায়ীভাবে রাখতে Google দিয়ে সাইন-ইন করুন (পুরনো গেস্ট অর্ডার সাথে আসবে না)।</div><button class="checkout-btn" style="margin-top:0; max-width:260px; margin-left:auto; margin-right:auto;" onclick="fireAuth.signOut().then(()=>signInWithGoogle())">🔵 Google দিয়ে সাইন-ইন</button></div>';
-  };
-})();
+// গেস্ট অর্ডার বন্ধ: আগে থেকে কোনো বেনামী (গেস্ট) সেশন থাকলে নিঃশব্দে সরিয়ে দিই — এখন শুধু সাইন-ইন/রেজিস্ট্রেশন
+(function(){ try{ fireAuth.onAuthStateChanged(function(u){ if(u && u.isAnonymous){ fireAuth.signOut().catch(function(){}); } }); }catch(e){} })();
 setTimeout(showInAppBanner, 1500);
 
 /* =====================================================================
@@ -3258,5 +3224,288 @@ async function submitAuth(){
 })();
 </script>
 
+<style id="topPremium">
+/* ============ উপরের অংশ: নতুন প্রিমিয়াম ডিজাইন (অবসিডিয়ান + শ্যাম্পেন-গোল্ড) ============ */
+:root{--ob:#0a110f; --ob2:#13201b; --gold:#d9b765; --gold2:#f1dba3; --ivory:#f6efe0;}
+.announce{background:linear-gradient(90deg,#0a110f,#17261f 50%,#0a110f); color:var(--gold2); font-weight:600; font-size:12.5px; letter-spacing:.3px; padding:7px 10px; border-bottom:1px solid rgba(217,183,101,.32);}
+.topbar{background:linear-gradient(180deg,rgba(10,17,15,.97),rgba(15,26,21,.95)); -webkit-backdrop-filter:blur(14px) saturate(140%); backdrop-filter:blur(14px) saturate(140%); border-bottom:1px solid rgba(217,183,101,.26); box-shadow:0 12px 30px rgba(0,0,0,.28);}
+.topbar .brand{color:var(--ivory); letter-spacing:.3px;}
+.topbar .brand img{border-radius:10px; background:#fff; box-shadow:0 0 0 1.5px rgba(217,183,101,.75),0 4px 12px rgba(0,0,0,.45);}
+.topbar .search{background:rgba(255,255,255,.07); border:1px solid rgba(217,183,101,.22); transition:border-color .2s, box-shadow .2s, background .2s;}
+.topbar .search:focus-within{background:rgba(255,255,255,.1); border-color:var(--gold); box-shadow:0 0 0 3px rgba(217,183,101,.2);}
+.topbar .search input{color:var(--ivory);}
+.topbar .search input::placeholder{color:rgba(246,239,224,.55);}
+.topbar .icon-btn{background:rgba(255,255,255,.07); border:1px solid rgba(217,183,101,.32); color:var(--gold2); transition:transform .2s, background .2s, border-color .2s;}
+.topbar .icon-btn:hover{background:rgba(217,183,101,.16); border-color:var(--gold);}
+.badge{background:linear-gradient(135deg,#f1dba3,#d9b765); color:#1a1405; box-shadow:0 2px 6px rgba(0,0,0,.45);}
+.dnav button{color:rgba(246,239,224,.78);}
+.dnav button:hover{background:rgba(217,183,101,.12); color:var(--ivory);}
+.dnav button.active{background:rgba(217,183,101,.14); color:var(--gold2); box-shadow:inset 0 -2px 0 var(--gold);}
+.hero-slider{border-radius:26px; box-shadow:0 22px 50px rgba(8,14,12,.32),0 0 0 1px rgba(217,183,101,.38);}
+.hero-track .hero-banner{background-color:#0d1a15; background-image:linear-gradient(135deg,#0a110f 0%,#13241d 55%,#1d3d30 100%);}
+.hero-banner::before{background:radial-gradient(circle at 88% 8%,rgba(217,183,101,.28),transparent 42%),linear-gradient(0deg,rgba(0,0,0,.5),transparent 60%);}
+.hero-banner::after{background:radial-gradient(circle,rgba(217,183,101,.38),transparent 66%); opacity:1; filter:blur(2px);}
+.hero-banner h2{color:var(--ivory); letter-spacing:.2px; text-shadow:0 3px 16px rgba(0,0,0,.55);}
+.hero-banner p{color:rgba(246,239,224,.86);}
+.hero-banner .cta{display:inline-flex; align-items:center; gap:8px; background:linear-gradient(135deg,#f6e4b0,#d9b765 55%,#bf9440); color:#1a1405; font-weight:800; padding:10px 22px; box-shadow:0 10px 22px rgba(217,183,101,.34),inset 0 1px 0 rgba(255,255,255,.6); position:relative; overflow:hidden; transition:transform .2s, box-shadow .2s;}
+.hero-banner .cta:after{content:''; position:absolute; top:0; left:-60%; width:40%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent); animation:tpShine 3.4s infinite;}
+.hero-banner .cta:active{transform:scale(.97);}
+@keyframes tpShine{to{left:140%}}
+.hero-dot{background:rgba(246,239,224,.35);} .hero-dot.active{background:var(--gold);}
+@media (min-width:1024px){
+  .topbar{box-shadow:0 14px 34px rgba(0,0,0,.3);}
+  .topbar .search:focus-within{box-shadow:0 0 0 3px rgba(217,183,101,.22);}
+  .hero-slider{border-radius:30px; box-shadow:0 28px 60px rgba(8,14,12,.34),0 0 0 1px rgba(217,183,101,.4);}
+}
+
+/* ============ অর্ডার নিশ্চিত করুন — প্রসেসিং অ্যানিমেশন ============ */
+.checkout-btn{position:relative; overflow:hidden; transition:background .35s, color .35s, box-shadow .35s, transform .15s;}
+.checkout-btn.proc{background:linear-gradient(135deg,#0a110f,#16261f); color:var(--gold2); opacity:1; box-shadow:0 0 0 1.5px rgba(217,183,101,.6),0 12px 30px rgba(0,0,0,.35); cursor:progress;}
+.checkout-btn.proc:disabled{opacity:1;}
+.pr-in{display:flex; align-items:center; justify-content:center; gap:12px;}
+.pr-seal{position:relative; width:26px; height:26px; flex:none;}
+.pr-seal:before{content:''; position:absolute; inset:0; border-radius:50%; border:2.5px solid rgba(217,183,101,.22); border-top-color:var(--gold); animation:prSpin .9s linear infinite;}
+.pr-seal:after{content:''; position:absolute; inset:7px; border-radius:50%; background:radial-gradient(circle,#f6e4b0,#d9b765); animation:prBeat 1.1s ease-in-out infinite;}
+@keyframes prSpin{to{transform:rotate(360deg)}}
+@keyframes prBeat{0%,100%{transform:scale(.7); opacity:.7}50%{transform:scale(1.05); opacity:1}}
+.pr-txt{display:inline-block; min-width:150px; text-align:left; font-weight:800; transition:opacity .25s, transform .25s;}
+.pr-txt.sw{opacity:0; transform:translateY(6px);}
+.pr-steps{display:flex; gap:5px; margin-left:2px;}
+.pr-steps i{width:6px; height:6px; border-radius:50%; background:rgba(217,183,101,.28); transition:background .3s, transform .3s;}
+.pr-steps i.on{background:var(--gold); transform:scale(1.25);}
+.pr-sweep{position:absolute; left:0; bottom:0; height:3px; width:100%; background:linear-gradient(90deg,transparent,var(--gold),transparent); animation:prSweep 1.4s ease-in-out infinite;}
+@keyframes prSweep{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
+@media (prefers-reduced-motion:reduce){.pr-seal:before,.pr-seal:after,.pr-sweep,.hero-banner .cta:after{animation:none!important}}
+
+/* ============ বাতির দড়ি-টানা লগিন ============ */
+#authModal.lamp{background:radial-gradient(ellipse at 50% 20%,#14201b 0%,#0a100e 52%,#040706 100%)!important; -webkit-backdrop-filter:none; backdrop-filter:none; flex-direction:column; padding:0; perspective:none; overflow:hidden; user-select:none; -webkit-user-select:none;}
+#authModal.lamp .au-orb{display:none;}
+#authModal.lamp:before{content:''; position:absolute; inset:0; pointer-events:none; opacity:.7; background-image:radial-gradient(1.4px 1.4px at 12% 18%,rgba(255,255,255,.55),transparent),radial-gradient(1.2px 1.2px at 78% 12%,rgba(255,255,255,.45),transparent),radial-gradient(1.6px 1.6px at 88% 46%,rgba(255,255,255,.35),transparent),radial-gradient(1.2px 1.2px at 22% 66%,rgba(255,255,255,.4),transparent),radial-gradient(1.4px 1.4px at 64% 82%,rgba(255,255,255,.3),transparent),radial-gradient(1px 1px at 40% 8%,rgba(255,255,255,.5),transparent),radial-gradient(1px 1px at 52% 58%,rgba(255,255,255,.3),transparent);}
+.lm-glow{position:absolute; left:50%; top:0; width:120vmax; height:120vmax; transform:translate(-50%,-30%); pointer-events:none; opacity:0; transition:opacity .7s ease; background:radial-gradient(circle at 50% 38%,rgba(255,214,140,.2),rgba(255,214,140,.06) 28%,transparent 55%);}
+#authModal.lamp.on .lm-glow{opacity:1;}
+.lm-close{position:absolute; top:max(14px,env(safe-area-inset-top)); right:14px; z-index:5; width:42px; height:42px; border-radius:50%; border:1px solid rgba(217,183,101,.35); background:rgba(255,255,255,.06); color:var(--gold2); font-size:18px; cursor:pointer; display:grid; place-items:center; transition:background .2s;}
+.lm-close:hover{background:rgba(217,183,101,.2);}
+.lm-wrap{position:relative; z-index:2; width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; gap:4px; padding:56px 16px 22px; overflow:auto;}
+.lm-wrap>:first-child{margin-top:auto;} .lm-wrap>:last-child{margin-bottom:auto;}
+.lm-stage{position:relative; flex:none; width:min(280px,66vw); height:min(380px,44vh); transition:transform .6s cubic-bezier(.3,1.2,.4,1);}
+#authModal.lamp:not(.on) .lm-stage{transform:scale(1.14);}
+@media (max-width:859px){#authModal.lamp.on .lm-stage{height:min(290px,31vh); width:min(215px,50vw);} .lm-stage{transition:transform .6s cubic-bezier(.3,1.2,.4,1), height .6s ease, width .6s ease;}}
+.lm-stage svg{width:100%; height:100%; overflow:visible; touch-action:none;}
+.lm-cone{opacity:0; transition:opacity .55s ease;} #authModal.lamp.on .lm-cone{opacity:1;}
+.lm-bulbglow{opacity:0; transition:opacity .45s;} #authModal.lamp.on .lm-bulbglow{opacity:1;}
+.lm-shadeglow{opacity:0; transition:opacity .45s;} #authModal.lamp.on .lm-shadeglow{opacity:1;}
+.lm-floor{opacity:0; transition:opacity .7s;} #authModal.lamp.on .lm-floor{opacity:1;}
+.lm-hit{cursor:grab;} .lm-hit:active{cursor:grabbing;}
+.lm-hint{text-align:center; color:var(--gold2); font-size:13.5px; font-weight:700; letter-spacing:.2px; min-height:22px; margin-top:-6px; transition:opacity .3s;}
+.lm-hint .ar{display:inline-block; animation:lmNudge 1.4s ease-in-out infinite;}
+@keyframes lmNudge{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+#authModal.lamp .au-card{max-width:410px; width:100%; flex:none; margin-top:6px; opacity:0; transform:translateY(26px) scale(.96); max-height:0; overflow:hidden; pointer-events:none; visibility:hidden; animation:none!important; border-radius:24px; background:linear-gradient(160deg,rgba(26,39,34,.94),rgba(12,19,16,.96)); border:1px solid rgba(217,183,101,.3); box-shadow:0 30px 80px rgba(0,0,0,.65),0 0 70px rgba(255,214,140,.1); color:#f1ead8; transition:opacity .5s ease .12s, transform .55s cubic-bezier(.2,1,.3,1) .12s, max-height .6s ease, visibility 0s linear .6s;}
+#authModal.lamp.on .au-card{opacity:1; transform:none; max-height:94vh; overflow:auto; pointer-events:auto; visibility:visible; transition:opacity .5s ease .25s, transform .6s cubic-bezier(.2,1,.3,1) .25s, max-height .6s ease, visibility 0s;}
+#authModal.lamp .au-x{display:none;}
+#authModal.lamp .au-head{background:transparent; color:var(--ivory); padding:22px 22px 6px; border-radius:0; overflow:visible; transform:none;}
+#authModal.lamp .au-head:after{display:none;}
+#authModal.lamp .au-logo{background:linear-gradient(135deg,#f6e4b0,#d9b765); color:#1a1405; animation:none; box-shadow:0 6px 16px rgba(217,183,101,.3);}
+#authModal.lamp .au-title{color:var(--ivory);} #authModal.lamp .au-sub{color:rgba(246,239,224,.7); opacity:1;}
+#authModal.lamp .au-tabs{background:rgba(255,255,255,.07);}
+#authModal.lamp .au-tabs:before{background:linear-gradient(135deg,#f6e4b0,#d9b765); box-shadow:0 2px 10px rgba(217,183,101,.3);}
+#authModal.lamp .au-tabs button{color:rgba(246,239,224,.72);} #authModal.lamp .au-tabs button.on{color:#1a1405;}
+#authModal.lamp .au-f input{background:rgba(255,255,255,.06); border:1.5px solid rgba(255,255,255,.14); color:var(--ivory);}
+#authModal.lamp .au-f input::placeholder{color:rgba(246,239,224,.45);}
+#authModal.lamp .au-f input:focus{border-color:var(--gold); box-shadow:0 0 0 4px rgba(217,183,101,.16); transform:none;}
+#authModal.lamp .au-f .opt{background:rgba(255,255,255,.1); color:rgba(246,239,224,.7);}
+#authModal.lamp .au-btn{background:linear-gradient(135deg,#f6e4b0,#d9b765 55%,#bf9440); color:#1a1405; box-shadow:0 12px 26px rgba(217,183,101,.28);}
+#authModal.lamp .au-err{color:#ff9d8d;} #authModal.lamp .au-hint,#authModal.lamp .au-otpmsg{color:rgba(246,239,224,.62);} #authModal.lamp .au-trust{color:rgba(246,239,224,.5);}
+.lm-or{display:flex; align-items:center; gap:10px; color:rgba(246,239,224,.45); font-size:11px; margin:14px 0 10px; letter-spacing:1px;}
+.lm-or:before,.lm-or:after{content:''; flex:1; height:1px; background:rgba(255,255,255,.14);}
+.lm-google{width:100%; display:flex; align-items:center; justify-content:center; gap:10px; border:1.5px solid rgba(255,255,255,.18); background:rgba(255,255,255,.05); color:var(--ivory); border-radius:13px; padding:12px; font:inherit; font-weight:700; font-size:14px; cursor:pointer; transition:background .2s,border-color .2s;}
+.lm-google:hover{background:rgba(255,255,255,.1); border-color:rgba(217,183,101,.5);}
+@media (min-width:860px){
+  #authModal.lamp .lm-wrap{flex-direction:row; justify-content:center; align-items:center; gap:0; padding:40px; transition:gap .6s ease;}
+  #authModal.lamp.on .lm-wrap{gap:60px;}
+  .lm-wrap>:first-child,.lm-wrap>:last-child{margin:0;}
+  .lm-stage{width:340px; height:min(500px,68vh);}
+  #authModal.lamp:not(.on) .lm-stage{transform:scale(1.1);}
+  #authModal.lamp .au-card{margin-top:0; width:0; max-width:0; max-height:94vh; transform:translateX(40px) scale(.97); transition:opacity .45s ease .1s, transform .6s cubic-bezier(.2,1,.3,1) .1s, max-width .6s ease, width .6s ease, visibility 0s linear .6s;}
+  #authModal.lamp.on .au-card{width:410px; max-width:410px; transform:none; transition:opacity .5s ease .25s, transform .6s cubic-bezier(.2,1,.3,1) .25s, max-width .6s ease, width .6s ease, visibility 0s;}
+  .lm-hint{position:absolute; left:50%; transform:translateX(-50%); bottom:-4px;}
+}
+@media (prefers-reduced-motion:reduce){.lm-hint .ar{animation:none!important} .lm-stage,.lm-cone,#authModal.lamp .au-card{transition:none!important}}
+</style>
+<script id="lampJs">
+(function(){
+  /* ---------- ১) দড়ি-টানা বাতির দৃশ্য ---------- */
+  var SVG = '' +
+  '<svg viewBox="0 0 260 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+  '<defs>' +
+    '<linearGradient id="lmShade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1b2622"/><stop offset=".5" stop-color="#2c3a35"/><stop offset="1" stop-color="#141c19"/></linearGradient>' +
+    '<linearGradient id="lmPole" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#18211e"/><stop offset=".45" stop-color="#3a4944"/><stop offset="1" stop-color="#121917"/></linearGradient>' +
+    '<linearGradient id="lmGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6e4b0"/><stop offset=".55" stop-color="#d9b765"/><stop offset="1" stop-color="#a97f2e"/></linearGradient>' +
+    '<linearGradient id="lmConeG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffe2a0" stop-opacity=".55"/><stop offset=".6" stop-color="#ffe2a0" stop-opacity=".12"/><stop offset="1" stop-color="#ffe2a0" stop-opacity="0"/></linearGradient>' +
+    '<radialGradient id="lmBulbG"><stop offset="0" stop-color="#fff6d8"/><stop offset=".35" stop-color="#ffd98a" stop-opacity=".9"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>' +
+    '<radialGradient id="lmFloorG"><stop offset="0" stop-color="#ffd98a" stop-opacity=".5"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>' +
+  '</defs>' +
+  '<polygon class="lm-cone" points="56,150 204,150 330,392 -70,392" fill="url(#lmConeG)"/>' +
+  '<ellipse class="lm-floor" cx="130" cy="356" rx="150" ry="22" fill="url(#lmFloorG)"/>' +
+  '<ellipse cx="130" cy="358" rx="64" ry="11" fill="#0b1210"/><ellipse cx="130" cy="354" rx="64" ry="11" fill="url(#lmPole)"/><ellipse cx="130" cy="352" rx="46" ry="6.5" fill="#202c28"/>' +
+  '<ellipse cx="130" cy="354" rx="64" ry="11" fill="none" stroke="url(#lmGold)" stroke-width="1.4" opacity=".85"/>' +
+  '<rect x="126.5" y="150" width="7" height="204" fill="url(#lmPole)"/>' +
+  '<rect x="122" y="262" width="16" height="7" rx="3" fill="url(#lmGold)"/><rect x="122" y="168" width="16" height="6" rx="3" fill="url(#lmGold)"/>' +
+  '<circle class="lm-bulbglow" cx="130" cy="158" r="46" fill="url(#lmBulbG)"/>' +
+  '<path d="M104 62 L156 62 L214 148 L46 148 Z" fill="url(#lmShade)"/>' +
+  '<path class="lm-shadeglow" d="M110 66 L150 66 L204 146 L56 146 Z" fill="#ffd98a" opacity=".22"/>' +
+  '<path d="M104 62 L156 62 L214 148 L46 148 Z" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1"/>' +
+  '<ellipse cx="130" cy="148" rx="84" ry="9" fill="#0d1311"/>' +
+  '<ellipse class="lm-shadeglow" cx="130" cy="148" rx="82" ry="8" fill="#ffe7b0"/>' +
+  '<ellipse cx="130" cy="148" rx="84" ry="9" fill="none" stroke="url(#lmGold)" stroke-width="2"/>' +
+  '<rect x="122" y="52" width="16" height="12" rx="4" fill="url(#lmGold)"/><circle cx="130" cy="50" r="5" fill="url(#lmGold)"/>' +
+  '<circle id="lmBulb" cx="130" cy="152" r="10.5" fill="#3a4540"/><circle class="lm-bulbglow" cx="130" cy="152" r="10.5" fill="#fff3cf"/>' +
+  '<g id="lmCord" role="switch" tabindex="0" aria-checked="false" aria-label="বাতির দড়ি টানুন — সাইন-ইন খুলবে বা বন্ধ হবে">' +
+    '<line id="lmLine" x1="196" y1="153" x2="196" y2="250" stroke="#d9b765" stroke-width="2.4" stroke-linecap="round"/>' +
+    '<g id="lmHandle" transform="translate(0,0)"><path d="M196 250 l-5.5 16 h11 z" fill="url(#lmGold)"/><circle cx="196" cy="246" r="7.5" fill="url(#lmGold)"/><circle cx="194" cy="244" r="2.4" fill="#fff" opacity=".6"/></g>' +
+    '<rect class="lm-hit" x="170" y="226" width="52" height="80" fill="transparent"/>' +
+  '</g>' +
+  '</svg>';
+
+  var lit = false, pos = 0, vel = 0, raf = 0, drag = null, waiters = [];
+  var $ = function(id){ return document.getElementById(id); };
+  var REST = 0, MAXP = 46;
+
+  function setLit(v, instant){
+    lit = !!v;
+    var m = $('authModal'); if(!m) return;
+    m.classList.toggle('on', lit);
+    var sw = $('lmCord'); if(sw) sw.setAttribute('aria-checked', lit ? 'true' : 'false');
+    var b = $('lmBulb'); if(b) b.setAttribute('fill', lit ? '#fff3cf' : '#3a4540');
+    var h = $('lmHint');
+    if(h) h.innerHTML = lit ? '<span style="opacity:.8">আবার দড়ি টানলে বন্ধ হবে</span>' : '<span class="ar">↓</span> বাতির দড়িতে টান দিন <span class="ar">↓</span>';
+    if(lit && !instant){ try{ var f = $('authPhone'); if(f && window.innerWidth >= 860) setTimeout(function(){ f.focus({preventScroll:true}); }, 700); }catch(e){} }
+  }
+  function draw(){
+    var line = $('lmLine'), hd = $('lmHandle'); if(!line || !hd) return;
+    line.setAttribute('y2', 250 + pos); hd.setAttribute('transform', 'translate(0,' + pos + ')');
+  }
+  function spring(){
+    cancelAnimationFrame(raf);
+    (function step(){
+      var k = 0.22, d = 0.78;
+      vel += (REST - pos) * k; vel *= d; pos += vel; draw();
+      if(Math.abs(vel) > 0.05 || Math.abs(pos - REST) > 0.2) raf = requestAnimationFrame(step); else { pos = REST; draw(); }
+    })();
+  }
+  function toggle(){ setLit(!lit); vel = 7; spring(); try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
+  function bind(m){
+    var cord = $('lmCord'), svg = m.querySelector('.lm-stage svg');
+    function k(e){ var r = svg.getBoundingClientRect(); return 400 / (r.height || 400); }
+    cord.addEventListener('pointerdown', function(e){
+      e.preventDefault(); cancelAnimationFrame(raf);
+      drag = { y: e.clientY, moved: 0, k: k() }; try{ cord.setPointerCapture(e.pointerId); }catch(x){}
+    });
+    cord.addEventListener('pointermove', function(e){
+      if(!drag) return; var dy = (e.clientY - drag.y) * drag.k; drag.moved = Math.max(drag.moved, Math.abs(dy));
+      pos = Math.max(0, Math.min(MAXP, dy)); vel = 0; draw();
+    });
+    function up(){
+      if(!drag) return; var pulled = pos >= 20 || drag.moved < 5; drag = null;
+      if(pulled) toggle(); else spring();
+    }
+    cord.addEventListener('pointerup', up); cord.addEventListener('pointercancel', function(){ drag = null; spring(); });
+    cord.addEventListener('keydown', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); toggle(); } });
+  }
+
+  /* ---------- ২) মডালে বসানো ---------- */
+  var _am = authModalEl;
+  authModalEl = function(){
+    var m = _am();
+    if(m._lamp) return m; m._lamp = true;
+    m.classList.add('lamp');
+    var card = $('authCard');
+    var wrap = document.createElement('div'); wrap.className = 'lm-wrap';
+    var stage = document.createElement('div'); stage.className = 'lm-stage'; stage.innerHTML = SVG;
+    var hint = document.createElement('div'); hint.className = 'lm-hint'; hint.id = 'lmHint';
+    var glow = document.createElement('div'); glow.className = 'lm-glow';
+    var x = document.createElement('button'); x.type = 'button'; x.className = 'lm-close'; x.setAttribute('aria-label', 'বন্ধ করুন'); x.textContent = '✕'; x.onclick = closeAuthModal;
+    var stageBox = document.createElement('div'); stageBox.style.cssText = 'position:relative;display:flex;flex-direction:column;align-items:center;flex:none'; stageBox.appendChild(stage); stageBox.appendChild(hint);
+    wrap.appendChild(stageBox); wrap.appendChild(card);
+    m.appendChild(glow); m.appendChild(x); m.appendChild(wrap);
+    // Google বাটন (ইন-অ্যাপ ব্রাউজারে পপআপ চলে না — তখন দেখাই না)
+    var body = card.querySelector('.au-body'), trust = card.querySelector('.au-trust');
+    if(!isInAppBrowser()){
+      var g = document.createElement('div');
+      g.innerHTML = '<div class="lm-or"><span>অথবা</span></div><button type="button" class="lm-google" id="lmGoogle"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.5-4.7 7.2l7.5 5.8c4.4-4.1 7-10.1 7-17.5z"/><path fill="#FBBC05" d="M10.5 28.7a14.5 14.5 0 0 1 0-9.4l-7.9-6.1a24 24 0 0 0 0 21.6l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.5-5.8c-2.1 1.4-4.8 2.3-8.4 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>Google দিয়ে চালিয়ে যান</button>';
+      body.insertBefore(g, trust);
+      g.querySelector('#lmGoogle').onclick = async function(){ try{ await _google(); }catch(e){} if(window.currentUser) closeAuthModal(); };
+    }
+    bind(m); setLit(false, true); pos = 0; draw();
+    return m;
+  };
+  var _oa = openAuthModal;
+  openAuthModal = function(mode){ _oa(mode); setLit(false, true); pos = 0; draw(); };
+  var _ca = closeAuthModal;
+  closeAuthModal = function(){ _ca(); setLit(false, true); var w = waiters; waiters = []; w.forEach(function(f){ f(); }); };
+
+  /* ---------- ৩) সব "সাইন-ইন" এখন বাতি-লগিন খোলে ---------- */
+  var _google = signInWithGoogle;
+  signInWithGoogle = function(){
+    if(window.currentUser || (typeof currentUser !== 'undefined' && currentUser)) return Promise.resolve();
+    return new Promise(function(res){ waiters.push(res); openAuthModal('login'); });
+  };
+  try{ fireAuth.onAuthStateChanged(function(u){ if(u && !u.isAnonymous){ var m = $('authModal'); if(m && m.style.display === 'flex') closeAuthModal(); } }); }catch(e){}
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ var m = $('authModal'); if(m && m.style.display === 'flex') closeAuthModal(); } });
+})();
+</script>
+<script id="procJs">
+/* অর্ডার নিশ্চিত করুন বাটন: প্রসেসিং-এ গেলে সিল-রিং + ধাপের বার্তা + সোনালি স্বীপ */
+(function(){
+  var STEPS = ['তথ্য যাচাই হচ্ছে…', 'স্টক নিশ্চিত হচ্ছে…', 'অর্ডার তৈরি হচ্ছে…', 'প্রায় হয়ে গেছে…'];
+  var timer = null, busy = false, idx = 0;
+  function btn(){ return document.querySelector('#checkoutView .checkout-btn'); }
+  function dots(n){ var h = ''; for(var i = 0; i < STEPS.length; i++) h += '<i class="' + (i <= n ? 'on' : '') + '"></i>'; return h; }
+  function render(b){
+    busy = true;
+    b.innerHTML = '<span class="pr-in"><span class="pr-seal"></span><span class="pr-txt" id="prTxt">' + STEPS[idx] + '</span><span class="pr-steps" id="prSteps">' + dots(idx) + '</span></span><i class="pr-sweep"></i>';
+    busy = false;
+  }
+  function start(b){
+    if(b.classList.contains('proc')) return;
+    b.classList.add('proc'); idx = 0; render(b);
+    timer = setInterval(function(){
+      if(idx >= STEPS.length - 1) return; var t = document.getElementById('prTxt');
+      if(!t) return; t.classList.add('sw');
+      setTimeout(function(){ idx++; var t2 = document.getElementById('prTxt'), s = document.getElementById('prSteps'); if(t2){ t2.textContent = STEPS[idx]; t2.classList.remove('sw'); } if(s) s.innerHTML = dots(idx); }, 240);
+    }, 1500);
+  }
+  function stop(b){ clearInterval(timer); timer = null; b.classList.remove('proc'); }
+  function watch(){
+    var b = btn(); if(!b || b._pw) return; b._pw = true;
+    new MutationObserver(function(){
+      if(busy) return;
+      if(b.disabled && !b.classList.contains('proc')) start(b);
+      else if(!b.disabled && b.classList.contains('proc')) stop(b);
+    }).observe(b, { attributes: true, attributeFilter: ['disabled'], childList: true, characterData: true, subtree: true });
+  }
+  watch(); document.addEventListener('DOMContentLoaded', watch); setTimeout(watch, 1500); setTimeout(watch, 4000);
+})();
+</script>
+<script id="pixelJs">
+/* ফেসবুক পিক্সেল/GA আগে থেকেই আছে (AddToCart, Purchase)। এখানে বাকি দুটো ধাপ যোগ: পণ্য দেখা ও চেকআউট শুরু */
+(function(){
+  function prod(id){ try{ return (DB.products || []).find(function(x){ return x.id === id; }); }catch(e){ return null; } }
+  function cartIds(){ try{ return cart.map(function(c){ return String(c.pid); }); }catch(e){ return []; } }
+  function cartValue(){ try{ return cart.reduce(function(s, c){ var p = prod(c.pid); return s + (p ? (Number(p.price) || 0) * c.qty : 0); }, 0); }catch(e){ return 0; } }
+  function track(fb, ga, data){ try{ if(typeof trackEvent === 'function') trackEvent(fb, ga, data); }catch(e){} }
+  var _op = window.openProduct;
+  if(typeof _op === 'function') window.openProduct = openProduct = function(id){
+    var r = _op.apply(this, arguments);
+    var p = prod(id); if(p) track('ViewContent', 'view_item', { content_ids: [String(id)], content_name: p.name, content_type: 'product', value: Number(p.price) || 0, currency: 'BDT' });
+    return r;
+  };
+  var _go = window.goto;
+  if(typeof _go === 'function') window.goto = goto = function(v){
+    var r = _go.apply(this, arguments);
+    if(v === 'checkoutView') track('InitiateCheckout', 'begin_checkout', { content_ids: cartIds(), num_items: cartIds().length, value: cartValue(), currency: 'BDT' });
+    return r;
+  };
+})();
+</script>
 </body>
 </html>
