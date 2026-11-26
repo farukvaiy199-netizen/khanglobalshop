@@ -2468,6 +2468,10 @@ let authMode = 'login', _authBusy = false;
 #authModal .au-err{color:#ffa595; font-size:12px; min-height:16px; margin:2px 2px 8px; line-height:1.5;}
 #authModal .au-hint{font-size:11px; color:rgba(234,244,240,.5); line-height:1.7; margin-top:10px; text-align:center;}
 #authModal .au-trust{display:flex; justify-content:center; flex-wrap:wrap; gap:4px 12px; margin-top:10px; font-size:10.5px; color:rgba(243,216,139,.75);}
+#authModal .au-or{display:flex; align-items:center; gap:10px; margin:12px 2px 10px; color:rgba(234,244,240,.5); font-size:11px;}
+#authModal .au-or:before,#authModal .au-or:after{content:''; flex:1; height:1px; background:rgba(255,255,255,.14);}
+#authModal .au-gbtn{width:100%; display:flex; align-items:center; justify-content:center; gap:9px; border:1px solid rgba(255,255,255,.22); background:rgba(255,255,255,.95); color:#1f2a27; border-radius:12px; padding:11px 8px; font-weight:700; font-size:13px; cursor:pointer; font-family:inherit; transition:transform .15s, box-shadow .15s;}
+#authModal .au-gbtn:active{transform:scale(.98);}
 /* বাতি */
 #authModal .au-cone{opacity:0; transition:opacity .7s ease;}
 #authModal.on .au-cone{opacity:1;}
@@ -2604,7 +2608,9 @@ function authModalEl(){
           '<div class="au-f" id="authOtpWrap" style="display:none;"><span class="ic">' + AU_ICON.key + '</span><input id="authOtp" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="ওটিপি কোড (ঐচ্ছিক)"><button type="button" class="otp-send" id="authOtpBtn" onclick="sendOtp()">ওটিপি পাঠান</button></div><div class="au-otpmsg" id="authOtpMsg" style="display:none;"></div>' +
           '<div class="au-err" id="authErr" role="alert"></div>' +
           '<button type="button" id="authSubmit" class="au-btn" onclick="submitAuth()"></button>' +
-          '<div class="au-hint" id="authHint"></div>' +
+          '<div class="au-hint" id="authHint" style="display:none"></div>' +
+        '<div class="au-or"><span>অথবা</span></div>' +
+        '<button type="button" class="au-gbtn" onclick="auGoogle()"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3A12 12 0 1 1 24 12a11.9 11.9 0 0 1 8.4 3.3l5.7-5.7A20 20 0 1 0 44 24c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8A12 12 0 0 1 24 12a11.9 11.9 0 0 1 8.4 3.3l5.7-5.7A20 20 0 0 0 6.3 14.7z"/><path fill="#4CAF50" d="M24 44a20 20 0 0 0 13.5-5.2l-6.2-5.2A12 12 0 0 1 12.7 28l-6.5 5A20 20 0 0 0 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3a12 12 0 0 1-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>Google দিয়ে সাইন-ইন করুন</button>' +
           '<div class="au-trust"><span>🔐 সুরক্ষিত</span><span>⚡ দ্রুত</span><span>🚚 সারা দেশে ডেলিভারি</span></div>' +
         '</div>' +
       '</div>' +
@@ -2614,6 +2620,12 @@ function authModalEl(){
   document.body.appendChild(m);
   auSetupCord(m);
   return m;
+}
+
+async function auGoogle(){
+  if(isInAppBrowser()){ toast('ফেসবুক/মেসেঞ্জারের ব্রাউজারে Google চলে না — Chrome-এ খুলুন, অথবা নম্বর দিয়ে লগইন করুন'); return; }
+  try{ await window.__realGoogle(); }catch(e){ toast('Google সাইন-ইন হয়নি — আবার চেষ্টা করুন'); return; }
+  if(currentUser && !currentUser.isAnonymous) closeAuthModal();
 }
 
 function setAuthMode(mode){
@@ -3546,6 +3558,14 @@ body{padding-bottom:96px;}
 #successView h3{font-family:'Baloo Da 2','Hind Siliguri',sans-serif; font-size:24px; color:#0B2E27;}
 
 
+.pm-acc{text-align:center; background:linear-gradient(160deg,#0B2E27,#0F4136); border:1px solid rgba(217,169,62,.45); border-radius:20px; padding:20px 16px 18px; box-shadow:0 16px 34px -16px rgba(5,30,24,.6);}
+.pm-acc-ic{width:56px; height:56px; margin:0 auto 10px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#2a1d05; background:radial-gradient(circle at 30% 25%,#F7E2A0,#D9A93E); box-shadow:0 0 0 6px rgba(217,169,62,.16),0 0 26px rgba(255,205,110,.5);}
+.pm-acc-t{font-weight:800; font-size:17px; color:#fff; font-family:'Baloo Da 2','Hind Siliguri',sans-serif;}
+.pm-acc-s{font-size:12px; color:rgba(255,255,255,.7); margin:4px 0 14px; line-height:1.6;}
+.pm-acc-b{width:100%; max-width:280px; border:none; border-radius:13px; padding:12px; font-weight:800; font-size:14px; color:#2a1d05; background:linear-gradient(135deg,#F7E2A0,#D9A93E 55%,#B8832A); box-shadow:0 10px 22px -8px rgba(217,169,62,.6); cursor:pointer; font-family:inherit;}
+.pm-ckb{font-size:12px; background:#FBF4E2; border:1px solid rgba(217,169,62,.4); color:#6b5320; padding:10px 12px; border-radius:10px; margin-bottom:14px; line-height:1.7;}
+.pm-ckb a{color:#0B5A4C; font-weight:700; text-decoration:underline;}
+
 </style>
 <script id="fzCore">
 /* ===== অনুমানভিত্তিক সার্চ (বাংলা · ইংরেজি · Banglish; ভুল বানানেও কাছাকাছি পণ্য) ===== */
@@ -3921,6 +3941,7 @@ if(typeof module !== 'undefined') module.exports = FZ;
   /* ---------- গেস্ট লগইন বাদ ---------- */
   guestSignIn = async function(){ if(currentUser && !currentUser.isAnonymous) return true; openAuthModal('login'); return false; };
   startGuestOrder = function(){ openAuthModal('login'); };
+  window.__realGoogle = signInWithGoogle;
   signInWithGoogle = async function(){ if(currentUser && !currentUser.isAnonymous) return; openAuthModal('login'); };
   (function(){
     const _ub = updateCheckoutAuthBanner;
@@ -3928,6 +3949,19 @@ if(typeof module !== 'undefined') module.exports = FZ;
       _ub();
       const el = $('checkoutAuthBanner'); if(!el) return;
       el.querySelectorAll('button[onclick*="startGuestOrder"]').forEach(b => b.remove());
+    };
+  })();
+  const LOGIN_CARD = '<div class="pm-acc"><div class="pm-acc-ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21h6M10 17h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-1.1c0-.8.4-1.5 1-2A6 6 0 0 0 12 3Z"/></svg></div><div class="pm-acc-t">লগইন / রেজিস্ট্রেশন</div><div class="pm-acc-s">অর্ডার করতে, অর্ডার দেখতে ও চ্যাট করতে সাইন-ইন করুন</div><button type="button" class="pm-acc-b" onclick="openAuthModal(\'login\')">💡 বাতি জ্বালিয়ে সাইন-ইন করুন</button></div>';
+  (function(){
+    const _ua = updateAccountAuthArea;
+    updateAccountAuthArea = function(){
+      _ua();
+      const el = $('accountAuthArea'); if(el && (!currentUser || currentUser.isAnonymous)) el.innerHTML = LOGIN_CARD;
+    };
+    const _ub2 = updateCheckoutAuthBanner;
+    updateCheckoutAuthBanner = function(){
+      _ub2();
+      const el = $('checkoutAuthBanner'); if(el && (!currentUser || currentUser.isAnonymous)) el.innerHTML = '<div class="pm-ckb">অর্ডার করতে সাইন-ইন লাগবে — "অর্ডার নিশ্চিত করুন" চাপলে বাতির লগইন খুলবে। <a href="javascript:void(0)" onclick="openAuthModal(\'signup\')">নতুন অ্যাকাউন্ট খুলুন</a></div>';
     };
   })();
   try{ fireAuth.onAuthStateChanged(u => { if(u && u.isAnonymous){ fireAuth.signOut().catch(() => {}); } }); }catch(e){}
